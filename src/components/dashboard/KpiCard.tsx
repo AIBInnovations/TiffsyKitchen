@@ -1,0 +1,112 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { KpiMetric } from '../../types/dashboard';
+
+interface KpiCardProps {
+  metric: KpiMetric;
+}
+
+export const KpiCard: React.FC<KpiCardProps> = ({ metric }) => {
+  const formatValue = (value: number, prefix?: string, unit?: string): string => {
+    const formattedNumber = value >= 1000
+      ? `${(value / 1000).toFixed(1)}k`
+      : value.toString();
+    return `${prefix || ''}${formattedNumber}${unit || ''}`;
+  };
+
+  const getChangeColor = (direction?: 'up' | 'down' | 'neutral'): string => {
+    switch (direction) {
+      case 'up':
+        return '#22c55e';
+      case 'down':
+        return '#ef4444';
+      default:
+        return '#6b7280';
+    }
+  };
+
+  const getChangeIcon = (direction?: 'up' | 'down' | 'neutral'): string => {
+    switch (direction) {
+      case 'up':
+        return 'trending-up';
+      case 'down':
+        return 'trending-down';
+      default:
+        return 'trending-flat';
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={[styles.iconContainer, { backgroundColor: metric.color + '20' }]}>
+        <MaterialIcons name={metric.icon} size={24} color={metric.color} />
+      </View>
+      <Text style={styles.value}>
+        {formatValue(metric.value, metric.prefix, metric.unit)}
+      </Text>
+      <Text style={styles.label} numberOfLines={1}>
+        {metric.label}
+      </Text>
+      {metric.changePercent !== undefined && (
+        <View style={styles.changeContainer}>
+          <MaterialIcons
+            name={getChangeIcon(metric.changeDirection)}
+            size={14}
+            color={getChangeColor(metric.changeDirection)}
+          />
+          <Text
+            style={[styles.changeText, { color: getChangeColor(metric.changeDirection) }]}
+          >
+            {metric.changePercent}%
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    width: '48%',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  value: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  label: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  changeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  changeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 2,
+  },
+});
+
+KpiCard.displayName = 'KpiCard';

@@ -1,0 +1,957 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  SafeAreaView,
+  Modal,
+  Alert,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { DashboardScreen } from './DashboardScreen';
+import { UsersScreen } from './UsersScreen';
+import { UserDetailsScreen } from './UserDetailsScreen';
+import { OrdersListScreen, OrderDetailScreen, Order } from '../../modules/orders';
+import { PlansScreen } from '../../modules/plans';
+import { KitchenManagementScreen } from '../../modules/kitchen';
+import { MenuManagementScreen } from '../../modules/menu';
+import { CutoffTimesSettingsScreen } from '../../modules/cutoff';
+
+// Constants
+const PRIMARY_COLOR = '#f97316';
+
+// Storage keys
+const STORAGE_KEYS = {
+  ADMIN_SESSION: '@admin_session_indicator',
+  REMEMBER_ME: '@admin_remember_me',
+};
+
+// Validation rules
+const VALIDATION = {
+  USERNAME_MIN_LENGTH: 3,
+  PASSWORD_MIN_LENGTH: 6,
+};
+
+// Field error types
+interface FieldErrors {
+  username?: string;
+  password?: string;
+}
+
+const AdminLoginScreen: React.FC = () => {
+  const passwordInputRef = useRef<TextInput>(null);
+
+  // Form state
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [activeMenu, setActiveMenu] = useState('Dashboard');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // UI state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [globalError, setGlobalError] = useState<string | undefined>();
+
+  // Check for existing session on mount
+  useEffect(() => {
+    checkExistingSession();
+  }, []);
+
+  const checkExistingSession = async () => {
+    try {
+      const [sessionIndicator, storedRememberMe] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEYS.ADMIN_SESSION),
+        AsyncStorage.getItem(STORAGE_KEYS.REMEMBER_ME),
+      ]);
+
+      // Restore remember me preference
+      if (storedRememberMe !== null) {
+        setRememberMe(storedRememberMe === 'true');
+      }
+
+      // If valid session exists, navigate to dashboard
+      if (sessionIndicator) {
+        navigateToDashboard();
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking session:', error);
+    } finally {
+      setIsCheckingSession(false);
+    }
+  };
+
+  const navigateToDashboard = () => {
+    // Set logged in state to show dashboard with header
+    setIsLoggedIn(true);
+  };
+
+  const handleMenuPress = () => {
+    setSidebarVisible(true);
+  };
+
+  const handleMenuItemPress = (menuItem: string) => {
+    setActiveMenu(menuItem);
+    setSidebarVisible(false);
+    // Clear selected user when switching away from Users menu
+    if (menuItem !== 'Users') {
+      setSelectedUserId(null);
+    }
+    // Clear selected order when switching away from Orders menu
+    if (menuItem !== 'Orders') {
+      setSelectedOrder(null);
+    }
+  };
+
+  const menuItems = [
+    { name: 'Dashboard', icon: 'dashboard' },
+    { name: 'Users', icon: 'people' },
+    { name: 'Orders', icon: 'receipt-long' },
+    { name: 'Plans and Pricing', icon: 'attach-money' },
+    { name: 'Kitchen Management', icon: 'restaurant' },
+    { name: 'Menu Management', icon: 'menu-book' },
+    { name: 'Cut Off Timing', icon: 'schedule' },
+  ];
+
+  const validateForm = (): boolean => {
+    const errors: FieldErrors = {};
+    let isValid = true;
+
+    // Validate username
+    if (!username.trim()) {
+      errors.username = 'Username is required';
+      isValid = false;
+    } else if (username.trim().length < VALIDATION.USERNAME_MIN_LENGTH) {
+      errors.username = `Username must be at least ${VALIDATION.USERNAME_MIN_LENGTH} characters`;
+      isValid = false;
+    }
+
+    // Validate password
+    if (!password) {
+      errors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < VALIDATION.PASSWORD_MIN_LENGTH) {
+      errors.password = `Password must be at least ${VALIDATION.PASSWORD_MIN_LENGTH} characters`;
+      isValid = false;
+    }
+
+    setFieldErrors(errors);
+    return isValid;
+  };
+
+  const handleSignIn = async () => {
+    // Clear previous errors
+    setFieldErrors({});
+    setGlobalError(undefined);
+
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Simulate a brief delay for UX (frontend-only)
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Frontend-only login validation
+      // In a real app, this would be replaced with actual authentication
+      // For demo purposes, we simulate success for any valid inputs
+      const isLoginSuccessful = true;
+
+      if (isLoginSuccessful) {
+        // Store session if remember me is checked
+        if (rememberMe) {
+          await AsyncStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'admin_session_active');
+        }
+
+        // Always store remember me preference
+        await AsyncStorage.setItem(STORAGE_KEYS.REMEMBER_ME, String(rememberMe));
+
+        // Navigate to dashboard
+        navigateToDashboard();
+      } else {
+        setGlobalError('Unable to sign in with the provided credentials.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setGlobalError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    // Placeholder action for forgot password
+    // Could navigate to a ForgotPassword screen or show an alert
+    console.log('Forgot password pressed');
+  };
+
+  const handleUsernameChange = (text: string) => {
+    setUsername(text);
+    // Clear username error when user types
+    if (fieldErrors.username) {
+      setFieldErrors((prev) => ({ ...prev, username: undefined }));
+    }
+  };
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    // Clear password error when user types
+    if (fieldErrors.password) {
+      setFieldErrors((prev) => ({ ...prev, password: undefined }));
+    }
+  };
+
+  const toggleRememberMe = () => {
+    setRememberMe((prev) => !prev);
+  };
+
+  const isFormValid =
+    username.trim().length >= VALIDATION.USERNAME_MIN_LENGTH &&
+    password.length >= VALIDATION.PASSWORD_MIN_LENGTH;
+
+  // Show loading while checking session
+  if (isCheckingSession) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+      </View>
+    );
+  }
+
+  // Show dashboard with header after login
+  if (isLoggedIn) {
+    return (
+      <SafeAreaView style={styles.dashboardContainer}>
+        {/* Sidebar Modal */}
+        <Modal
+          visible={sidebarVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setSidebarVisible(false)}
+        >
+          <View style={styles.sidebarOverlay}>
+            {/* Backdrop - tap to close */}
+            <TouchableOpacity
+              style={styles.sidebarBackdrop}
+              activeOpacity={1}
+              onPress={() => setSidebarVisible(false)}
+            />
+
+            {/* Sidebar Content */}
+            <View style={styles.sidebar}>
+              {/* Sidebar Header */}
+              <View style={styles.sidebarHeader}>
+                <View style={styles.sidebarLogoContainer}>
+                  <Icon name="restaurant" size={32} color="#f97316" />
+                </View>
+                <Text style={styles.sidebarTitle}>Tiffin Platform</Text>
+                <TouchableOpacity
+                  style={styles.sidebarCloseButton}
+                  onPress={() => setSidebarVisible(false)}
+                >
+                  <Icon name="close" size={24} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Menu Items */}
+              <View style={styles.sidebarMenu}>
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.name}
+                    style={[
+                      styles.menuItem,
+                      activeMenu === item.name && styles.menuItemActive,
+                    ]}
+                    onPress={() => handleMenuItemPress(item.name)}
+                  >
+                    <Icon
+                      name={item.icon}
+                      size={24}
+                      color={activeMenu === item.name ? '#f97316' : '#4b5563'}
+                    />
+                    <Text
+                      style={[
+                        styles.menuItemText,
+                        activeMenu === item.name && styles.menuItemTextActive,
+                      ]}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Sidebar Footer */}
+              <View style={styles.sidebarFooter}>
+                <TouchableOpacity
+                  style={styles.logoutButton}
+                  onPress={() => {
+                    setSidebarVisible(false);
+                    setIsLoggedIn(false);
+                  }}
+                >
+                  <Icon name="logout" size={24} color="#ef4444" />
+                  <Text style={styles.logoutText}>Logout</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Render active screen */}
+        {activeMenu === 'Dashboard' && (
+          <DashboardScreen
+            onMenuPress={handleMenuPress}
+            onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
+          />
+        )}
+
+        {activeMenu === 'Users' && !selectedUserId && (
+          <UsersScreen
+            onMenuPress={handleMenuPress}
+            onUserPress={(userId) => setSelectedUserId(userId)}
+          />
+        )}
+
+        {activeMenu === 'Users' && selectedUserId && (
+          <UserDetailsScreen
+            userId={selectedUserId}
+            onBack={() => setSelectedUserId(null)}
+          />
+        )}
+
+        {activeMenu === 'Orders' && !selectedOrder && (
+          <OrdersListScreen
+            onMenuPress={handleMenuPress}
+            onOrderPress={(order) => setSelectedOrder(order)}
+          />
+        )}
+
+        {activeMenu === 'Orders' && selectedOrder && (
+          <OrderDetailScreen
+            order={selectedOrder}
+            onBack={() => setSelectedOrder(null)}
+          />
+        )}
+
+        {activeMenu === 'Plans and Pricing' && (
+          <PlansScreen onMenuPress={handleMenuPress} />
+        )}
+
+        {activeMenu === 'Kitchen Management' && (
+          <KitchenManagementScreen onMenuPress={handleMenuPress} />
+        )}
+
+        {activeMenu === 'Menu Management' && (
+          <MenuManagementScreen onMenuPress={handleMenuPress} />
+        )}
+
+        {activeMenu === 'Cut Off Timing' && (
+          <CutoffTimesSettingsScreen onMenuPress={handleMenuPress} />
+        )}
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.contentContainer}>
+          {/* Login Card */}
+          <View style={styles.card}>
+            {/* Logo / Brand */}
+            <View style={styles.logoContainer}>
+              <View style={styles.logoPlaceholder}>
+                <Icon name="restaurant" size={40} color="#f97316" />
+              </View>
+              <Text style={styles.brandText}>Tiffin Platform</Text>
+            </View>
+
+            {/* Title & Subtitle */}
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>Admin Console Login</Text>
+              <Text style={styles.subtitle}>For internal use only</Text>
+            </View>
+
+            {/* Form Fields */}
+            <View style={styles.formContainer}>
+              {/* Username Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.label}>Username</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    fieldErrors.username ? styles.inputError : null,
+                  ]}
+                >
+                  <Icon
+                    name="person-outline"
+                    size={20}
+                    color="#9ca3af"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter your username"
+                    placeholderTextColor="#9ca3af"
+                    value={username}
+                    onChangeText={handleUsernameChange}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoFocus
+                    returnKeyType="next"
+                    onSubmitEditing={() => passwordInputRef.current?.focus()}
+                    editable={!isSubmitting}
+                    accessibilityLabel="Username input"
+                  />
+                </View>
+                {fieldErrors.username && (
+                  <Text style={styles.errorText}>{fieldErrors.username}</Text>
+                )}
+              </View>
+
+              {/* Password Field */}
+              <View style={styles.fieldContainer}>
+                <Text style={styles.label}>Password</Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    fieldErrors.password ? styles.inputError : null,
+                  ]}
+                >
+                  <Icon
+                    name="lock-outline"
+                    size={20}
+                    color="#9ca3af"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    ref={passwordInputRef}
+                    style={styles.input}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#9ca3af"
+                    value={password}
+                    onChangeText={handlePasswordChange}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="done"
+                    onSubmitEditing={handleSignIn}
+                    editable={!isSubmitting}
+                    accessibilityLabel="Password input"
+                  />
+                  <TouchableOpacity
+                    style={styles.showHideButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                    accessibilityRole="button"
+                  >
+                    <Icon
+                      name={showPassword ? 'visibility-off' : 'visibility'}
+                      size={20}
+                      color="#6b7280"
+                    />
+                  </TouchableOpacity>
+                </View>
+                {fieldErrors.password && (
+                  <Text style={styles.errorText}>{fieldErrors.password}</Text>
+                )}
+              </View>
+
+              {/* Remember Me */}
+              <TouchableOpacity
+                style={styles.rememberMeContainer}
+                onPress={toggleRememberMe}
+                activeOpacity={0.7}
+                accessibilityLabel="Remember this device for 7 days"
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: rememberMe }}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    rememberMe ? styles.checkboxChecked : null,
+                  ]}
+                >
+                  {rememberMe && (
+                    <Icon name="check" size={14} color="#ffffff" />
+                  )}
+                </View>
+                <Text style={styles.rememberMeText}>
+                  Remember this device for 7 days
+                </Text>
+              </TouchableOpacity>
+
+              {/* Global Error */}
+              {globalError && (
+                <View style={styles.globalErrorContainer}>
+                  <Icon name="error-outline" size={18} color="#dc2626" />
+                  <Text style={styles.globalErrorText}>{globalError}</Text>
+                </View>
+              )}
+
+              {/* Sign In Button */}
+              <TouchableOpacity
+                style={[
+                  styles.signInButton,
+                  (!isFormValid || isSubmitting) && styles.signInButtonDisabled,
+                ]}
+                onPress={handleSignIn}
+                disabled={!isFormValid || isSubmitting}
+                activeOpacity={0.8}
+                accessibilityLabel="Sign In"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !isFormValid || isSubmitting }}
+              >
+                {isSubmitting ? (
+                  <View style={styles.buttonContent}>
+                    <ActivityIndicator size="small" color="#ffffff" />
+                    <Text style={[styles.signInButtonText, { marginLeft: 8 }]}>Signing In...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.signInButtonText}>Sign In</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Forgot Password Link */}
+              <TouchableOpacity
+                style={styles.forgotPasswordContainer}
+                onPress={handleForgotPassword}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              © Tiffin Platform · Admin Access Only
+            </Text>
+          </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+// Add displayName for debugging
+AdminLoginScreen.displayName = 'AdminLoginScreen';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f97316',
+  },
+
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#f97316',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+
+  // Card styles
+  card: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  // Logo styles
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+
+  logoPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#fff7ed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  brandText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+
+  // Title styles
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 6,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+
+  // Form styles
+  formContainer: {
+    // Using marginBottom on children instead of gap for compatibility
+  },
+
+  fieldContainer: {
+    marginBottom: 16,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 8,
+  },
+
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+  },
+
+  inputError: {
+    borderColor: '#ef4444',
+    backgroundColor: '#fef2f2',
+  },
+
+  inputIcon: {
+    marginRight: 10,
+  },
+
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#1f2937',
+  },
+
+  showHideButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+
+  errorText: {
+    fontSize: 12,
+    color: '#dc2626',
+    marginTop: 6,
+    marginLeft: 4,
+  },
+
+  // Remember me styles
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    minHeight: 44,
+  },
+
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  checkboxChecked: {
+    backgroundColor: '#f97316',
+    borderColor: '#f97316',
+  },
+
+  rememberMeText: {
+    fontSize: 14,
+    color: '#4b5563',
+    flex: 1,
+  },
+
+  // Global error styles
+  globalErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+
+  globalErrorText: {
+    fontSize: 13,
+    color: '#dc2626',
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  // Button styles
+  signInButton: {
+    backgroundColor: '#f97316',
+    borderRadius: 24,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    minHeight: 50,
+    shadowColor: '#f97316',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  signInButtonDisabled: {
+    backgroundColor: '#d1d5db',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  signInButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Forgot password styles
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#f97316',
+    fontWeight: '500',
+  },
+
+  // Footer styles
+  footer: {
+    alignItems: 'center',
+    marginTop: 32,
+    paddingBottom: 16,
+  },
+
+  footerText: {
+    fontSize: 12,
+    color: '#ffffff',
+  },
+
+  // Dashboard styles
+  dashboardContainer: {
+    flex: 1,
+    backgroundColor: '#f4f4f5',
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f97316',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+
+  menuButton: {
+    padding: 8,
+    marginRight: 12,
+  },
+
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+
+  headerRight: {
+    width: 44,
+  },
+
+  dashboardContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+
+  welcomeText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+
+  dashboardSubtext: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+
+  // Sidebar styles
+  sidebarOverlay: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+
+  sidebarBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  sidebar: {
+    width: 280,
+    height: '100%',
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#fff7ed',
+  },
+
+  sidebarLogoContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  sidebarTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+
+  sidebarCloseButton: {
+    padding: 8,
+  },
+
+  sidebarMenu: {
+    flex: 1,
+    paddingTop: 16,
+  },
+
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+
+  menuItemActive: {
+    backgroundColor: '#fff7ed',
+  },
+
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#4b5563',
+    marginLeft: 16,
+  },
+
+  menuItemTextActive: {
+    color: '#f97316',
+    fontWeight: '600',
+  },
+
+  sidebarFooter: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#fef2f2',
+  },
+
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#ef4444',
+    marginLeft: 12,
+  },
+});
+
+export { AdminLoginScreen };
+export default AdminLoginScreen;

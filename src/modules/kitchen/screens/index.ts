@@ -1,0 +1,1 @@
+export { KitchenManagementScreen } from './KitchenManagementScreen';
