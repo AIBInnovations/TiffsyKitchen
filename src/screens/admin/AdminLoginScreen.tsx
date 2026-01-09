@@ -15,7 +15,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { DashboardScreen } from './DashboardScreen';
 import { UsersScreen } from './UsersScreen';
 import { UserDetailsScreen } from './UserDetailsScreen';
-import { OrdersListScreen, OrderDetailScreen, Order } from '../../modules/orders';
+import { OrdersListScreenEnhanced, OrderDetailScreen } from '../../modules/orders';
+import { Order as APIOrder } from '../../types/api.types';
 import { PlansScreen } from '../../modules/plans';
 import { KitchenManagementScreen } from '../../modules/kitchen';
 import { MenuManagementScreen } from '../../modules/menu';
@@ -42,7 +43,12 @@ interface FieldErrors {
   password?: string;
 }
 
-const AdminLoginScreen: React.FC = () => {
+interface AdminLoginScreenProps {
+  firebaseToken: string;
+  onLoginSuccess?: (token: string) => void;
+}
+
+const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLoginSuccess }) => {
   const passwordInputRef = useRef<TextInput>(null);
 
   // Form state
@@ -54,7 +60,7 @@ const AdminLoginScreen: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<APIOrder | null>(null);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -162,15 +168,35 @@ const AdminLoginScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate a brief delay for UX (frontend-only)
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // Prepare headers with Firebase token
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${firebaseToken}`,
+      };
 
-      // Frontend-only login validation
-      // In a real app, this would be replaced with actual authentication
-      // For demo purposes, we simulate success for any valid inputs
-      const isLoginSuccessful = true;
+      const endpoint = 'https://tiffsy-backend.onrender.com/api/auth/admin/login';
+      const requestBody = {
+        username: username.trim(),
+        password: password,
+      };
 
-      if (isLoginSuccessful) {
+      console.log('Login Request Endpoint:', endpoint);
+      console.log('Login Request Body:', requestBody);
+
+      // Make API call to backend
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log('Login Response:', JSON.stringify(data, null, 2));
+
+      if (response.ok && data.success) {
+        // Store backend auth token
+        await AsyncStorage.setItem('authToken', data.data.token);
+
         // Store session if remember me is checked
         if (rememberMe) {
           await AsyncStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'admin_session_active');
@@ -179,14 +205,24 @@ const AdminLoginScreen: React.FC = () => {
         // Always store remember me preference
         await AsyncStorage.setItem(STORAGE_KEYS.REMEMBER_ME, String(rememberMe));
 
-        // Navigate to dashboard
-        navigateToDashboard();
+        // Call onLoginSuccess callback if provided (for new navigation flow)
+        if (onLoginSuccess) {
+          onLoginSuccess(data.data.token);
+        } else {
+          // Fallback to old navigation (for backward compatibility)
+          navigateToDashboard();
+        }
       } else {
-        setGlobalError('Unable to sign in with the provided credentials.');
+        setGlobalError(data.message || 'Unable to sign in with the provided credentials.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      setGlobalError('An unexpected error occurred. Please try again.');
+
+      if (error.message === 'Network request failed') {
+        setGlobalError('Network error. Please check your connection and try again.');
+      } else {
+        setGlobalError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -333,17 +369,13 @@ const AdminLoginScreen: React.FC = () => {
           />
         )}
 
-        {activeMenu === 'Orders' && !selectedOrder && (
-          <OrdersListScreen
+        {activeMenu === 'Orders' && (
+          <OrdersListScreenEnhanced
             onMenuPress={handleMenuPress}
-            onOrderPress={(order) => setSelectedOrder(order)}
-          />
-        )}
-
-        {activeMenu === 'Orders' && selectedOrder && (
-          <OrderDetailScreen
-            order={selectedOrder}
-            onBack={() => setSelectedOrder(null)}
+            onOrderPress={(order: APIOrder) => {
+              // TODO: Create OrderDetailScreen.enhanced for API orders
+              console.log('Order clicked:', order._id);
+            }}
           />
         )}
 

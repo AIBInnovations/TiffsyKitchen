@@ -120,3 +120,6 @@ dependencies {
 
 // React Native Vector Icons
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+
+// Google Services Plugin (Firebase)
+apply plugin: 'com.google.gms.google-services'

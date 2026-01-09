@@ -1,5 +1,5 @@
 // Screens
-export { OrdersListScreen, OrderDetailScreen } from './screens';
+export { OrdersListScreen, OrdersListScreenEnhanced, OrderDetailScreen } from './screens';
 
 // Components
 export {

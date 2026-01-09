@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'https://api.tiffsykitchen.com'; // Update with actual API URL
+const BASE_URL = 'https://tiffsy-backend.onrender.com';
 
 interface RequestConfig {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

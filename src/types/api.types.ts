@@ -1,0 +1,612 @@
+/**
+ * API Type Definitions
+ *
+ * These types match the API documentation exactly.
+ * Organized by module for maintainability.
+ */
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export type UserRole = 'CUSTOMER' | 'KITCHEN_STAFF' | 'DRIVER' | 'ADMIN';
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
+
+export type KitchenType = 'TIFFSY' | 'PARTNER';
+export type KitchenStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING_APPROVAL' | 'SUSPENDED';
+
+export type ZoneStatus = 'ACTIVE' | 'INACTIVE';
+
+export type CouponStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'EXHAUSTED';
+export type DiscountType = 'PERCENTAGE' | 'FLAT' | 'FREE_DELIVERY';
+export type TargetUserType = 'ALL' | 'NEW_USERS' | 'EXISTING_USERS';
+
+export type VoucherStatus = 'AVAILABLE' | 'REDEEMED' | 'EXPIRED' | 'RESTORED' | 'CANCELLED';
+
+export type RefundStatus = 'INITIATED' | 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type RefundReason =
+  | 'ORDER_REJECTED'
+  | 'ORDER_CANCELLED_BY_KITCHEN'
+  | 'ORDER_CANCELLED_BY_CUSTOMER'
+  | 'DELIVERY_FAILED'
+  | 'QUALITY_ISSUE'
+  | 'WRONG_ORDER'
+  | 'ADMIN_INITIATED'
+  | 'OTHER';
+
+export type OrderStatus =
+  | 'PLACED'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'PREPARING'
+  | 'READY'
+  | 'PICKED_UP'
+  | 'OUT_FOR_DELIVERY'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'FAILED';
+
+export type MenuType = 'MEAL_MENU' | 'ON_DEMAND_MENU';
+
+export type BatchStatus =
+  | 'COLLECTING'
+  | 'READY_FOR_DISPATCH'
+  | 'DISPATCHED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'PARTIAL_COMPLETE'
+  | 'CANCELLED';
+
+export type MealWindow = 'LUNCH' | 'DINNER';
+
+export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'ACTIVATE' | 'DEACTIVATE';
+export type EntityType = 'USER' | 'KITCHEN' | 'ORDER' | 'ZONE' | 'COUPON' | 'VOUCHER' | 'REFUND' | 'BATCH' | 'MENU_ITEM' | 'PLAN' | 'SUBSCRIPTION';
+
+export type ReportType = 'ORDERS' | 'REVENUE' | 'VOUCHERS' | 'REFUNDS';
+export type SegmentBy = 'CITY' | 'ZONE' | 'KITCHEN';
+
+export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+export type PlanStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+
+// ============================================================================
+// Authentication Types
+// ============================================================================
+
+export interface AdminUser {
+  _id: string;
+  phone: string;
+  role: UserRole;
+  name: string;
+  email: string;
+  username?: string;
+  status?: UserStatus;
+  kitchenId?: string | Kitchen;
+  createdAt?: string;
+  suspensionReason?: string;
+  suspendedAt?: string;
+}
+
+export interface LoginResponse {
+  user: AdminUser;
+  token: string;
+  expiresIn: number;
+}
+
+export interface RefreshTokenResponse {
+  token: string;
+  expiresIn: number;
+}
+
+// ============================================================================
+// Dashboard Types
+// ============================================================================
+
+export interface DashboardOverview {
+  totalOrders: number;
+  totalRevenue: number;
+  activeCustomers: number;
+  activeKitchens: number;
+}
+
+export interface DashboardToday {
+  orders: number;
+  revenue: number;
+  newCustomers: number;
+}
+
+export interface DashboardPendingActions {
+  pendingOrders: number;
+  pendingRefunds: number;
+  pendingKitchenApprovals: number;
+}
+
+export interface DashboardActivity {
+  _id: string;
+  action: AuditAction;
+  entityType: EntityType;
+  performedBy: {
+    name: string;
+    role: UserRole;
+  };
+  createdAt: string;
+}
+
+export interface DashboardData {
+  overview: DashboardOverview;
+  today: DashboardToday;
+  pendingActions: DashboardPendingActions;
+  recentActivity: DashboardActivity[];
+}
+
+// ============================================================================
+// System Configuration Types
+// ============================================================================
+
+export interface CutoffTimes {
+  lunch: string;
+  dinner: string;
+}
+
+export interface BatchingConfig {
+  maxBatchSize: number;
+  failedOrderPolicy: 'NO_RETURN' | 'RETURN_TO_KITCHEN';
+  autoDispatchDelay: number;
+}
+
+export interface FeesConfig {
+  deliveryFee: number;
+  serviceFee: number;
+  packagingFee: number;
+  handlingFee: number;
+}
+
+export interface TaxConfig {
+  name: string;
+  rate: number;
+  enabled: boolean;
+}
+
+export interface RefundConfig {
+  maxRetries: number;
+  autoProcessDelay: number;
+}
+
+export interface SystemConfiguration {
+  cutoffTimes: CutoffTimes;
+  batching: BatchingConfig;
+  fees: FeesConfig;
+  taxes: TaxConfig[];
+  refund: RefundConfig;
+}
+
+export interface Guidelines {
+  menuGuidelines: string;
+  kitchenGuidelines: string;
+  qualityPolicy: string;
+}
+
+// ============================================================================
+// User Management Types
+// ============================================================================
+
+export interface User {
+  _id: string;
+  phone: string;
+  role: UserRole;
+  name: string;
+  email?: string;
+  username?: string;
+  status: UserStatus;
+  kitchenId?: string | Kitchen;
+  createdAt: string;
+  suspensionReason?: string;
+  suspendedAt?: string;
+}
+
+export interface UserCounts {
+  total: number;
+  active: number;
+  inactive: number;
+  byRole: Record<UserRole, number>;
+}
+
+export interface UserListResponse {
+  users: User[];
+  counts: UserCounts;
+  pagination: PaginationMeta;
+}
+
+export interface UserActivity {
+  lastLogin: string;
+  ordersHandled: number;
+  deliveriesCompleted: number;
+}
+
+export interface UserDetailsResponse {
+  user: User;
+  kitchen?: Kitchen;
+  activity: UserActivity;
+}
+
+// ============================================================================
+// Kitchen Management Types
+// ============================================================================
+
+export interface Address {
+  addressLine1: string;
+  addressLine2?: string;
+  locality: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
+export interface OperatingHours {
+  lunch: {
+    startTime: string;
+    endTime: string;
+  };
+  dinner: {
+    startTime: string;
+    endTime: string;
+  };
+}
+
+export interface Kitchen {
+  _id: string;
+  name: string;
+  code: string;
+  type: KitchenType;
+  status: KitchenStatus;
+  authorizedFlag: boolean;
+  premiumFlag: boolean;
+  gourmetFlag: boolean;
+  logo?: string;
+  coverImage?: string;
+  description?: string;
+  cuisineTypes: string[];
+  address: Address;
+  zonesServed: string[];
+  operatingHours: OperatingHours;
+  contactPhone: string;
+  contactEmail: string;
+  ownerName: string;
+  ownerPhone: string;
+  createdAt?: string;
+  suspensionReason?: string;
+  suspendedAt?: string;
+}
+
+export interface KitchenStatistics {
+  totalOrders: number;
+  activeOrders: number;
+  averageRating: number;
+  totalMenuItems: number;
+}
+
+export interface KitchenDetailsResponse {
+  kitchen: Kitchen;
+  staff: User[];
+  statistics: KitchenStatistics;
+}
+
+export interface KitchenListResponse {
+  kitchens: Kitchen[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
+// Zone Management Types
+// ============================================================================
+
+export interface Zone {
+  _id: string;
+  pincode: string;
+  name: string;
+  city: string;
+  state: string;
+  timezone: string;
+  status: ZoneStatus;
+  orderingEnabled: boolean;
+  displayOrder: number;
+  createdAt?: string;
+}
+
+export interface ZoneDetailsResponse {
+  zone: Zone;
+  kitchens: Kitchen[];
+}
+
+export interface ZoneListResponse {
+  zones: Zone[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
+// Coupon Management Types
+// ============================================================================
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  name: string;
+  description?: string;
+  discountType: DiscountType;
+  discountValue: number;
+  maxDiscountAmount?: number;
+  minOrderValue?: number;
+  minItems?: number;
+  totalUsageLimit?: number;
+  perUserLimit?: number;
+  targetUserType: TargetUserType;
+  isFirstOrderOnly: boolean;
+  validFrom: string;
+  validTill: string;
+  status: CouponStatus;
+  isVisible: boolean;
+  displayOrder: number;
+  termsAndConditions?: string;
+  createdAt?: string;
+}
+
+export interface CouponUsageStats {
+  totalUsed: number;
+  uniqueUsers: number;
+  totalDiscountGiven: number;
+  remainingUses: number;
+}
+
+export interface CouponUsage {
+  _id: string;
+  userId: string;
+  userName: string;
+  orderId: string;
+  discountAmount: number;
+  usedAt: string;
+}
+
+export interface CouponDetailsResponse {
+  coupon: Coupon;
+  usageStats: CouponUsageStats;
+  recentUsage: CouponUsage[];
+}
+
+export interface CouponListResponse {
+  coupons: Coupon[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
+// Voucher Management Types
+// ============================================================================
+
+export interface Voucher {
+  _id: string;
+  userId: string;
+  subscriptionId: string;
+  voucherCode: string;
+  status: VoucherStatus;
+  expiresAt: string;
+  redeemedAt?: string;
+  orderId?: string;
+  createdAt: string;
+}
+
+export interface VoucherListResponse {
+  vouchers: Voucher[];
+  pagination: PaginationMeta;
+}
+
+export interface VoucherStatistics {
+  totalVouchers: number;
+  availableVouchers: number;
+  redeemedVouchers: number;
+  expiredVouchers: number;
+}
+
+// ============================================================================
+// Refund Management Types
+// ============================================================================
+
+export interface Refund {
+  _id: string;
+  orderId: string;
+  userId: string;
+  amount: number;
+  reason: RefundReason;
+  reasonDetails?: string;
+  status: RefundStatus;
+  notes?: string;
+  processedAt?: string;
+  completedAt?: string;
+  failureReason?: string;
+  retryCount?: number;
+  createdAt: string;
+}
+
+export interface RefundListResponse {
+  refunds: Refund[];
+  pagination: PaginationMeta;
+}
+
+export interface RefundStatistics {
+  totalRefunds: number;
+  pendingRefunds: number;
+  completedRefunds: number;
+  failedRefunds: number;
+  totalAmountRefunded: number;
+}
+
+// ============================================================================
+// Order Management Types
+// ============================================================================
+
+export interface Order {
+  _id: string;
+  userId: string;
+  kitchenId: string;
+  zoneId: string;
+  status: OrderStatus;
+  menuType: MenuType;
+  items: any[]; // Define based on your menu item structure
+  totalAmount: number;
+  deliveryAddress: Address;
+  scheduledFor: string;
+  placedAt: string;
+  deliveredAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+}
+
+export interface OrderListResponse {
+  orders: Order[];
+  pagination: PaginationMeta;
+}
+
+export interface OrderStatistics {
+  totalOrders: number;
+  todayOrders: number;
+  pendingOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  totalRevenue: number;
+}
+
+// ============================================================================
+// Delivery/Batch Management Types
+// ============================================================================
+
+export interface Batch {
+  _id: string;
+  kitchenId: string;
+  zoneId: string;
+  driverId?: string;
+  status: BatchStatus;
+  mealWindow: MealWindow;
+  orders: string[];
+  createdAt: string;
+  dispatchedAt?: string;
+  completedAt?: string;
+}
+
+export interface BatchListResponse {
+  batches: Batch[];
+  pagination: PaginationMeta;
+}
+
+export interface DeliveryStatistics {
+  totalBatches: number;
+  activeBatches: number;
+  completedBatches: number;
+  failedDeliveries: number;
+  avgDeliveryTime: number;
+}
+
+// ============================================================================
+// Subscription Management Types
+// ============================================================================
+
+export interface Plan {
+  _id: string;
+  name: string;
+  description: string;
+  durationDays: number;
+  vouchersPerDay: number;
+  voucherValidityDays: number;
+  price: number;
+  originalPrice: number;
+  coverageRules: {
+    includesAddons: boolean;
+    addonValuePerVoucher: number;
+    mealTypes: string[];
+  };
+  applicableZoneIds: string[];
+  displayOrder: number;
+  badge?: string;
+  features: string[];
+  status: PlanStatus;
+  createdAt?: string;
+}
+
+export interface PlanListResponse {
+  plans: Plan[];
+  pagination: PaginationMeta;
+}
+
+export interface Subscription {
+  _id: string;
+  userId: string;
+  planId: string;
+  status: SubscriptionStatus;
+  startDate: string;
+  endDate: string;
+  vouchersGenerated: number;
+  vouchersUsed: number;
+  purchaseDate: string;
+}
+
+export interface SubscriptionListResponse {
+  subscriptions: Subscription[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export interface AuditLog {
+  _id: string;
+  action: AuditAction;
+  entityType: EntityType;
+  entityId: string;
+  performedBy: {
+    _id?: string;
+    name: string;
+    role: UserRole;
+    phone?: string;
+  };
+  details: Record<string, any>;
+  createdAt: string;
+}
+
+export interface AuditLogListResponse {
+  logs: AuditLog[];
+  pagination: PaginationMeta;
+}
+
+// ============================================================================
+// Report Types
+// ============================================================================
+
+export interface ReportDataPoint {
+  _id: string;
+  totalOrders?: number;
+  totalValue?: number;
+  entity?: {
+    name: string;
+    code?: string;
+  };
+}
+
+export interface Report {
+  type: ReportType;
+  segmentBy?: SegmentBy;
+  data: ReportDataPoint[];
+}
+
+export interface ExportReportResponse {
+  format: 'CSV' | 'EXCEL';
+  data: string;
+}
