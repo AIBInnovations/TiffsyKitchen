@@ -162,6 +162,10 @@ class EnhancedApiService {
       try {
         const token = await this.getAuthToken();
 
+        console.log('========== API REQUEST ==========');
+        console.log('Endpoint:', endpoint);
+        console.log('Method:', config.method);
+
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
           ...config.headers,
@@ -171,11 +175,19 @@ class EnhancedApiService {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
+        console.log('Headers:', JSON.stringify(headers, null, 2));
+        console.log('=================================');
+
         const response = await fetch(`${BASE_URL}${endpoint}`, {
           method: config.method,
           headers,
           body: config.body ? JSON.stringify(config.body) : undefined,
         });
+
+        const responseData = await response.json();
+        console.log('========== RAW RESPONSE ==========');
+        console.log(responseData);
+        console.log('==================================');
 
         // Handle 401 Unauthorized - Try token refresh
         if (response.status === 401 && !config.skipRetry) {
@@ -191,15 +203,16 @@ class EnhancedApiService {
               body: config.body ? JSON.stringify(config.body) : undefined,
             });
 
+            const retryData = await retryResponse.json();
+            console.log('========== RAW RESPONSE (After Refresh) ==========');
+            console.log(retryData);
+            console.log('==================================================');
+
             if (!retryResponse.ok) {
-              const error = await retryResponse.json().catch(() => ({
-                success: false,
-                message: 'Request failed after token refresh'
-              }));
-              throw error;
+              throw retryData;
             }
 
-            return retryResponse.json();
+            return retryData;
           } else {
             // Token refresh failed, user needs to login again
             throw {
@@ -212,11 +225,6 @@ class EnhancedApiService {
 
         // Handle other error responses
         if (!response.ok) {
-          const error = await response.json().catch(() => ({
-            success: false,
-            message: `Request failed with status ${response.status}`
-          }));
-
           // Retry on retryable status codes
           if (
             this.retryConfig.retryableStatuses.includes(response.status) &&
@@ -231,10 +239,10 @@ class EnhancedApiService {
             return this.request<T>(endpoint, config, retryCount + 1);
           }
 
-          throw error;
+          throw responseData;
         }
 
-        return response.json();
+        return responseData;
       } catch (error: any) {
         // Handle network errors (no response from server)
         if (error.message === 'Network request failed' || error.name === 'TypeError') {
@@ -267,10 +275,7 @@ class EnhancedApiService {
   // Public API methods
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    console.log('Request endpoint:', endpoint);
-    const response = await this.request<T>(endpoint, { method: 'GET' });
-    console.log('Response:', JSON.stringify(response, null, 2));
-    return response;
+    return this.request<T>(endpoint, { method: 'GET' });
   }
 
   async post<T>(endpoint: string, data?: unknown, skipRetry = false): Promise<ApiResponse<T>> {

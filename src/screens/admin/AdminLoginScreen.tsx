@@ -8,18 +8,18 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Modal,
-  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { DashboardScreen } from './DashboardScreen';
 import { UsersScreen } from './UsersScreen';
 import { UserDetailsScreen } from './UserDetailsScreen';
-import { OrdersListScreenEnhanced, OrderDetailScreen } from '../../modules/orders';
-import { Order as APIOrder } from '../../types/api.types';
+import { OrdersListScreenEnhanced, OrderDetailScreenEnhanced } from '../../modules/orders';
+import { Order as APIOrder, MenuItem, Customer } from '../../types/api.types';
 import { PlansScreen } from '../../modules/plans';
 import { KitchenManagementScreen } from '../../modules/kitchen';
-import { MenuManagementScreen } from '../../modules/menu';
+import { MenuManagementScreen, MenuListScreen, AddEditMenuScreen } from '../../modules/menu';
+import { UsersListScreen, UserDetailScreen } from '../../modules/users';
 import { CutoffTimesSettingsScreen } from '../../modules/cutoff';
 
 // Constants
@@ -56,11 +56,14 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Removed internal isLoggedIn state - using onLoginSuccess callback instead
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<APIOrder | null>(null);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [showAddEditMenu, setShowAddEditMenu] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,31 +78,20 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
 
   const checkExistingSession = async () => {
     try {
-      const [sessionIndicator, storedRememberMe] = await Promise.all([
-        AsyncStorage.getItem(STORAGE_KEYS.ADMIN_SESSION),
-        AsyncStorage.getItem(STORAGE_KEYS.REMEMBER_ME),
-      ]);
+      const storedRememberMe = await AsyncStorage.getItem(STORAGE_KEYS.REMEMBER_ME);
 
       // Restore remember me preference
       if (storedRememberMe !== null) {
         setRememberMe(storedRememberMe === 'true');
       }
 
-      // If valid session exists, navigate to dashboard
-      if (sessionIndicator) {
-        navigateToDashboard();
-        return;
-      }
+      // Note: Session validation is handled by App.tsx via authToken check
+      // No need to navigate from here - App.tsx manages navigation flow
     } catch (error) {
       console.error('Error checking session:', error);
     } finally {
       setIsCheckingSession(false);
     }
-  };
-
-  const navigateToDashboard = () => {
-    // Set logged in state to show dashboard with header
-    setIsLoggedIn(true);
   };
 
   const handleMenuPress = () => {
@@ -180,8 +172,13 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
         password: password,
       };
 
-      console.log('Login Request Endpoint:', endpoint);
-      console.log('Login Request Body:', requestBody);
+      console.log('========== ADMIN LOGIN REQUEST ==========');
+      console.log('Endpoint:', endpoint);
+      console.log('Request Body:', {
+        username: requestBody.username,
+        password: '***HIDDEN***',
+      });
+      console.log('=========================================');
 
       // Make API call to backend
       const response = await fetch(endpoint, {
@@ -191,29 +188,36 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
       });
 
       const data = await response.json();
-      console.log('Login Response:', JSON.stringify(data, null, 2));
 
-      if (response.ok && data.success) {
-        // Store backend auth token
-        await AsyncStorage.setItem('authToken', data.data.token);
+      console.log('========== ADMIN LOGIN RESPONSE ==========');
+      console.log('Raw Response:', JSON.stringify(data, null, 2));
+      console.log('==========================================');
 
-        // Store session if remember me is checked
-        if (rememberMe) {
-          await AsyncStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'admin_session_active');
+      // Check if response is successful (no error and has data)
+      if (response.ok && !data.error && data.data) {
+        // Verify user role is ADMIN
+        const userRole = data.data?.user?.role;
+
+        if (userRole !== 'ADMIN') {
+          setGlobalError('Access Denied. Admin privileges required.');
+          return;
         }
 
-        // Always store remember me preference
-        await AsyncStorage.setItem(STORAGE_KEYS.REMEMBER_ME, String(rememberMe));
+        // Clear any existing errors
+        setGlobalError(undefined);
+        setFieldErrors({});
 
-        // Call onLoginSuccess callback if provided (for new navigation flow)
+        // Call onLoginSuccess callback with full response data
         if (onLoginSuccess) {
-          onLoginSuccess(data.data.token);
-        } else {
-          // Fallback to old navigation (for backward compatibility)
-          navigateToDashboard();
+          onLoginSuccess(JSON.stringify({
+            token: data.data.token,
+            user: data.data.user,
+            expiresIn: data.data.expiresIn,
+            rememberMe: rememberMe,
+          }));
         }
       } else {
-        setGlobalError(data.message || 'Unable to sign in with the provided credentials.');
+        setGlobalError(data.message || data.error || 'Unable to sign in with the provided credentials.');
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -267,136 +271,11 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
     );
   }
 
-  // Show dashboard with header after login
-  if (isLoggedIn) {
-    return (
-      <SafeAreaView style={styles.dashboardContainer}>
-        {/* Sidebar Modal */}
-        <Modal
-          visible={sidebarVisible}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setSidebarVisible(false)}
-        >
-          <View style={styles.sidebarOverlay}>
-            {/* Backdrop - tap to close */}
-            <TouchableOpacity
-              style={styles.sidebarBackdrop}
-              activeOpacity={1}
-              onPress={() => setSidebarVisible(false)}
-            />
-
-            {/* Sidebar Content */}
-            <View style={styles.sidebar}>
-              {/* Sidebar Header */}
-              <View style={styles.sidebarHeader}>
-                <View style={styles.sidebarLogoContainer}>
-                  <Icon name="restaurant" size={32} color="#f97316" />
-                </View>
-                <Text style={styles.sidebarTitle}>Tiffin Platform</Text>
-                <TouchableOpacity
-                  style={styles.sidebarCloseButton}
-                  onPress={() => setSidebarVisible(false)}
-                >
-                  <Icon name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Menu Items */}
-              <View style={styles.sidebarMenu}>
-                {menuItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.name}
-                    style={[
-                      styles.menuItem,
-                      activeMenu === item.name && styles.menuItemActive,
-                    ]}
-                    onPress={() => handleMenuItemPress(item.name)}
-                  >
-                    <Icon
-                      name={item.icon}
-                      size={24}
-                      color={activeMenu === item.name ? '#f97316' : '#4b5563'}
-                    />
-                    <Text
-                      style={[
-                        styles.menuItemText,
-                        activeMenu === item.name && styles.menuItemTextActive,
-                      ]}
-                    >
-                      {item.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Sidebar Footer */}
-              <View style={styles.sidebarFooter}>
-                <TouchableOpacity
-                  style={styles.logoutButton}
-                  onPress={() => {
-                    setSidebarVisible(false);
-                    setIsLoggedIn(false);
-                  }}
-                >
-                  <Icon name="logout" size={24} color="#ef4444" />
-                  <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Render active screen */}
-        {activeMenu === 'Dashboard' && (
-          <DashboardScreen
-            onMenuPress={handleMenuPress}
-            onNotificationPress={() => Alert.alert('Notifications', 'No new notifications')}
-          />
-        )}
-
-        {activeMenu === 'Users' && !selectedUserId && (
-          <UsersScreen
-            onMenuPress={handleMenuPress}
-            onUserPress={(userId) => setSelectedUserId(userId)}
-          />
-        )}
-
-        {activeMenu === 'Users' && selectedUserId && (
-          <UserDetailsScreen
-            userId={selectedUserId}
-            onBack={() => setSelectedUserId(null)}
-          />
-        )}
-
-        {activeMenu === 'Orders' && (
-          <OrdersListScreenEnhanced
-            onMenuPress={handleMenuPress}
-            onOrderPress={(order: APIOrder) => {
-              // TODO: Create OrderDetailScreen.enhanced for API orders
-              console.log('Order clicked:', order._id);
-            }}
-          />
-        )}
-
-        {activeMenu === 'Plans and Pricing' && (
-          <PlansScreen onMenuPress={handleMenuPress} />
-        )}
-
-        {activeMenu === 'Kitchen Management' && (
-          <KitchenManagementScreen onMenuPress={handleMenuPress} />
-        )}
-
-        {activeMenu === 'Menu Management' && (
-          <MenuManagementScreen onMenuPress={handleMenuPress} />
-        )}
-
-        {activeMenu === 'Cut Off Timing' && (
-          <CutoffTimesSettingsScreen onMenuPress={handleMenuPress} />
-        )}
-      </SafeAreaView>
-    );
-  }
+  // ============================================================
+  // NOTE: Dashboard code removed - App.tsx now handles navigation
+  // After successful login, onLoginSuccess callback is called
+  // which navigates to DashboardScreen in App.tsx
+  // ============================================================
 
   return (
     <SafeAreaView style={styles.container}>

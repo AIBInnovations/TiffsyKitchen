@@ -109,14 +109,34 @@ export function useApi<T>(
 
       console.log('useApi received response:', JSON.stringify(response, null, 2));
 
-      if (response.success) {
-        console.log('Setting data:', JSON.stringify(response.data, null, 2));
-        setData(response.data);
+      // Handle backend response structure
+      // Backend returns: { message: true/string, data: any, error: any }
+      // If message is true and error contains object data, use error field
+      // If success is true, use data field (standard case)
+
+      let actualData = null;
+      let isSuccess = false;
+
+      if (response.success && response.data) {
+        // Standard response: { success: true, data: {...} }
+        actualData = response.data;
+        isSuccess = true;
+        console.log('Using data from data field (standard)');
+      } else if ((response as any).message === true && (response as any).error && typeof (response as any).error === 'object') {
+        // Backend actual response: { message: true, error: {...} }
+        actualData = (response as any).error;
+        isSuccess = true;
+        console.log('Using data from error field (backend structure)');
+      }
+
+      if (isSuccess && actualData) {
+        console.log('Setting data:', JSON.stringify(actualData, null, 2));
+        setData(actualData);
 
         // Update cache
         if (cacheDuration > 0) {
           apiCache.set(endpoint, {
-            data: response.data,
+            data: actualData,
             timestamp: now,
           });
         }

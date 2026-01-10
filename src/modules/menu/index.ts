@@ -1,5 +1,7 @@
 // Screens
 export { MenuManagementScreen } from './screens';
+export { MenuListScreen } from './screens/MenuListScreen';
+export { AddEditMenuScreen } from './screens/AddEditMenuScreen';
 
 // Components
 export {

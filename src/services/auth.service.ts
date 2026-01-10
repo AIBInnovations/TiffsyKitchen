@@ -1,5 +1,6 @@
 import { apiService } from './api.service';
 import { User, UserRole } from '../types/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface LoginResponse {
   token: string;
@@ -93,6 +94,67 @@ class AuthService {
       return Promise.resolve();
     }
     await apiService.post('/auth/logout');
+  }
+
+  // Admin-specific methods for managing stored admin data
+  async getStoredAdminData(): Promise<any | null> {
+    try {
+      const adminUserJson = await AsyncStorage.getItem('adminUser');
+      return adminUserJson ? JSON.parse(adminUserJson) : null;
+    } catch (error) {
+      console.error('Error getting stored admin data:', error);
+      return null;
+    }
+  }
+
+  async getAdminToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('authToken');
+    } catch (error) {
+      console.error('Error getting admin token:', error);
+      return null;
+    }
+  }
+
+  async getAdminRole(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('adminRole');
+    } catch (error) {
+      console.error('Error getting admin role:', error);
+      return null;
+    }
+  }
+
+  async isAdmin(): Promise<boolean> {
+    try {
+      const role = await AsyncStorage.getItem('adminRole');
+      return role === 'ADMIN';
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      return false;
+    }
+  }
+
+  async clearAdminData(): Promise<void> {
+    try {
+      const keysToRemove = [
+        'authToken',
+        'adminUser',
+        'adminUserId',
+        'adminUsername',
+        'adminEmail',
+        'adminName',
+        'adminRole',
+        'adminPhone',
+        'tokenExpiresIn',
+        '@admin_session_indicator',
+        '@admin_remember_me',
+      ];
+      await AsyncStorage.multiRemove(keysToRemove);
+      console.log('Admin data cleared successfully');
+    } catch (error) {
+      console.error('Error clearing admin data:', error);
+    }
   }
 }
 

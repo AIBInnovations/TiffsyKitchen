@@ -485,6 +485,54 @@ export interface OrderStatistics {
 }
 
 // ============================================================================
+// Menu Management Types
+// ============================================================================
+
+export type MealType = 'LUNCH' | 'DINNER';
+export type FoodType = 'VEG' | 'NON_VEG' | 'VEGAN';
+export type SpiceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface MenuItem {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  mealTypes: MealType[];
+  foodType: FoodType;
+  isJainFriendly: boolean;
+  spiceLevel: SpiceLevel;
+  isAvailable: boolean;
+  category?: string;
+  preparationTime?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuItemsListResponse {
+  items: MenuItem[];
+  pagination?: PaginationMeta;
+}
+
+export interface CreateMenuItemRequest {
+  name: string;
+  description: string;
+  price: number;
+  image?: File | string;
+  mealTypes: MealType[];
+  foodType: FoodType;
+  isJainFriendly: boolean;
+  spiceLevel: SpiceLevel;
+  isAvailable: boolean;
+  category?: string;
+  preparationTime?: number;
+}
+
+export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> {
+  _id: string;
+}
+
+// ============================================================================
 // Delivery/Batch Management Types
 // ============================================================================
 
@@ -609,4 +657,48 @@ export interface Report {
 export interface ExportReportResponse {
   format: 'CSV' | 'EXCEL';
   data: string;
+}
+
+// ============================================================================
+// Customer Types (for Users Management)
+// ============================================================================
+
+export interface Customer {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: UserRole;
+  status: UserStatus;
+  hasActiveSubscription: boolean;
+  totalOrders: number;
+  totalSpent: number;
+  availableVouchers: number;
+  createdAt: string;
+  lastOrderAt?: string;
+}
+
+export interface CustomersListResponse {
+  customers: Customer[];
+  pagination?: PaginationMeta;
+}
+
+export interface CustomerOrdersResponse {
+  orders: Order[];
+  pagination?: PaginationMeta;
+}
+
+export interface CustomerVoucher {
+  _id: string;
+  voucherCode: string;
+  status: VoucherStatus;
+  subscriptionId: string;
+  expiresAt: string;
+  redeemedAt?: string;
+  orderId?: string;
+  createdAt: string;
+}
+
+export interface CustomerVouchersResponse {
+  vouchers: CustomerVoucher[];
 }

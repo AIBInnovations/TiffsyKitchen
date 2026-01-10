@@ -74,13 +74,32 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
       // Format phone number for Firebase (add +91 country code)
       const formattedPhoneNumber = `+91${phoneNumber}`;
 
+      console.log('========== FIREBASE OTP REQUEST ==========');
+      console.log('Phone Number:', formattedPhoneNumber);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('==========================================');
+
       // Send OTP using Firebase (modular API)
       const confirmationResult = await signInWithPhoneNumber(auth(), formattedPhoneNumber);
+
+      console.log('========== FIREBASE OTP RESPONSE ==========');
+      console.log('Status: SUCCESS');
+      console.log('Confirmation Result:', confirmationResult);
+      console.log('Verification ID:', confirmationResult.verificationId);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('===========================================');
 
       setConfirmation(confirmationResult);
       setShowOtpInput(true);
       Alert.alert('Success', 'OTP has been sent to your phone number');
     } catch (error: any) {
+      console.log('========== FIREBASE OTP ERROR ==========');
+      console.log('Status: FAILED');
+      console.log('Error Code:', error.code);
+      console.log('Error Message:', error.message);
+      console.log('Full Error:', error);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('========================================');
       console.error('Error sending OTP:', error);
 
       // Handle specific Firebase errors
@@ -160,16 +179,39 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
     setOtpError(undefined);
 
     try {
+      console.log('========== FIREBASE OTP VERIFY REQUEST ==========');
+      console.log('OTP Code:', otpCode);
+      console.log('Verification ID:', confirmation.verificationId);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('=================================================');
+
       // Verify OTP with Firebase
       const userCredential = await confirmation.confirm(otpCode);
 
       if (!userCredential) {
+        console.log('========== FIREBASE OTP VERIFY FAILED ==========');
+        console.log('Status: NO USER CREDENTIAL');
+        console.log('Timestamp:', new Date().toISOString());
+        console.log('================================================');
         setOtpError('Verification failed. Please try again');
         return;
       }
 
+      console.log('========== FIREBASE OTP VERIFY RESPONSE ==========');
+      console.log('Status: SUCCESS');
+      console.log('User ID:', userCredential.user.uid);
+      console.log('Phone Number:', userCredential.user.phoneNumber);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('==================================================');
+
       // Get Firebase ID token
       const idToken = await userCredential.user.getIdToken();
+
+      console.log('========== FIREBASE ID TOKEN ==========');
+      console.log('Token Length:', idToken.length);
+      console.log('Token (first 50 chars):', idToken.substring(0, 50) + '...');
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('=======================================');
 
       // Store phone number for later use
       await AsyncStorage.setItem('userPhoneNumber', phoneNumber);
@@ -177,6 +219,13 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
       // Pass token to parent component
       onVerificationComplete(idToken);
     } catch (error: any) {
+      console.log('========== FIREBASE OTP VERIFY ERROR ==========');
+      console.log('Status: FAILED');
+      console.log('Error Code:', error.code);
+      console.log('Error Message:', error.message);
+      console.log('Full Error:', error);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('===============================================');
       console.error('Error verifying OTP:', error);
 
       // Handle specific Firebase errors
