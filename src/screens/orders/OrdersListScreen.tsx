@@ -19,19 +19,22 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { useInfiniteScroll } from '../../hooks/useApi';
 import { Order, OrderStatus } from '../../types/api.types';
-import { OrdersListNavigationProp } from '../../navigation/types';
 
 const PRIMARY_COLOR = '#f97316';
 
 type TabType = 'all' | 'action_needed';
 
-export default function OrdersListScreen() {
-  const navigation = useNavigation<OrdersListNavigationProp>();
+interface OrdersListScreenProps {
+  onMenuPress?: () => void;
+  onLogout?: () => void;
+}
+
+export default function OrdersListScreen({ onMenuPress, onLogout }: OrdersListScreenProps = {}) {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
@@ -41,8 +44,8 @@ export default function OrdersListScreen() {
    * Filters applied: tab, status, search
    */
   const endpoint = activeTab === 'action_needed'
-    ? '/api/admin/orders?actionNeeded=true'
-    : '/api/admin/orders';
+    ? '/api/orders/admin/all?status=PLACED'
+    : '/api/orders/admin/all';
 
   const { data: orders, loading, error, loadMore, hasMore, refresh } = useInfiniteScroll<Order>(
     endpoint,
@@ -50,11 +53,13 @@ export default function OrdersListScreen() {
   );
 
   const handleOrderPress = (orderId: string) => {
-    navigation.navigate('OrderDetails', { orderId });
+    Alert.alert('Order Details', `Order ID: ${orderId}\n\nNavigation to order details coming soon...`);
   };
 
   const handleMenuPress = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
+    if (onMenuPress) {
+      onMenuPress();
+    }
   };
 
   /**

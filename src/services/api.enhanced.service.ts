@@ -184,9 +184,17 @@ class EnhancedApiService {
           body: config.body ? JSON.stringify(config.body) : undefined,
         });
 
+        console.log('========== FETCH COMPLETE ==========');
+        console.log('Endpoint:', endpoint);
+        console.log('Response Status:', response.status);
+        console.log('Response OK:', response.ok);
+        console.log('====================================');
+
         const responseData = await response.json();
         console.log('========== RAW RESPONSE ==========');
-        console.log(responseData);
+        console.log('Endpoint:', endpoint);
+        console.log('Status:', response.status);
+        console.log('Response:', responseData);
         console.log('==================================');
 
         // Handle 401 Unauthorized - Try token refresh
@@ -205,7 +213,9 @@ class EnhancedApiService {
 
             const retryData = await retryResponse.json();
             console.log('========== RAW RESPONSE (After Refresh) ==========');
-            console.log(retryData);
+            console.log('Endpoint:', endpoint);
+            console.log('Status:', retryResponse.status);
+            console.log('Response:', retryData);
             console.log('==================================================');
 
             if (!retryResponse.ok) {
@@ -244,6 +254,13 @@ class EnhancedApiService {
 
         return responseData;
       } catch (error: any) {
+        console.log('========== API ERROR ==========');
+        console.log('Endpoint:', endpoint);
+        console.log('Error Type:', error.name);
+        console.log('Error Message:', error.message);
+        console.log('Full Error:', error);
+        console.log('===============================');
+
         // Handle network errors (no response from server)
         if (error.message === 'Network request failed' || error.name === 'TypeError') {
           if (retryCount < this.retryConfig.maxRetries && !config.skipRetry) {

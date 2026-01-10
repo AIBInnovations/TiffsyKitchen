@@ -1,17 +1,91 @@
 import "./global.css";
 
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
 import { AdminLoginScreen } from './src/screens/admin/AdminLoginScreen';
-import DashboardScreen from './src/screens/admin/DashboardScreen.enhanced';
+import { DashboardScreen } from './src/screens/admin/DashboardScreen';
+import { UsersScreen } from './src/screens/admin/UsersScreen';
+import OrdersListScreen from './src/screens/orders/OrdersListScreen';
+import MenuManagementScreen from './src/modules/menu/screens/MenuManagementScreen';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
-import { NavigationProvider } from './src/context/NavigationContext';
+import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// Placeholder component for unimplemented screens
+const PlaceholderScreen: React.FC<{
+  title: string;
+  onMenuPress: () => void;
+}> = ({ title, onMenuPress }) => (
+  <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+    {/* Header */}
+    <View style={{ backgroundColor: '#f97316', padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity onPress={onMenuPress} style={{ marginRight: 16 }}>
+        <Icon name="menu" size={24} color="#ffffff" />
+      </TouchableOpacity>
+      <Text style={{ fontSize: 20, fontWeight: '600', color: '#ffffff' }}>
+        {title}
+      </Text>
+    </View>
+
+    {/* Content */}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 24, fontWeight: '600', color: '#111827', marginBottom: 8 }}>
+        {title}
+      </Text>
+      <Text style={{ fontSize: 16, color: '#6b7280' }}>
+        Coming soon...
+      </Text>
+    </View>
+  </View>
+);
+
+// Main Content Router Component
+const MainContent: React.FC<{
+  onMenuPress: () => void;
+  onLogout: () => void;
+}> = ({ onMenuPress, onLogout }) => {
+  const { currentScreen } = useNavigation();
+
+  const handleUserPress = (userId: string) => {
+    console.log('User pressed:', userId);
+    // Navigate to user details if needed
+  };
+
+  switch (currentScreen) {
+    case 'Dashboard':
+      return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+
+    case 'Orders':
+      return <OrdersListScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+
+    case 'Users':
+      return <UsersScreen onMenuPress={onMenuPress} onUserPress={handleUserPress} />;
+
+    case 'MenuManagement':
+      return <MenuManagementScreen onMenuPress={onMenuPress} />;
+
+    case 'Subscriptions':
+      return <PlaceholderScreen title="Subscriptions" onMenuPress={onMenuPress} />;
+
+    case 'Deliveries':
+      return <PlaceholderScreen title="Deliveries" onMenuPress={onMenuPress} />;
+
+    case 'Analytics':
+      return <PlaceholderScreen title="Analytics" onMenuPress={onMenuPress} />;
+
+    case 'Settings':
+      return <PlaceholderScreen title="Settings" onMenuPress={onMenuPress} />;
+
+    default:
+      return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+  }
+};
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -172,7 +246,7 @@ function App() {
           <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
           {isAuthenticated ? (
             <>
-              <DashboardScreen onMenuPress={handleMenuPress} onLogout={handleLogout} />
+              <MainContent onMenuPress={handleMenuPress} onLogout={handleLogout} />
               <Sidebar visible={sidebarVisible} onClose={handleCloseSidebar} />
             </>
           ) : !firebaseToken ? (

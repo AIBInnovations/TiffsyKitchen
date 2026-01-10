@@ -334,14 +334,32 @@ export function useInfiniteScroll<T>(
 
         if (!isMounted.current) return;
 
-        if (response.success) {
+        console.log('useInfiniteScroll received response:', response);
+
+        // Handle backend response structure (same as useApi)
+        let actualData = null;
+        let isSuccess = false;
+
+        if (response.success && response.data) {
+          // Standard response: { success: true, data: {...} }
+          actualData = response.data;
+          isSuccess = true;
+          console.log('Using data from data field (standard)');
+        } else if ((response as any).message === true && (response as any).error && typeof (response as any).error === 'object') {
+          // Backend actual response: { message: true, error: {...} }
+          actualData = (response as any).error;
+          isSuccess = true;
+          console.log('Using data from error field (backend structure)');
+        }
+
+        if (isSuccess && actualData) {
           // Get the data array (first key that's an array)
-          const dataKey = Object.keys(response.data).find(
-            key => Array.isArray(response.data[key])
+          const dataKey = Object.keys(actualData).find(
+            key => Array.isArray(actualData[key])
           );
 
           if (dataKey) {
-            const newData = response.data[dataKey] as T[];
+            const newData = actualData[dataKey] as T[];
 
             if (reset) {
               setData(newData);
@@ -349,10 +367,17 @@ export function useInfiniteScroll<T>(
               setData(prev => [...prev, ...newData]);
             }
 
-            setHasMore(response.data.pagination.page < response.data.pagination.pages);
+            // Check for pagination info
+            if (actualData.pagination) {
+              setHasMore(actualData.pagination.page < actualData.pagination.pages);
+            } else {
+              // If no pagination info, assume no more pages
+              setHasMore(false);
+            }
           }
         } else {
-          setError(response.message || 'Request failed');
+          console.log('Response not successful:', response.message || (response as any).data);
+          setError(response.message || (response as any).data || 'Request failed');
         }
       } catch (err: any) {
         if (!isMounted.current) return;
