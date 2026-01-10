@@ -9,6 +9,7 @@ import { DashboardScreen } from './src/screens/admin/DashboardScreen';
 import { UsersScreen } from './src/screens/admin/UsersScreen';
 import OrdersListScreen from './src/screens/orders/OrdersListScreen';
 import MenuManagementScreen from './src/modules/menu/screens/MenuManagementScreen';
+import { ZonesManagementScreen } from './src/modules/zones';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -69,6 +70,9 @@ const MainContent: React.FC<{
 
     case 'MenuManagement':
       return <MenuManagementScreen onMenuPress={onMenuPress} />;
+
+    case 'Zones':
+      return <ZonesManagementScreen onMenuPress={onMenuPress} />;
 
     case 'Subscriptions':
       return <PlaceholderScreen title="Subscriptions" onMenuPress={onMenuPress} />;

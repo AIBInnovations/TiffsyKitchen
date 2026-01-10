@@ -249,18 +249,27 @@ export interface Address {
   addressLine2?: string;
   locality: string;
   city: string;
-  state: string;
+  state?: string;
   pincode: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface OperatingHours {
-  lunch: {
+  lunch?: {
     startTime: string;
     endTime: string;
   };
-  dinner: {
+  dinner?: {
     startTime: string;
     endTime: string;
+  };
+  onDemand?: {
+    startTime: string;
+    endTime: string;
+    isAlwaysOpen: boolean;
   };
 }
 
@@ -278,13 +287,20 @@ export interface Kitchen {
   description?: string;
   cuisineTypes: string[];
   address: Address;
-  zonesServed: string[];
+  zonesServed: Zone[] | string[];
   operatingHours: OperatingHours;
-  contactPhone: string;
-  contactEmail: string;
-  ownerName: string;
-  ownerPhone: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  ownerName?: string;
+  ownerPhone?: string;
+  isAcceptingOrders: boolean;
+  averageRating: number;
+  totalRatings: number;
+  createdBy?: string | User;
+  approvedBy?: string | User;
+  approvedAt?: string;
   createdAt?: string;
+  updatedAt?: string;
   suspensionReason?: string;
   suspendedAt?: string;
 }

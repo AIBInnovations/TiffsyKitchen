@@ -8,7 +8,8 @@ export type ScreenName =
   | 'Users'
   | 'Deliveries'
   | 'Analytics'
-  | 'Settings';
+  | 'Settings'
+  | 'Zones';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

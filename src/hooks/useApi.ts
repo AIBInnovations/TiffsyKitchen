@@ -92,12 +92,21 @@ export function useApi<T>(
     if (cacheDuration > 0) {
       const cached = apiCache.get(endpoint);
       if (cached && now - cached.timestamp < cacheDuration) {
+        console.log('========== USING CACHED DATA ==========');
+        console.log('Endpoint:', endpoint);
+        console.log('Cache Age:', Math.round((now - cached.timestamp) / 1000), 'seconds');
+        console.log('======================================');
         setData(cached.data);
         setLoading(false);
         setError(null);
         return;
       }
     }
+
+    console.log('========== MAKING FRESH API CALL ==========');
+    console.log('Endpoint:', endpoint);
+    console.log('Cache Duration:', cacheDuration, 'ms');
+    console.log('===========================================');
 
     setLoading(true);
     setError(null);
@@ -130,18 +139,25 @@ export function useApi<T>(
       }
 
       if (isSuccess && actualData) {
-        console.log('Setting data:', JSON.stringify(actualData, null, 2));
+        console.log('========== API SUCCESS ==========');
+        console.log('Endpoint:', endpoint);
+        console.log('Data received, keys:', Object.keys(actualData));
+        console.log('================================');
         setData(actualData);
 
         // Update cache
         if (cacheDuration > 0) {
+          console.log('Caching data for', cacheDuration / 1000, 'seconds');
           apiCache.set(endpoint, {
             data: actualData,
             timestamp: now,
           });
         }
       } else {
+        console.log('========== API FAILED ==========');
+        console.log('Endpoint:', endpoint);
         console.log('Response not successful:', response.message);
+        console.log('===============================');
         setError(response.message || 'Request failed');
       }
     } catch (err: any) {

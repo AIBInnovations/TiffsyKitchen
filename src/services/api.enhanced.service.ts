@@ -165,6 +165,8 @@ class EnhancedApiService {
         console.log('========== API REQUEST ==========');
         console.log('Endpoint:', endpoint);
         console.log('Method:', config.method);
+        console.log('Token (first 30 chars):', token ? token.substring(0, 30) + '...' : 'NO TOKEN');
+        console.log('Token (last 10 chars):', token ? '...' + token.substring(token.length - 10) : 'NO TOKEN');
 
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
@@ -175,7 +177,7 @@ class EnhancedApiService {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        console.log('Headers:', JSON.stringify(headers, null, 2));
+        console.log('Authorization Header:', headers['Authorization'] ? 'Bearer ' + headers['Authorization'].substring(7, 37) + '...' : 'NO AUTH');
         console.log('=================================');
 
         const response = await fetch(`${BASE_URL}${endpoint}`, {
