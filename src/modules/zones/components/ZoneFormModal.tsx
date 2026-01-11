@@ -13,7 +13,7 @@ import {
   Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import postalPincode from 'postal-pincode';
+import pincodeDirectory from 'india-pincode-lookup';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
 import { ZoneFormState, ZoneFormErrors, INDIAN_STATES, TIMEZONES } from '../models/types';
@@ -23,7 +23,7 @@ import { Zone } from '../../../types/api.types';
 interface PincodeData {
   officeName: string;
   pincode: string;
-  city: string;
+  taluk?: string;
   districtName: string;
   stateName: string;
 }
@@ -121,16 +121,16 @@ export const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
 
       try {
         // Search for pincodes starting with the entered digits
-        const results = postalPincode.search(numericText);
+        const results = pincodeDirectory.lookup(numericText);
 
         if (results && results.length > 0) {
           // Limit to 10 suggestions for better UX
           const suggestions = results.slice(0, 10).map((result: any) => ({
-            officeName: result.officeName || result.Name || '',
-            pincode: result.pincode || result.Pincode,
-            city: result.city || result.District || '',
-            districtName: result.districtName || result.District || '',
-            stateName: result.stateName || result.State || result.Circle || '',
+            officeName: result.officeName || '',
+            pincode: result.pincode || '',
+            districtName: result.districtName || '',
+            stateName: result.stateName || '',
+            taluk: result.taluk,
           }));
 
           setPincodeSuggestions(suggestions);
@@ -151,9 +151,9 @@ export const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
       setPincodeValidating(true);
 
       try {
-        const result = postalPincode.validate(numericText);
+        const result = pincodeDirectory.lookup(numericText);
 
-        if (result) {
+        if (result && result.length > 0) {
           setPincodeValid(true);
           setShowPincodeSuggestions(false);
           setErrors((prev) => ({ ...prev, pincode: undefined }));
@@ -183,7 +183,7 @@ export const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
       ...prev,
       pincode: suggestion.pincode,
       name: suggestion.officeName,
-      city: suggestion.city || suggestion.districtName,
+      city: suggestion.districtName,
       state: suggestion.stateName,
     }));
 
@@ -197,11 +197,21 @@ export const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
   const validateForm = (): ZoneFormErrors => {
     const newErrors: ZoneFormErrors = {};
 
-    // Pincode validation (6 digits)
+    // Pincode validation (6 digits + must be valid Indian pincode)
     if (!formData.pincode.trim()) {
       newErrors.pincode = 'Pincode is required';
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = 'Pincode must be 6 digits';
+    } else {
+      // Validate it's a real Indian pincode
+      try {
+        const result = pincodeDirectory.lookup(formData.pincode);
+        if (!result || result.length === 0) {
+          newErrors.pincode = 'Invalid Indian pincode. Please enter a valid 6-digit pincode.';
+        }
+      } catch (error) {
+        newErrors.pincode = 'Invalid Indian pincode. Please enter a valid 6-digit pincode.';
+      }
     }
 
     // Name validation
@@ -266,41 +276,97 @@ export const ZoneFormModal: React.FC<ZoneFormModalProps> = ({
           <ScrollView
             style={styles.scrollContent}
             keyboardShouldPersistTaps="handled">
-            {/* Pincode */}
+            {/* Pincode with Autocomplete */}
             <View style={styles.formGroup}>
               <Text style={styles.label}>
                 Pincode <Text style={styles.required}>*</Text>
               </Text>
-              <View style={styles.inputWrapper}>
+              <View style={[
+                styles.inputWrapper,
+                errors.pincode && styles.inputError,
+                pincodeValid && styles.inputSuccess,
+              ]}>
                 <Icon
                   name="map-marker"
                   size={20}
-                  color={colors.textMuted}
+                  color={
+                    pincodeValid ? '#10b981' :
+                    errors.pincode ? '#ef4444' :
+                    colors.textMuted
+                  }
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={[
                     styles.inputWithIcon,
                     isEditMode && styles.inputDisabled,
-                    errors.pincode && styles.inputError,
                   ]}
-                  placeholder="Enter 6-digit pincode"
+                  placeholder="Type Indian pincode (e.g., 400001)"
                   value={formData.pincode}
-                  onChangeText={(text) =>
-                    handleChange('pincode', text.replace(/[^0-9]/g, ''))
-                  }
+                  onChangeText={handlePincodeChange}
                   keyboardType="number-pad"
                   maxLength={6}
                   editable={!isEditMode}
                   placeholderTextColor={colors.textMuted}
                 />
+                {pincodeValidating && (
+                  <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: 8 }} />
+                )}
+                {pincodeValid && !pincodeValidating && (
+                  <Icon name="check-circle" size={20} color="#10b981" style={{ marginLeft: 8 }} />
+                )}
               </View>
+
+              {/* Pincode Suggestions Dropdown */}
+              {showPincodeSuggestions && pincodeSuggestions.length > 0 && !isEditMode && (
+                <View style={styles.suggestionsContainer}>
+                  <Text style={styles.suggestionsHeader}>
+                    Select a pincode ({pincodeSuggestions.length} found)
+                  </Text>
+                  <ScrollView
+                    style={styles.suggestionsList}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled>
+                    {pincodeSuggestions.map((suggestion, index) => (
+                      <TouchableOpacity
+                        key={`${suggestion.pincode}-${index}`}
+                        style={styles.suggestionItem}
+                        onPress={() => selectPincodeSuggestion(suggestion)}
+                        activeOpacity={0.7}>
+                        <View style={styles.suggestionLeft}>
+                          <Text style={styles.suggestionPincode}>{suggestion.pincode}</Text>
+                          <Text style={styles.suggestionName} numberOfLines={1}>
+                            {suggestion.officeName}
+                          </Text>
+                          <Text style={styles.suggestionLocation} numberOfLines={1}>
+                            {suggestion.districtName}, {suggestion.stateName}
+                          </Text>
+                        </View>
+                        <Icon name="chevron-right" size={18} color="#94a3b8" />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
               {errors.pincode ? (
-                <Text style={styles.errorText}>{errors.pincode}</Text>
+                <View style={styles.errorContainer}>
+                  <Icon name="alert-circle" size={16} color="#ef4444" />
+                  <Text style={styles.errorText}>{errors.pincode}</Text>
+                </View>
               ) : null}
               {isEditMode ? (
                 <Text style={styles.helperText}>
                   Pincode cannot be changed after creation
+                </Text>
+              ) : pincodeValid ? (
+                <View style={styles.successContainer}>
+                  <Icon name="check-circle" size={14} color="#10b981" />
+                  <Text style={styles.successText}>Valid Indian pincode</Text>
+                </View>
+              ) : formData.pincode.length > 0 && formData.pincode.length < 6 ? (
+                <Text style={styles.helperText}>
+                  Type at least 3 digits to see suggestions
                 </Text>
               ) : null}
             </View>
@@ -751,10 +817,90 @@ const styles = StyleSheet.create({
     borderColor: '#ef4444',
     backgroundColor: '#fef2f2',
   },
+  inputSuccess: {
+    borderColor: '#10b981',
+    backgroundColor: '#f0fdf4',
+  },
   inputDisabled: {
     backgroundColor: '#e2e8f0',
     color: '#64748b',
     borderColor: '#cbd5e1',
+  },
+
+  // Pincode Suggestions Dropdown - Premium Design
+  suggestionsContainer: {
+    marginTop: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    maxHeight: 280,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    overflow: 'hidden',
+  },
+  suggestionsHeader: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  suggestionsList: {
+    maxHeight: 240,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
+  },
+  suggestionLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  suggestionPincode: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 3,
+    letterSpacing: 0.5,
+  },
+  suggestionName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 2,
+  },
+  suggestionLocation: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#94a3b8',
+  },
+
+  // Error Container - Enhanced Feedback
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#ef4444',
+    gap: 8,
   },
 
   // Picker Button - Touch-Optimized
@@ -857,15 +1003,28 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 13,
     color: '#dc2626',
-    marginTop: 8,
     fontWeight: '600',
     lineHeight: 18,
-    backgroundColor: '#fef2f2',
+    flex: 1,
+  },
+
+  // Success Container - Positive Feedback
+  successContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0fdf4',
     padding: 8,
-    borderRadius: 6,
+    borderRadius: 8,
+    marginTop: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#ef4444',
-    paddingLeft: 12,
+    borderLeftColor: '#10b981',
+    gap: 6,
+  },
+  successText: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
 
   // Footer - Elevated Actions

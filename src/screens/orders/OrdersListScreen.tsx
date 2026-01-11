@@ -104,17 +104,19 @@ export default function OrdersListScreen({ onMenuPress, onLogout }: OrdersListSc
       <View style={styles.orderDetails}>
         <View style={styles.detailRow}>
           <Icon name="restaurant" size={16} color="#6b7280" />
-          <Text style={styles.detailText}>Kitchen ID: {item.kitchenId}</Text>
+          <Text style={styles.detailText}>
+            Kitchen: {typeof item.kitchenId === 'object' ? item.kitchenId?.name || 'N/A' : item.kitchenId || 'N/A'}
+          </Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="schedule" size={16} color="#6b7280" />
           <Text style={styles.detailText}>
-            {new Date(item.scheduledFor).toLocaleDateString()} {new Date(item.scheduledFor).toLocaleTimeString()}
+            {item.scheduledFor ? `${new Date(item.scheduledFor).toLocaleDateString()} ${new Date(item.scheduledFor).toLocaleTimeString()}` : 'Not scheduled'}
           </Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="attach-money" size={16} color="#6b7280" />
-          <Text style={styles.detailText}>₹{item.totalAmount.toFixed(2)}</Text>
+          <Text style={styles.detailText}>₹{item.totalAmount || item.grandTotal ? (item.totalAmount || item.grandTotal || 0).toFixed(2) : '0.00'}</Text>
         </View>
       </View>
 

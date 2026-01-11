@@ -363,9 +363,6 @@ const ActivityCard: React.FC<{
         <Text style={styles.activityAction}>
           {activity.action} {activity.entityType}
         </Text>
-        <Text style={styles.activityPerformer}>
-          by {activity.performedBy.name} ({activity.performedBy.role})
-        </Text>
         <Text style={styles.activityTime}>
           {new Date(activity.createdAt).toLocaleString()}
         </Text>
@@ -670,12 +667,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 2,
-  },
-  activityPerformer: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   activityTime: {
     fontSize: 11,

@@ -47,12 +47,13 @@ class OrdersService {
     const endpoint = `/api/orders/admin/all${queryString ? `?${queryString}` : ''}`;
 
     const response = await apiService.get<{
-      success: boolean;
-      message: string;
-      data: OrderListResponse;
+      message: boolean;
+      data: string;
+      error: OrderListResponse;
     }>(endpoint);
 
-    return response.data;
+    // Backend returns data in 'error' field
+    return response.error;
   }
 
   /**
@@ -63,7 +64,7 @@ class OrdersService {
       success: boolean;
       message: string;
       data: { order: Order };
-    }>(`/api/orders/admin/${orderId}`);
+    }>(`/api/orders/${orderId}`);
 
     return response.data.order;
   }
@@ -73,12 +74,46 @@ class OrdersService {
    */
   async getOrderStatistics(): Promise<OrderStatistics> {
     const response = await apiService.get<{
-      success: boolean;
-      message: string;
-      data: OrderStatistics;
-    }>('/api/orders/admin/statistics');
+      message: boolean;
+      data: string;
+      error: any;
+    }>('/api/orders/admin/stats');
 
-    return response.data;
+    // Backend returns data in 'error' field with different structure
+    const statsData = response.error;
+
+    // Transform the backend response to match our OrderStatistics interface
+    return {
+      today: {
+        total: statsData.totalOrders || 0,
+        placed: statsData.byStatus?.PLACED || 0,
+        accepted: statsData.byStatus?.ACCEPTED || 0,
+        preparing: statsData.byStatus?.PREPARING || 0,
+        ready: statsData.byStatus?.READY || 0,
+        pickedUp: statsData.byStatus?.PICKED_UP || 0,
+        outForDelivery: statsData.byStatus?.OUT_FOR_DELIVERY || 0,
+        delivered: statsData.byStatus?.DELIVERED || 0,
+        cancelled: statsData.byStatus?.CANCELLED || 0,
+        rejected: statsData.byStatus?.REJECTED || 0,
+      },
+      byMenuType: {
+        MEAL_MENU: statsData.byMenuType?.MEAL_MENU || 0,
+        ON_DEMAND_MENU: statsData.byMenuType?.ON_DEMAND_MENU || 0,
+      },
+      byMealWindow: {
+        LUNCH: statsData.byMealWindow?.LUNCH || 0,
+        DINNER: statsData.byMealWindow?.DINNER || 0,
+      },
+      revenue: {
+        today: statsData.totalRevenue || 0,
+        thisWeek: 0, // Not provided by backend
+        thisMonth: 0, // Not provided by backend
+      },
+      averageOrderValue: {
+        MEAL_MENU: statsData.avgOrderValue || 0,
+        ON_DEMAND_MENU: 0, // Not provided by backend
+      },
+    };
   }
 
   /**
@@ -100,16 +135,37 @@ class OrdersService {
   /**
    * Cancel an order
    */
-  async cancelOrder(orderId: string, reason: string): Promise<Order> {
-    const response = await apiService.post<{
+  async cancelOrder(
+    orderId: string,
+    data: {
+      reason: string;
+      issueRefund: boolean;
+      restoreVouchers?: boolean;
+    }
+  ): Promise<{
+    order: Order;
+    refund?: {
+      amount: number;
+      status: string;
+      refundId: string;
+    };
+    vouchersRestored?: number;
+  }> {
+    const response = await apiService.patch<{
       success: boolean;
       message: string;
-      data: { order: Order };
-    }>(`/api/orders/admin/${orderId}/cancel`, {
-      cancellationReason: reason,
-    });
+      data: {
+        order: Order;
+        refund?: {
+          amount: number;
+          status: string;
+          refundId: string;
+        };
+        vouchersRestored?: number;
+      };
+    }>(`/api/orders/${orderId}/admin-cancel`, data);
 
-    return response.data.order;
+    return response.data;
   }
 
   /**

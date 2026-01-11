@@ -9,8 +9,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { OrdersStackParamList } from './types';
-import OrdersListScreen from '../screens/orders/OrdersListScreen';
-import OrderDetailsScreen from '../screens/orders/OrderDetailsScreen';
+import OrdersScreen from '../modules/orders/screens/OrdersScreen';
+import OrderDetailAdminScreen from '../modules/orders/screens/OrderDetailAdminScreen';
 
 const Stack = createStackNavigator<OrdersStackParamList>();
 
@@ -18,11 +18,26 @@ export default function OrdersNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false, // We'll use custom headers
+        headerShown: true, // Show headers
+        headerStyle: {
+          backgroundColor: '#007AFF',
+        },
+        headerTintColor: '#FFFFFF',
+        headerTitleStyle: {
+          fontWeight: '600',
+        },
       }}
     >
-      <Stack.Screen name="OrdersList" component={OrdersListScreen} />
-      <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+      <Stack.Screen
+        name="OrdersList"
+        component={OrdersScreen}
+        options={{ title: 'Orders Management' }}
+      />
+      <Stack.Screen
+        name="OrderDetail"
+        component={OrderDetailAdminScreen}
+        options={{ title: 'Order Details' }}
+      />
     </Stack.Navigator>
   );
 }

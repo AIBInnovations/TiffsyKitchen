@@ -136,10 +136,6 @@ export interface DashboardActivity {
   _id: string;
   action: AuditAction;
   entityType: EntityType;
-  performedBy: {
-    name: string;
-    role: UserRole;
-  };
   createdAt: string;
 }
 
@@ -237,7 +233,26 @@ export interface UserActivity {
 export interface UserDetailsResponse {
   user: User;
   kitchen?: Kitchen;
-  activity: UserActivity;
+  activity?: UserActivity;
+  stats?: {
+    totalOrders?: number;
+    completedOrders?: number;
+    cancelledOrders?: number;
+    activeSubscriptions?: number;
+    availableVouchers?: number;
+    totalSpent?: number;
+    ordersProcessedToday?: number;
+    ordersProcessedThisMonth?: number;
+  };
+  addresses?: {
+    _id: string;
+    label: string;
+    addressLine1: string;
+    locality: string;
+    city: string;
+    pincode: string;
+    isDefault: boolean;
+  }[];
 }
 
 // ============================================================================
@@ -469,21 +484,113 @@ export interface RefundStatistics {
 // Order Management Types
 // ============================================================================
 
+export interface OrderItem {
+  menuItemId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  isMainCourse: boolean;
+  addons: {
+    addonId: string;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }[];
+}
+
+export interface DeliveryAddress {
+  addressLine1: string;
+  addressLine2?: string;
+  landmark?: string;
+  locality: string;
+  city: string;
+  pincode: string;
+  contactName?: string;
+  contactPhone?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
+export interface StatusEntry {
+  status: OrderStatus;
+  timestamp: string;
+  updatedBy?: string;
+  notes?: string;
+}
+
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'PARTIALLY_REFUNDED';
+
 export interface Order {
   _id: string;
-  userId: string;
-  kitchenId: string;
-  zoneId: string;
-  status: OrderStatus;
+  orderNumber: string;
+  userId: {
+    _id: string;
+    name: string;
+    phone: string;
+    email?: string;
+  };
+  kitchenId: {
+    _id: string;
+    name: string;
+    code: string;
+    contactPhone?: string;
+  };
+  zoneId: {
+    _id: string;
+    pincode: string;
+    name: string;
+    city: string;
+  };
+  deliveryAddressId: string;
+  deliveryAddress: DeliveryAddress;
   menuType: MenuType;
-  items: any[]; // Define based on your menu item structure
-  totalAmount: number;
-  deliveryAddress: Address;
-  scheduledFor: string;
+  mealWindow?: MealWindow;
+  items: OrderItem[];
+  subtotal: number;
+  charges: {
+    deliveryFee: number;
+    serviceFee: number;
+    packagingFee: number;
+    handlingFee: number;
+    taxAmount: number;
+    taxBreakdown: {
+      taxType: string;
+      rate: number;
+      amount: number;
+    }[];
+  };
+  discount?: {
+    couponId?: string;
+    couponCode?: string;
+    discountAmount: number;
+    discountType: string;
+  };
+  grandTotal: number;
+  voucherUsage: {
+    voucherIds?: string[];
+    voucherCount: number;
+    mainCoursesCovered: number;
+  };
+  amountPaid: number;
+  paymentStatus: PaymentStatus;
+  paymentMethod?: string;
+  paymentId?: string;
+  status: OrderStatus;
+  statusTimeline: StatusEntry[];
+  specialInstructions?: string;
   placedAt: string;
-  deliveredAt?: string;
+  estimatedDeliveryTime?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  cancelledBy?: 'CUSTOMER' | 'KITCHEN' | 'ADMIN' | 'SYSTEM';
+  deliveredAt?: string;
+  itemCount?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface OrderListResponse {
@@ -492,12 +599,35 @@ export interface OrderListResponse {
 }
 
 export interface OrderStatistics {
-  totalOrders: number;
-  todayOrders: number;
-  pendingOrders: number;
-  deliveredOrders: number;
-  cancelledOrders: number;
-  totalRevenue: number;
+  today: {
+    total: number;
+    placed: number;
+    accepted: number;
+    preparing: number;
+    ready: number;
+    pickedUp: number;
+    outForDelivery: number;
+    delivered: number;
+    cancelled: number;
+    rejected: number;
+  };
+  byMenuType: {
+    MEAL_MENU: number;
+    ON_DEMAND_MENU: number;
+  };
+  byMealWindow: {
+    LUNCH: number;
+    DINNER: number;
+  };
+  revenue: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  averageOrderValue: {
+    MEAL_MENU: number;
+    ON_DEMAND_MENU: number;
+  };
 }
 
 // ============================================================================
@@ -635,12 +765,6 @@ export interface AuditLog {
   action: AuditAction;
   entityType: EntityType;
   entityId: string;
-  performedBy: {
-    _id?: string;
-    name: string;
-    role: UserRole;
-    phone?: string;
-  };
   details: Record<string, any>;
   createdAt: string;
 }

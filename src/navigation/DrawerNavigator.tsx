@@ -7,14 +7,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { DrawerParamList } from './types';
 import DashboardScreen from '../screens/admin/DashboardScreen.enhanced';
 import OrdersNavigator from './OrdersNavigator';
+import { KitchensManagementScreen, KitchenDetailScreen } from '../modules/kitchens/screens';
+import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
+import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
+const Stack = createStackNavigator();
 
 const PRIMARY_COLOR = '#f97316';
+
+/**
+ * Kitchens Stack Navigator
+ * Handles navigation between kitchen list and detail screens
+ */
+function KitchensNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="KitchensList" component={KitchensManagementScreen} />
+      <Stack.Screen name="KitchenDetail" component={KitchenDetailScreen} />
+    </Stack.Navigator>
+  );
+}
 
 /**
  * Custom Drawer Content
@@ -30,8 +48,8 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     { name: 'Users', icon: 'people', route: 'Users' },
     { name: 'Kitchens', icon: 'restaurant', route: 'Kitchens' },
     { name: 'Zones', icon: 'location-on', route: 'Zones' },
+    { name: 'Subscriptions', icon: 'card-membership', route: 'Subscriptions' },
     { name: 'Coupons', icon: 'local-offer', route: 'Coupons' },
-    { name: 'Plans', icon: 'attach-money', route: 'Plans' },
     { name: 'Settings', icon: 'settings', route: 'Settings' },
   ];
 
@@ -52,7 +70,10 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
             <TouchableOpacity
               key={item.route}
               style={[styles.menuItem, isActive && styles.menuItemActive]}
-              onPress={() => navigation.navigate(item.route as any)}
+              onPress={() => {
+                console.log('Drawer menu clicked:', item.route);
+                navigation.navigate(item.route as any);
+              }}
             >
               <Icon
                 name={item.icon}
@@ -101,20 +122,14 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
         {() => <PlaceholderScreen title="Users Management" />}
       </Drawer.Screen>
 
-      <Drawer.Screen name="Kitchens">
-        {() => <PlaceholderScreen title="Kitchens Management" />}
-      </Drawer.Screen>
+      <Drawer.Screen name="Kitchens" component={KitchensNavigator} />
 
-      <Drawer.Screen name="Zones">
-        {() => <PlaceholderScreen title="Zones Management" />}
-      </Drawer.Screen>
+      <Drawer.Screen name="Zones" component={ZonesManagementScreen} />
+
+      <Drawer.Screen name="Subscriptions" component={SubscriptionsScreenSimple} />
 
       <Drawer.Screen name="Coupons">
         {() => <PlaceholderScreen title="Coupons Management" />}
-      </Drawer.Screen>
-
-      <Drawer.Screen name="Plans">
-        {() => <PlaceholderScreen title="Plans & Pricing" />}
       </Drawer.Screen>
 
       <Drawer.Screen name="Settings">

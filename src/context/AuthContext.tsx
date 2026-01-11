@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import auth from '@react-native-firebase/auth';
 import { User, UserRole } from '../types/user';
 import { authService } from '../services/auth.service';
+import { apiService } from '../services/api.enhanced.service';
+import { clearAllCache } from '../hooks/useApi';
 
 interface AuthContextType {
   user: User | null;
@@ -54,8 +57,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('authToken');
-    setUser(null);
+    try {
+      console.log('========== AUTH CONTEXT: LOGOUT ==========');
+
+      // 1. Sign out from Firebase
+      console.log('Signing out from Firebase...');
+      await auth().signOut();
+
+      // 2. Clear all admin data from AsyncStorage
+      console.log('Clearing admin data...');
+      await authService.clearAdminData();
+
+      // 3. Clear API service cache
+      console.log('Clearing API service cache...');
+      await apiService.logout();
+
+      // 4. Clear React Query cache
+      console.log('Clearing React Query cache...');
+      clearAllCache();
+
+      // 5. Reset user state
+      console.log('Resetting user state...');
+      setUser(null);
+
+      console.log('Logout complete!');
+      console.log('==========================================');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Even if there's an error, clear local state
+      setUser(null);
+    }
   };
 
   return (

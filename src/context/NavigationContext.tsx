@@ -3,13 +3,14 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 export type ScreenName =
   | 'Dashboard'
   | 'Orders'
+  | 'Kitchens'
+  | 'Zones'
   | 'MenuManagement'
   | 'Subscriptions'
   | 'Users'
   | 'Deliveries'
   | 'Analytics'
-  | 'Settings'
-  | 'Zones';
+  | 'Settings';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

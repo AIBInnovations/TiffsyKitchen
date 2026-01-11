@@ -15,8 +15,8 @@ export type DrawerParamList = {
   Users: undefined;
   Kitchens: undefined;
   Zones: undefined;
+  Subscriptions: undefined;
   Coupons: undefined;
-  Plans: undefined;
   Settings: undefined;
 };
 

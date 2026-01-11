@@ -26,26 +26,29 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: '1', label: 'Dashboard', icon: 'dashboard', screen: 'Dashboard' },
   { id: '2', label: 'Orders', icon: 'inventory-2', screen: 'Orders' },
-  { id: '3', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
-  { id: '4', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
-  { id: '5', label: 'Users', icon: 'people', screen: 'Users' },
-  { id: '6', label: 'Zones', icon: 'location-on', screen: 'Zones' },
-  { id: '7', label: 'Deliveries', icon: 'local-shipping', screen: 'Deliveries' },
-  { id: '8', label: 'Analytics', icon: 'trending-up', screen: 'Analytics' },
-  { id: '9', label: 'Settings', icon: 'settings', screen: 'Settings' },
+  { id: '3', label: 'Kitchens', icon: 'restaurant', screen: 'Kitchens' },
+  { id: '4', label: 'Zones', icon: 'location-on', screen: 'Zones' },
+  { id: '5', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
+  { id: '6', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
+  { id: '7', label: 'Users', icon: 'people', screen: 'Users' },
+  { id: '8', label: 'Deliveries', icon: 'local-shipping', screen: 'Deliveries' },
+  { id: '9', label: 'Analytics', icon: 'trending-up', screen: 'Analytics' },
+  { id: '10', label: 'Settings', icon: 'settings', screen: 'Settings' },
 ];
 
 interface SidebarProps {
   visible: boolean;
   onClose: () => void;
+  onLogout?: () => void | Promise<void>;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   visible,
   onClose,
+  onLogout,
 }) => {
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout: authLogout } = useAuth();
   const { currentScreen, navigate } = useNavigation();
   const slideAnim = React.useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
 
@@ -67,7 +70,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLogout = async () => {
     onClose();
-    await logout();
+
+    // If parent provided onLogout, use it (for App.tsx logout flow)
+    // Otherwise fall back to AuthContext logout
+    if (onLogout) {
+      await onLogout();
+    } else {
+      await authLogout();
+    }
   };
 
   const handleMenuPress = (screen: ScreenName) => {

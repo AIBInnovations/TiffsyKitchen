@@ -92,21 +92,12 @@ export function useApi<T>(
     if (cacheDuration > 0) {
       const cached = apiCache.get(endpoint);
       if (cached && now - cached.timestamp < cacheDuration) {
-        console.log('========== USING CACHED DATA ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Cache Age:', Math.round((now - cached.timestamp) / 1000), 'seconds');
-        console.log('======================================');
         setData(cached.data);
         setLoading(false);
         setError(null);
         return;
       }
     }
-
-    console.log('========== MAKING FRESH API CALL ==========');
-    console.log('Endpoint:', endpoint);
-    console.log('Cache Duration:', cacheDuration, 'ms');
-    console.log('===========================================');
 
     setLoading(true);
     setError(null);
@@ -116,55 +107,68 @@ export function useApi<T>(
 
       if (!isMounted.current) return;
 
-      console.log('useApi received response:', JSON.stringify(response, null, 2));
-
       // Handle backend response structure
-      // Backend returns: { message: true/string, data: any, error: any }
-      // If message is true and error contains object data, use error field
-      // If success is true, use data field (standard case)
+      // Backend can return multiple formats:
+      // 1. Standard: { success: true, data: {...}, message: string }
+      // 2. Backend format: { message: true, error: {...}, data: null }
+      // 3. Error format: { message: false/string, data: string/null, error: null }
 
       let actualData = null;
       let isSuccess = false;
+      let errorMessage = null;
 
-      if (response.success && response.data) {
+      const rawResponse = response as any;
+
+      // Check if message is boolean true (backend success format)
+      if (rawResponse.message === true && rawResponse.error && typeof rawResponse.error === 'object') {
+        // Backend actual response: { message: true, error: {...} }
+        actualData = rawResponse.error;
+        isSuccess = true;
+      }
+      // Check if success field exists and is true (standard format)
+      else if (response.success && response.data) {
         // Standard response: { success: true, data: {...} }
         actualData = response.data;
         isSuccess = true;
-        console.log('Using data from data field (standard)');
-      } else if ((response as any).message === true && (response as any).error && typeof (response as any).error === 'object') {
-        // Backend actual response: { message: true, error: {...} }
-        actualData = (response as any).error;
-        isSuccess = true;
-        console.log('Using data from error field (backend structure)');
+      }
+      // Check if message is false or a string (error case)
+      else if (rawResponse.message === false || typeof rawResponse.message === 'string') {
+        isSuccess = false;
+        // Extract error message from data field or message field
+        if (typeof rawResponse.data === 'string') {
+          errorMessage = rawResponse.data;
+        } else if (typeof rawResponse.message === 'string') {
+          errorMessage = rawResponse.message;
+        } else {
+          errorMessage = 'Request failed';
+        }
       }
 
       if (isSuccess && actualData) {
-        console.log('========== API SUCCESS ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Data received, keys:', Object.keys(actualData));
-        console.log('================================');
         setData(actualData);
 
         // Update cache
         if (cacheDuration > 0) {
-          console.log('Caching data for', cacheDuration / 1000, 'seconds');
           apiCache.set(endpoint, {
             data: actualData,
             timestamp: now,
           });
         }
       } else {
-        console.log('========== API FAILED ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Response not successful:', response.message);
-        console.log('===============================');
-        setError(response.message || 'Request failed');
+        setError(errorMessage || 'Request failed');
       }
     } catch (err: any) {
       if (!isMounted.current) return;
 
-      console.log('useApi error:', err);
-      setError(err.message || 'An error occurred');
+      // Handle error object with message field being boolean
+      let errorMsg = 'An error occurred';
+      if (err.data && typeof err.data === 'string') {
+        errorMsg = err.data;
+      } else if (err.message && typeof err.message === 'string') {
+        errorMsg = err.message;
+      }
+
+      setError(errorMsg);
 
       // Handle auth errors
       if (err.requiresReauth) {
@@ -258,19 +262,40 @@ export function useMutation<T>(
 
         if (!isMounted.current) return null;
 
+        const rawResponse = response as any;
+
+        // Handle different response formats
         if (response.success) {
-          // Clear any cached data for related endpoints
-          // This ensures lists update after mutations
+          // Standard success format
           clearRelatedCache(endpoint);
           return response.data;
+        } else if (rawResponse.message === true && rawResponse.error) {
+          // Backend success format: { message: true, error: {...} }
+          clearRelatedCache(endpoint);
+          return rawResponse.error;
         } else {
-          setError(response.message || 'Request failed');
+          // Error format: extract proper error message
+          let errorMessage = 'Request failed';
+          if (typeof rawResponse.data === 'string') {
+            errorMessage = rawResponse.data;
+          } else if (typeof rawResponse.message === 'string') {
+            errorMessage = rawResponse.message;
+          }
+          setError(errorMessage);
           return null;
         }
       } catch (err: any) {
         if (!isMounted.current) return null;
 
-        setError(err.message || 'An error occurred');
+        // Handle error object with message field being boolean
+        let errorMsg = 'An error occurred';
+        if (err.data && typeof err.data === 'string') {
+          errorMsg = err.data;
+        } else if (err.message && typeof err.message === 'string') {
+          errorMsg = err.message;
+        }
+
+        setError(errorMsg);
         return null;
       } finally {
         if (isMounted.current) {
@@ -343,10 +368,7 @@ export function useInfiniteScroll<T>(
           limit: limit.toString(),
         });
 
-        const response = await apiService.get<{
-          [key: string]: T[];
-          pagination: { page: number; pages: number };
-        }>(`${endpoint}?${params}`);
+        const response = await apiService.get<any>(`${endpoint}?${params}`);
 
         if (!isMounted.current) return;
 
@@ -355,17 +377,36 @@ export function useInfiniteScroll<T>(
         // Handle backend response structure (same as useApi)
         let actualData = null;
         let isSuccess = false;
+        let errorMessage = null;
 
-        if (response.success && response.data) {
+        const rawResponse = response as any;
+
+        // Check if message is boolean true (backend success format)
+        if (rawResponse.message === true && rawResponse.error && typeof rawResponse.error === 'object') {
+          // Backend actual response: { message: true, error: {...} }
+          actualData = rawResponse.error;
+          isSuccess = true;
+          console.log('Using data from error field (backend structure)');
+        }
+        // Check if success field exists and is true (standard format)
+        else if (response.success && response.data) {
           // Standard response: { success: true, data: {...} }
           actualData = response.data;
           isSuccess = true;
           console.log('Using data from data field (standard)');
-        } else if ((response as any).message === true && (response as any).error && typeof (response as any).error === 'object') {
-          // Backend actual response: { message: true, error: {...} }
-          actualData = (response as any).error;
-          isSuccess = true;
-          console.log('Using data from error field (backend structure)');
+        }
+        // Check if message is false or a string (error case)
+        else if (rawResponse.message === false || typeof rawResponse.message === 'string') {
+          isSuccess = false;
+          // Extract error message from data field or message field
+          if (typeof rawResponse.data === 'string') {
+            errorMessage = rawResponse.data;
+          } else if (typeof rawResponse.message === 'string') {
+            errorMessage = rawResponse.message;
+          } else {
+            errorMessage = 'Request failed';
+          }
+          console.log('Error response detected:', errorMessage);
         }
 
         if (isSuccess && actualData) {
@@ -392,8 +433,8 @@ export function useInfiniteScroll<T>(
             }
           }
         } else {
-          console.log('Response not successful:', response.message || (response as any).data);
-          setError(response.message || (response as any).data || 'Request failed');
+          console.log('Response not successful:', errorMessage);
+          setError(errorMessage || 'Request failed');
         }
       } catch (err: any) {
         if (!isMounted.current) return;

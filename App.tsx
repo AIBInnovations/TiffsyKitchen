@@ -3,13 +3,16 @@ import "./global.css";
 import React, { useEffect, useState } from 'react';
 import { StatusBar, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
 import { AdminLoginScreen } from './src/screens/admin/AdminLoginScreen';
 import { DashboardScreen } from './src/screens/admin/DashboardScreen';
 import { UsersScreen } from './src/screens/admin/UsersScreen';
-import OrdersListScreen from './src/screens/orders/OrdersListScreen';
+import OrdersScreen from './src/modules/orders/screens/OrdersScreen';
 import MenuManagementScreen from './src/modules/menu/screens/MenuManagementScreen';
 import { ZonesManagementScreen } from './src/modules/zones';
+import { KitchensManagementScreen } from './src/modules/kitchens/screens';
+import { SubscriptionsScreen } from './src/modules/subscriptions';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -17,6 +20,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+
+// Create React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30000, // 30 seconds
+    },
+  },
+});
 
 // Placeholder component for unimplemented screens
 const PlaceholderScreen: React.FC<{
@@ -63,19 +77,22 @@ const MainContent: React.FC<{
       return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
 
     case 'Orders':
-      return <OrdersListScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+      return <OrdersScreen onMenuPress={onMenuPress} />;
 
     case 'Users':
       return <UsersScreen onMenuPress={onMenuPress} onUserPress={handleUserPress} />;
 
-    case 'MenuManagement':
-      return <MenuManagementScreen onMenuPress={onMenuPress} />;
+    case 'Kitchens':
+      return <KitchensManagementScreen onMenuPress={onMenuPress} />;
 
     case 'Zones':
       return <ZonesManagementScreen onMenuPress={onMenuPress} />;
 
+    case 'MenuManagement':
+      return <MenuManagementScreen onMenuPress={onMenuPress} />;
+
     case 'Subscriptions':
-      return <PlaceholderScreen title="Subscriptions" onMenuPress={onMenuPress} />;
+      return <SubscriptionsScreen onMenuPress={onMenuPress} />;
 
     case 'Deliveries':
       return <PlaceholderScreen title="Deliveries" onMenuPress={onMenuPress} />;
@@ -245,21 +262,23 @@ function App() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <NavigationProvider>
-          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-          {isAuthenticated ? (
-            <>
-              <MainContent onMenuPress={handleMenuPress} onLogout={handleLogout} />
-              <Sidebar visible={sidebarVisible} onClose={handleCloseSidebar} />
-            </>
-          ) : !firebaseToken ? (
-            <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
-          ) : (
-            <AdminLoginScreen firebaseToken={firebaseToken} onLoginSuccess={handleLoginSuccess} />
-          )}
-        </NavigationProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NavigationProvider>
+            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+            {isAuthenticated ? (
+              <>
+                <MainContent onMenuPress={handleMenuPress} onLogout={handleLogout} />
+                <Sidebar visible={sidebarVisible} onClose={handleCloseSidebar} onLogout={handleLogout} />
+              </>
+            ) : !firebaseToken ? (
+              <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
+            ) : (
+              <AdminLoginScreen firebaseToken={firebaseToken} onLoginSuccess={handleLoginSuccess} />
+            )}
+          </NavigationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

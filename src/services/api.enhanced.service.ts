@@ -162,12 +162,6 @@ class EnhancedApiService {
       try {
         const token = await this.getAuthToken();
 
-        console.log('========== API REQUEST ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Method:', config.method);
-        console.log('Token (first 30 chars):', token ? token.substring(0, 30) + '...' : 'NO TOKEN');
-        console.log('Token (last 10 chars):', token ? '...' + token.substring(token.length - 10) : 'NO TOKEN');
-
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
           ...config.headers,
@@ -177,27 +171,23 @@ class EnhancedApiService {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        console.log('Authorization Header:', headers['Authorization'] ? 'Bearer ' + headers['Authorization'].substring(7, 37) + '...' : 'NO AUTH');
-        console.log('=================================');
+        const requestBody = config.body ? JSON.stringify(config.body) : undefined;
+
+        console.log('Request:', {
+          method: config.method,
+          url: `${BASE_URL}${endpoint}`,
+          headers: headers,
+          body: requestBody
+        });
 
         const response = await fetch(`${BASE_URL}${endpoint}`, {
           method: config.method,
           headers,
-          body: config.body ? JSON.stringify(config.body) : undefined,
+          body: requestBody,
         });
 
-        console.log('========== FETCH COMPLETE ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Response Status:', response.status);
-        console.log('Response OK:', response.ok);
-        console.log('====================================');
-
         const responseData = await response.json();
-        console.log('========== RAW RESPONSE ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Status:', response.status);
         console.log('Response:', responseData);
-        console.log('==================================');
 
         // Handle 401 Unauthorized - Try token refresh
         if (response.status === 401 && !config.skipRetry) {
@@ -214,11 +204,6 @@ class EnhancedApiService {
             });
 
             const retryData = await retryResponse.json();
-            console.log('========== RAW RESPONSE (After Refresh) ==========');
-            console.log('Endpoint:', endpoint);
-            console.log('Status:', retryResponse.status);
-            console.log('Response:', retryData);
-            console.log('==================================================');
 
             if (!retryResponse.ok) {
               throw retryData;
@@ -256,13 +241,6 @@ class EnhancedApiService {
 
         return responseData;
       } catch (error: any) {
-        console.log('========== API ERROR ==========');
-        console.log('Endpoint:', endpoint);
-        console.log('Error Type:', error.name);
-        console.log('Error Message:', error.message);
-        console.log('Full Error:', error);
-        console.log('===============================');
-
         // Handle network errors (no response from server)
         if (error.message === 'Network request failed' || error.name === 'TypeError') {
           if (retryCount < this.retryConfig.maxRetries && !config.skipRetry) {
