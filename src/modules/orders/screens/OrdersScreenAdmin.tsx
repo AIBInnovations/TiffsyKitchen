@@ -36,6 +36,8 @@ interface OrdersScreenAdminProps {
 }
 
 const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) => {
+  console.log('✨ OrdersScreenAdmin RENDERED - New version with inline status editing');
+
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
@@ -280,6 +282,13 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
           </View>
         </View>
       )}
+
+      {/* TEST BANNER - REMOVE AFTER CONFIRMING */}
+      <View style={{backgroundColor: '#10b981', padding: 16, alignItems: 'center'}}>
+        <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>
+          ✅ NEW ORDERS SCREEN ACTIVE WITH INLINE STATUS EDITING
+        </Text>
+      </View>
 
       {/* Stats and Filters Section */}
       <View style={styles.topSection}>

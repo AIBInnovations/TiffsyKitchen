@@ -37,6 +37,7 @@ class ApiService {
       body: config.body ? JSON.stringify(config.body) : undefined,
     });
 
+    console.log(response)
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Network error' }));
       console.log('❌ Response:', response.status, JSON.stringify(error, null, 2));
@@ -46,7 +47,7 @@ class ApiService {
     const responseData = await response.json();
 
     // Log response
-    console.log('✅ Response:', response.status, JSON.stringify(responseData, null, 2));
+
 
     return responseData;
   }

@@ -81,18 +81,20 @@ const formatTimeAgo = (date: string): string => {
 };
 
 // Quick status change options based on current status
+// Backend accepts: PLACED, ACCEPTED, REJECTED, READY, PICKED_UP, OUT_FOR_DELIVERY, DELIVERED
+// Other statuses (PREPARING, CANCELLED, FAILED) are read-only
 const getQuickStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
   const statusFlow: Record<OrderStatus, OrderStatus[]> = {
     PLACED: ['ACCEPTED', 'REJECTED'],
-    ACCEPTED: ['PREPARING', 'CANCELLED'],
-    PREPARING: ['READY', 'CANCELLED'],
-    READY: ['PICKED_UP', 'CANCELLED'],
+    ACCEPTED: ['READY'],
+    REJECTED: [], // Terminal - cannot change
+    PREPARING: ['READY'], // Fallback: PREPARING not accepted by backend
+    READY: ['PICKED_UP'],
     PICKED_UP: ['OUT_FOR_DELIVERY'],
     OUT_FOR_DELIVERY: ['DELIVERED'],
-    DELIVERED: [], // No changes after delivered
-    CANCELLED: [], // No changes after cancelled
-    REJECTED: [], // No changes after rejected
-    FAILED: [], // No changes after failed
+    DELIVERED: [], // Terminal - cannot change
+    CANCELLED: [], // Terminal - cannot change
+    FAILED: [], // Terminal - cannot change
   };
 
   return statusFlow[currentStatus] || [];
@@ -105,6 +107,11 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
   isUpdating = false,
 }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
+
+  // Log that the improved card is being used
+  React.useEffect(() => {
+    console.log('📦 OrderCardAdminImproved rendered for order:', order.orderNumber);
+  }, [order.orderNumber]);
 
   const handleCallCustomer = (e: any) => {
     e.stopPropagation();
