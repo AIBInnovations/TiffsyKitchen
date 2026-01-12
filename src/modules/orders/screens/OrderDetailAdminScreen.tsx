@@ -18,6 +18,9 @@ import {AcceptOrderModal} from '../components/AcceptOrderModal';
 import {RejectOrderModal} from '../components/RejectOrderModal';
 import {UpdateStatusModal} from '../components/UpdateStatusModal';
 import {DeliveryStatusModal} from '../components/DeliveryStatusModal';
+import OrderTracking from '../components/OrderTracking';
+import OrderStatusProgress from '../components/OrderStatusProgress';
+import OrderStatusDropdown from '../components/OrderStatusDropdown';
 import {formatDistanceToNow} from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
@@ -71,6 +74,8 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
   const [showDeliveryStatusModal, setShowDeliveryStatusModal] = useState(false);
+  const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState<OrderStatus | null>(null);
+  const [showTracking, setShowTracking] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch order details
@@ -138,9 +143,35 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
 
   // Update status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: ({status, notes}: {status: OrderStatus; notes?: string}) =>
-      ordersService.updateOrderStatus(orderId, {status, notes}),
-    onSuccess: () => {
+    mutationFn: ({status, notes}: {status: OrderStatus; notes?: string}) => {
+      // 🔍 LOG: About to call API for regular status update
+      console.log('====================================');
+      console.log('🚀 API CALL: updateOrderStatus');
+      console.log('====================================');
+      console.log('Order ID:', orderId);
+      console.log('Status Data:');
+      console.log('  - Status:', status);
+      console.log('  - Status Type:', typeof status);
+      console.log('  - Status Length:', status.length);
+      console.log('  - Status Bytes:', JSON.stringify([...status].map(c => c.charCodeAt(0))));
+      console.log('  - Has Notes?', !!notes);
+      if (notes) {
+        console.log('  - Notes:', notes);
+      }
+      console.log('====================================');
+      console.log('📤 RAW API REQUEST PAYLOAD:');
+      console.log(JSON.stringify({status, notes}, null, 2));
+      console.log('====================================');
+
+      return ordersService.updateOrderStatus(orderId, {status, notes});
+    },
+    onSuccess: (response) => {
+      console.log('====================================');
+      console.log('✅ REGULAR STATUS UPDATE SUCCESS');
+      console.log('====================================');
+      console.log('Response:', response);
+      console.log('====================================');
+
       queryClient.invalidateQueries({queryKey: ['order', orderId]});
       queryClient.invalidateQueries({queryKey: ['orders']});
       queryClient.invalidateQueries({queryKey: ['orderStats']});
@@ -148,6 +179,14 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       setShowUpdateStatusModal(false);
     },
     onError: (error: any) => {
+      console.log('====================================');
+      console.log('❌ REGULAR STATUS UPDATE FAILED');
+      console.log('====================================');
+      console.log('Error Object:', error);
+      console.log('Error Message:', error?.message);
+      console.log('Response Data:', error?.response?.data);
+      console.log('====================================');
+
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
@@ -165,8 +204,39 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
         type: 'OTP' | 'SIGNATURE' | 'PHOTO';
         value: string;
       };
-    }) => ordersService.updateDeliveryStatus(orderId, data),
-    onSuccess: () => {
+    }) => {
+      // 🔍 LOG: About to call API for delivery status update
+      console.log('====================================');
+      console.log('🚀 API CALL: updateDeliveryStatus');
+      console.log('====================================');
+      console.log('Order ID:', orderId);
+      console.log('Delivery Data:');
+      console.log('  - Status:', data.status);
+      console.log('  - Status Type:', typeof data.status);
+      console.log('  - Status Bytes:', JSON.stringify([...data.status].map(c => c.charCodeAt(0))));
+      console.log('  - Has Notes?', !!data.notes);
+      if (data.notes) {
+        console.log('  - Notes:', data.notes);
+      }
+      console.log('  - Has Proof of Delivery?', !!data.proofOfDelivery);
+      if (data.proofOfDelivery) {
+        console.log('  - Proof Type:', data.proofOfDelivery.type);
+        console.log('  - Proof Value:', data.proofOfDelivery.value);
+      }
+      console.log('====================================');
+      console.log('📤 RAW API REQUEST PAYLOAD:');
+      console.log(JSON.stringify(data, null, 2));
+      console.log('====================================');
+
+      return ordersService.updateDeliveryStatus(orderId, data);
+    },
+    onSuccess: (response) => {
+      console.log('====================================');
+      console.log('✅ DELIVERY STATUS UPDATE SUCCESS');
+      console.log('====================================');
+      console.log('Response:', response);
+      console.log('====================================');
+
       queryClient.invalidateQueries({queryKey: ['order', orderId]});
       queryClient.invalidateQueries({queryKey: ['orders']});
       queryClient.invalidateQueries({queryKey: ['orderStats']});
@@ -174,6 +244,14 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       setShowDeliveryStatusModal(false);
     },
     onError: (error: any) => {
+      console.log('====================================');
+      console.log('❌ DELIVERY STATUS UPDATE FAILED');
+      console.log('====================================');
+      console.log('Error Object:', error);
+      console.log('Error Message:', error?.message);
+      console.log('Response Data:', error?.response?.data);
+      console.log('====================================');
+
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
@@ -228,6 +306,32 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     restoreVouchers: boolean;
   }) => {
     cancelMutation.mutate(data);
+  };
+
+  const handleStatusChangeFromProgress = (newStatus: OrderStatus) => {
+    // 🔍 LOG: What status we received from dropdown
+    console.log('====================================');
+    console.log('🔄 STATUS CHANGE TRIGGERED');
+    console.log('====================================');
+    console.log('New Status:', newStatus);
+    console.log('Status Type:', typeof newStatus);
+    console.log('Status Length:', newStatus.length);
+    console.log('Status Bytes:', JSON.stringify([...newStatus].map(c => c.charCodeAt(0))));
+    console.log('====================================');
+
+    // Use the appropriate mutation based on the new status
+    if (newStatus === 'PICKED_UP' || newStatus === 'OUT_FOR_DELIVERY' || newStatus === 'DELIVERED') {
+      console.log('📦 DELIVERY STATUS - Opening modal for:', newStatus);
+      // These require delivery status modal - store the pending status
+      setPendingDeliveryStatus(newStatus);
+      setShowDeliveryStatusModal(true);
+    } else {
+      console.log('📤 REGULAR STATUS UPDATE');
+      console.log('Sending to API:', {status: newStatus});
+      console.log('Raw JSON:', JSON.stringify({status: newStatus}, null, 2));
+      // Use regular status update
+      updateStatusMutation.mutate({status: newStatus});
+    }
   };
 
   const canCancelOrder = (order?: Order): boolean => {
@@ -304,6 +408,11 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     );
   }
 
+  // Safety check - should not happen due to loading/error checks above
+  if (!order) {
+    return null;
+  }
+
   // Log order data for debugging
   console.log('📦 Order Data:', {
     _id: order._id,
@@ -330,13 +439,6 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
             <View style={styles.headerContent}>
               <View style={styles.headerTop}>
                 <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {backgroundColor: getStatusColor(order.status)},
-                  ]}>
-                  <Text style={styles.statusText}>{order.status || 'UNKNOWN'}</Text>
-                </View>
               </View>
               <Text style={styles.placedTime}>
                 Placed {safeFormatDate(order.placedAt)}
@@ -350,6 +452,16 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
               )}
             </View>
           </View>
+        </View>
+
+        {/* Professional Status Progress Display */}
+        <View style={styles.statusSection}>
+          <OrderStatusProgress
+            currentStatus={order.status}
+            orderType={order.menuType || 'ON_DEMAND_MENU'}
+            onStatusChange={handleStatusChangeFromProgress}
+            disabled={updateStatusMutation.isPending || updateDeliveryStatusMutation.isPending}
+          />
         </View>
 
         {/* Action Buttons */}
@@ -400,6 +512,25 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
             </View>
           </View>
         )}
+
+        {/* Track Order Button */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.trackOrderButton}
+            onPress={() => setShowTracking(!showTracking)}>
+            <MaterialIcons
+              name={showTracking ? 'expand-less' : 'expand-more'}
+              size={24}
+              color="#f97316"
+            />
+            <Text style={styles.trackOrderButtonText}>
+              {showTracking ? 'Hide Tracking' : 'Track Order'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Order Tracking Section */}
+        {showTracking && <OrderTracking orderId={orderId} />}
 
         {/* Customer Section */}
         <View style={styles.section}>
@@ -610,11 +741,28 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         )}
 
-        {/* Status Timeline */}
+        {/* Quick Status Changer - Dropdown */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status Timeline</Text>
+          <Text style={styles.sectionTitle}>Quick Status Change</Text>
           <View style={styles.card}>
-            <StatusTimeline timeline={order.statusTimeline} />
+            <OrderStatusDropdown
+              currentStatus={order.status}
+              onStatusChange={handleStatusChangeFromProgress}
+              disabled={updateStatusMutation.isPending || updateDeliveryStatusMutation.isPending}
+            />
+          </View>
+        </View>
+
+        {/* Status Timeline - History */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Status History</Text>
+          <View style={styles.card}>
+            <StatusTimeline
+              timeline={order.statusTimeline}
+              currentStatus={order.status}
+              onStatusClick={handleStatusChangeFromProgress}
+              allowStatusChange={false}
+            />
           </View>
         </View>
 
@@ -653,10 +801,15 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       <DeliveryStatusModal
         visible={showDeliveryStatusModal}
         orderNumber={order.orderNumber}
-        onClose={() => setShowDeliveryStatusModal(false)}
+        onClose={() => {
+          setShowDeliveryStatusModal(false);
+          setPendingDeliveryStatus(null);
+        }}
         onUpdate={async (data) => {
           await updateDeliveryStatusMutation.mutateAsync(data);
+          setPendingDeliveryStatus(null);
         }}
+        initialStatus={pendingDeliveryStatus as 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | undefined}
       />
 
       <CancelOrderModal
@@ -748,6 +901,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+  },
+  statusSection: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -937,6 +1094,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3C3C43',
     lineHeight: 20,
+  },
+  trackOrderButton: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#f97316',
+    borderRadius: 8,
+  },
+  trackOrderButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#f97316',
   },
 });
 

@@ -24,6 +24,7 @@ interface DeliveryStatusModalProps {
       value: string;
     };
   }) => Promise<void>;
+  initialStatus?: 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
 }
 
 type DeliveryStatus = 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
@@ -45,11 +46,19 @@ export const DeliveryStatusModal: React.FC<DeliveryStatusModalProps> = ({
   orderNumber,
   onClose,
   onUpdate,
+  initialStatus,
 }) => {
-  const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<DeliveryStatus | null>(initialStatus || null);
   const [notes, setNotes] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Update selectedStatus when initialStatus changes
+  React.useEffect(() => {
+    if (visible && initialStatus) {
+      setSelectedStatus(initialStatus);
+    }
+  }, [visible, initialStatus]);
 
   const handleUpdate = async () => {
     if (!selectedStatus) {
@@ -63,21 +72,48 @@ export const DeliveryStatusModal: React.FC<DeliveryStatusModalProps> = ({
       return;
     }
 
+    // 🔍 LOG: Building delivery status update payload
+    const deliveryPayload = {
+      status: selectedStatus,
+      notes: notes.trim() || undefined,
+      proofOfDelivery: selectedStatus === 'DELIVERED' ? {
+        type: 'OTP' as const,
+        value: otp.trim(),
+      } : undefined,
+    };
+
+    console.log('====================================');
+    console.log('📦 DELIVERY STATUS MODAL: Submitting Update');
+    console.log('====================================');
+    console.log('Selected Status:', selectedStatus);
+    console.log('Status Type:', typeof selectedStatus);
+    console.log('Status Length:', selectedStatus.length);
+    console.log('Status Value (raw):', `"${selectedStatus}"`);
+    console.log('Has Notes?', !!notes.trim());
+    if (notes.trim()) {
+      console.log('Notes Length:', notes.trim().length);
+    }
+    console.log('Requires OTP?', selectedStatus === 'DELIVERED');
+    if (selectedStatus === 'DELIVERED') {
+      console.log('OTP Provided:', otp.trim());
+      console.log('OTP Length:', otp.trim().length);
+    }
+    console.log('====================================');
+    console.log('📤 DELIVERY PAYLOAD (Complete):');
+    console.log(JSON.stringify(deliveryPayload, null, 2));
+    console.log('====================================');
+
     setLoading(true);
     try {
-      await onUpdate({
-        status: selectedStatus,
-        notes: notes.trim() || undefined,
-        proofOfDelivery: selectedStatus === 'DELIVERED' ? {
-          type: 'OTP',
-          value: otp.trim(),
-        } : undefined,
-      });
+      await onUpdate(deliveryPayload);
       setSelectedStatus(null);
       setNotes('');
       setOtp('');
       onClose();
     } catch (error: any) {
+      console.log('❌ DELIVERY STATUS UPDATE FAILED');
+      console.log('Error:', error);
+      console.log('====================================');
       Alert.alert('Error', error.message || 'Failed to update delivery status');
     } finally {
       setLoading(false);

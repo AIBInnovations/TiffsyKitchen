@@ -8,7 +8,7 @@ interface LoginResponse {
 }
 
 // Set to true to use mock login (for testing without backend)
-const USE_MOCK_LOGIN = true;
+const USE_MOCK_LOGIN = false;
 
 // Mock user data for testing
 const mockUsers: Record<string, LoginResponse> = {

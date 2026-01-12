@@ -58,105 +58,29 @@ class OrdersService {
 
   /**
    * Get a single order by ID
+   * API Call: GET /api/orders/:id
    */
   async getOrderById(orderId: string): Promise<Order> {
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('🚀 REQUEST START: Get Order By ID');
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('📍 Endpoint: /api/orders/' + orderId);
-    console.log('🆔 Order ID:', orderId);
-    console.log('⏰ Timestamp:', new Date().toISOString());
+    const response = await apiService.get<any>(`/api/orders/${orderId}`);
 
-    try {
-      const response = await apiService.get<any>(`/api/orders/${orderId}`);
+    // Backend quirk: actual order data is in response.error.order
+    let orderData = null;
 
-      console.log('');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('📥 RESPONSE RECEIVED');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('📦 Response Type:', typeof response);
-      console.log('📦 Response Keys:', Object.keys(response));
-      console.log('');
-      console.log('🔍 Full Response Structure:');
-      console.log(JSON.stringify(response, null, 2));
-      console.log('');
-
-      // Check all possible response structures
-      // Backend quirk: actual order data is in response.error.order
-      let orderData = null;
-
-      if (response.error?.order) {
-        console.log('✅ Path: response.error.order (backend quirk)');
-        orderData = response.error.order;
-      } else if (response.data?.order) {
-        console.log('✅ Path: response.data.order');
-        orderData = response.data.order;
-      } else if (response.data && typeof response.data === 'object' && response.data._id) {
-        console.log('✅ Path: response.data (object with _id)');
-        orderData = response.data;
-      } else if (response.order) {
-        console.log('✅ Path: response.order');
-        orderData = response.order;
-      } else if (response.error && typeof response.error === 'object' && response.error._id) {
-        console.log('✅ Path: response.error (object with _id)');
-        orderData = response.error;
-      } else {
-        console.error('❌ PARSING FAILED - Could not find order data');
-        console.error('Available paths:', {
-          'response.data': !!response.data,
-          'response.data type': typeof response.data,
-          'response.order': !!response.order,
-          'response.error': !!response.error,
-          'response.error.order': !!response.error?.order,
-          'response keys': Object.keys(response),
-        });
-        throw new Error('Invalid order response structure');
-      }
-
-      console.log('');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('📊 ORDER DATA EXTRACTED');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('Order Summary:');
-      console.log('  - _id:', orderData._id || 'MISSING');
-      console.log('  - orderNumber:', orderData.orderNumber || 'MISSING');
-      console.log('  - status:', orderData.status || 'MISSING');
-      console.log('  - placedAt:', orderData.placedAt || 'MISSING');
-      console.log('  - menuType:', orderData.menuType || 'MISSING');
-      console.log('');
-      console.log('Nested Objects:');
-      console.log('  - userId:', orderData.userId ? (typeof orderData.userId === 'object' ? 'Object' : orderData.userId) : 'MISSING');
-      console.log('  - kitchenId:', orderData.kitchenId ? (typeof orderData.kitchenId === 'object' ? 'Object' : orderData.kitchenId) : 'MISSING');
-      console.log('  - zoneId:', orderData.zoneId ? (typeof orderData.zoneId === 'object' ? 'Object' : orderData.zoneId) : 'MISSING');
-      console.log('  - deliveryAddress:', orderData.deliveryAddress ? 'Object' : 'MISSING');
-      console.log('');
-      console.log('Arrays:');
-      console.log('  - items:', Array.isArray(orderData.items) ? `${orderData.items.length} items` : 'MISSING');
-      console.log('  - statusTimeline:', Array.isArray(orderData.statusTimeline) ? `${orderData.statusTimeline.length} entries` : 'MISSING');
-      console.log('');
-      console.log('Pricing:');
-      console.log('  - subtotal:', orderData.subtotal || 0);
-      console.log('  - grandTotal:', orderData.grandTotal || 0);
-      console.log('  - amountPaid:', orderData.amountPaid || 0);
-      console.log('');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('✅ REQUEST END');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('');
-
-      return orderData;
-    } catch (error: any) {
-      console.log('');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('❌ REQUEST FAILED');
-      console.log('═══════════════════════════════════════════════════════');
-      console.error('Error Type:', error?.name);
-      console.error('Error Message:', error?.message);
-      console.error('Error Stack:', error?.stack);
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('');
-      throw error;
+    if (response.error?.order) {
+      orderData = response.error.order;
+    } else if (response.data?.order) {
+      orderData = response.data.order;
+    } else if (response.data && typeof response.data === 'object' && response.data._id) {
+      orderData = response.data;
+    } else if (response.order) {
+      orderData = response.order;
+    } else if (response.error && typeof response.error === 'object' && response.error._id) {
+      orderData = response.error;
+    } else {
+      throw new Error('Invalid order response structure');
     }
+
+    return orderData;
   }
 
   /**
@@ -207,17 +131,49 @@ class OrdersService {
   }
 
   /**
-   * Update order status
+   * Update order status (Kitchen operations)
+   *
+   * API Call: PATCH /api/orders/:id/status
+   *
+   * Used for: ACCEPTED → PREPARING → READY
+   *
+   * @param orderId - Order ID to update
+   * @param params - { status: OrderStatus, notes?: string }
+   * @returns Updated order
    */
   async updateOrderStatus(
     orderId: string,
     params: UpdateOrderStatusParams
   ): Promise<Order> {
+    // 🔍 LOG: Service layer - about to make HTTP request
+    console.log('====================================');
+    console.log('🌐 SERVICE: updateOrderStatus');
+    console.log('====================================');
+    console.log('Endpoint:', `/api/orders/${orderId}/status`);
+    console.log('Method: PATCH');
+    console.log('Order ID:', orderId);
+    console.log('Request Body:');
+    console.log('  - status:', params.status);
+    console.log('  - status (type):', typeof params.status);
+    console.log('  - status (length):', params.status.length);
+    console.log('  - notes:', params.notes || 'N/A');
+    console.log('====================================');
+    console.log('📤 HTTP REQUEST BODY (Raw JSON):');
+    console.log(JSON.stringify(params, null, 2));
+    console.log('====================================');
+
     const response = await apiService.patch<{
       success: boolean;
       message: string;
       data: { order: Order };
-    }>(`/api/orders/admin/${orderId}/status`, params);
+    }>(`/api/orders/${orderId}/status`, params);
+
+    console.log('====================================');
+    console.log('✅ SERVICE: updateOrderStatus SUCCESS');
+    console.log('====================================');
+    console.log('Response Status:', response);
+    console.log('Updated Order Status:', response.data.order.status);
+    console.log('====================================');
 
     return response.data.order;
   }
@@ -405,11 +361,40 @@ class OrdersService {
       };
     }
   ): Promise<Order> {
+    // 🔍 LOG: Service layer - about to make HTTP request
+    console.log('====================================');
+    console.log('🌐 SERVICE: updateDeliveryStatus');
+    console.log('====================================');
+    console.log('Endpoint:', `/api/orders/${orderId}/delivery-status`);
+    console.log('Method: PATCH');
+    console.log('Order ID:', orderId);
+    console.log('Request Body:');
+    console.log('  - status:', data.status);
+    console.log('  - status (type):', typeof data.status);
+    console.log('  - status (length):', data.status.length);
+    console.log('  - notes:', data.notes || 'N/A');
+    console.log('  - proofOfDelivery:', data.proofOfDelivery ? 'Present' : 'N/A');
+    if (data.proofOfDelivery) {
+      console.log('    - type:', data.proofOfDelivery.type);
+      console.log('    - value:', data.proofOfDelivery.value);
+    }
+    console.log('====================================');
+    console.log('📤 HTTP REQUEST BODY (Raw JSON):');
+    console.log(JSON.stringify(data, null, 2));
+    console.log('====================================');
+
     const response = await apiService.patch<{
       success: boolean;
       message: string;
       data: { order: Order };
     }>(`/api/orders/${orderId}/delivery-status`, data);
+
+    console.log('====================================');
+    console.log('✅ SERVICE: updateDeliveryStatus SUCCESS');
+    console.log('====================================');
+    console.log('Response:', response);
+    console.log('Updated Order Status:', response.data.order.status);
+    console.log('====================================');
 
     return response.data.order;
   }
@@ -450,6 +435,37 @@ class OrdersService {
         };
       };
     }>(`/api/orders/${orderId}/track`);
+
+    return response.data;
+  }
+
+  /**
+   * Get orders for kitchen staff
+   */
+  async getKitchenOrders(params?: {
+    status?: OrderStatus;
+    mealWindow?: 'LUNCH' | 'DINNER';
+    date?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<OrderListResponse> {
+    const queryParams = new URLSearchParams();
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = queryParams.toString();
+    const endpoint = `/api/orders/kitchen${queryString ? `?${queryString}` : ''}`;
+
+    const response = await apiService.get<{
+      success: boolean;
+      data: OrderListResponse;
+    }>(endpoint);
 
     return response.data;
   }
