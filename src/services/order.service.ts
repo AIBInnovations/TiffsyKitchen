@@ -12,7 +12,8 @@ class OrderService {
   }
 
   async updateOrderStatus(orderId: string, status: string): Promise<Order> {
-    return apiService.patch<Order>(`/orders/${orderId}/status`, { status });
+    // Use ADMIN endpoint to allow all status changes
+    return apiService.patch<Order>(`/api/orders/admin/${orderId}/status`, { status });
   }
 
   async assignDriver(orderId: string, driverId: string): Promise<Order> {

@@ -88,7 +88,8 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
           onPress: async () => {
             try {
               setUpdating(true);
-              const updatedOrder = await ordersService.updateOrderStatus(orderId, {
+              // Use ADMIN endpoint which allows ALL statuses
+              const updatedOrder = await ordersService.updateOrderStatusAdmin(orderId, {
                 status: newStatus,
               });
               setOrder(updatedOrder);

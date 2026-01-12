@@ -161,9 +161,11 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       console.log('====================================');
       console.log('📤 RAW API REQUEST PAYLOAD:');
       console.log(JSON.stringify({status, notes}, null, 2));
+      console.log('Using Admin Endpoint: /api/orders/admin/:id/status');
       console.log('====================================');
 
-      return ordersService.updateOrderStatus(orderId, {status, notes});
+      // Use ADMIN endpoint which allows ALL statuses
+      return ordersService.updateOrderStatusAdmin(orderId, {status, notes});
     },
     onSuccess: (response) => {
       console.log('====================================');

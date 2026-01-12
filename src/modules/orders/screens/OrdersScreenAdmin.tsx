@@ -70,31 +70,34 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
       }),
   });
 
-  // Update order status mutation
+  // Update order status mutation (using ADMIN endpoint)
   const updateStatusMutation = useMutation({
     mutationFn: ({orderId, status}: {orderId: string; status: OrderStatus}) => {
       console.log('====================================');
-      console.log('🔄 QUICK STATUS UPDATE FROM LIST');
+      console.log('🔄 QUICK STATUS UPDATE FROM LIST (ADMIN ENDPOINT)');
       console.log('====================================');
       console.log('Order ID:', orderId);
       console.log('New Status:', status);
+      console.log('Using Admin Endpoint: /api/orders/admin/:id/status');
       console.log('====================================');
 
-      return ordersService.updateOrderStatus(orderId, {status});
+      // Use the ADMIN endpoint which allows ALL statuses
+      return ordersService.updateOrderStatusAdmin(orderId, {status});
     },
     onMutate: ({orderId}) => {
       // Set loading state for this specific order
       setUpdatingOrderId(orderId);
     },
-    onSuccess: (updatedOrder) => {
-      console.log('✅ Status updated successfully:', updatedOrder.status);
+    onSuccess: (updatedOrder, variables) => {
+      // Use variables.status since response might not have the order object
+      const newStatus = updatedOrder?.status || variables.status;
+      console.log('✅ Status updated successfully to:', newStatus);
 
       // Invalidate and refetch queries
       queryClient.invalidateQueries({queryKey: ['orders']});
       queryClient.invalidateQueries({queryKey: ['orderStats']});
-      queryClient.invalidateQueries({queryKey: ['order', updatedOrder._id]});
 
-      Alert.alert('Success', `Order status updated to ${updatedOrder.status}`);
+      Alert.alert('Success', `Order status updated to ${newStatus}`);
       setUpdatingOrderId(null);
     },
     onError: (error: any, {orderId}) => {
@@ -282,13 +285,6 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
           </View>
         </View>
       )}
-
-      {/* TEST BANNER - REMOVE AFTER CONFIRMING */}
-      <View style={{backgroundColor: '#10b981', padding: 16, alignItems: 'center'}}>
-        <Text style={{color: '#fff', fontSize: 18, fontWeight: 'bold'}}>
-          ✅ NEW ORDERS SCREEN ACTIVE WITH INLINE STATUS EDITING
-        </Text>
-      </View>
 
       {/* Stats and Filters Section */}
       <View style={styles.topSection}>

@@ -179,6 +179,53 @@ class OrdersService {
   }
 
   /**
+   * Update order status (ADMIN endpoint - allows ALL statuses)
+   *
+   * API Call: PATCH /api/orders/admin/:id/status
+   *
+   * Used for: Admin can change to ANY status (PLACED, ACCEPTED, READY, PICKED_UP, DELIVERED, etc.)
+   *
+   * @param orderId - Order ID to update
+   * @param params - { status: OrderStatus, notes?: string }
+   * @returns Updated order
+   */
+  async updateOrderStatusAdmin(
+    orderId: string,
+    params: UpdateOrderStatusParams
+  ): Promise<Order> {
+    console.log('====================================');
+    console.log('🌐 SERVICE: updateOrderStatusAdmin (ADMIN ENDPOINT)');
+    console.log('====================================');
+    console.log('Endpoint:', `/api/orders/admin/${orderId}/status`);
+    console.log('Method: PATCH');
+    console.log('Order ID:', orderId);
+    console.log('Request Body:');
+    console.log('  - status:', params.status);
+    console.log('  - status (type):', typeof params.status);
+    console.log('  - notes:', params.notes || 'N/A');
+    console.log('====================================');
+    console.log('📤 HTTP REQUEST BODY (Raw JSON):');
+    console.log(JSON.stringify(params, null, 2));
+    console.log('====================================');
+
+    const response = await apiService.patch<{
+      success: boolean;
+      message: string;
+      data: { order: Order };
+    }>(`/api/orders/admin/${orderId}/status`, params);
+
+    console.log('====================================');
+    console.log('✅ SERVICE: updateOrderStatusAdmin SUCCESS');
+    console.log('====================================');
+    console.log('Full Response:', JSON.stringify(response, null, 2));
+    console.log('Response.data:', response.data);
+    console.log('Response.data.order:', response.data?.order);
+    console.log('====================================');
+
+    return response.data?.order || response.data;
+  }
+
+  /**
    * Cancel an order
    */
   async cancelOrder(
