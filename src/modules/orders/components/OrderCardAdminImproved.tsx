@@ -1,5 +1,14 @@
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Linking} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  Modal,
+  ScrollView,
+  Vibration,
+} from 'react-native';
 import {Order, OrderStatus, MenuType} from '../../../types/api.types';
 import {formatDistanceToNow} from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -7,47 +16,60 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 interface OrderCardAdminImprovedProps {
   order: Order;
   onPress: () => void;
+  onStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
+  isUpdating?: boolean;
 }
 
-const getStatusConfig = (
-  status: OrderStatus,
-): {color: string; bgColor: string; icon: string} => {
-  const configs: Record<
-    OrderStatus,
-    {color: string; bgColor: string; icon: string}
-  > = {
-    PLACED: {color: '#007AFF', bgColor: '#007AFF15', icon: 'shopping-cart'},
-    ACCEPTED: {color: '#00C7BE', bgColor: '#00C7BE15', icon: 'check-circle'},
-    REJECTED: {color: '#FF3B30', bgColor: '#FF3B3015', icon: 'cancel'},
-    PREPARING: {color: '#FFCC00', bgColor: '#FFCC0015', icon: 'restaurant'},
-    READY: {color: '#FF9500', bgColor: '#FF950015', icon: 'done-all'},
-    PICKED_UP: {
-      color: '#AF52DE',
-      bgColor: '#AF52DE15',
-      icon: 'local-shipping',
-    },
-    OUT_FOR_DELIVERY: {
-      color: '#5856D6',
-      bgColor: '#5856D615',
-      icon: 'local-shipping',
-    },
-    DELIVERED: {
-      color: '#34C759',
-      bgColor: '#34C75915',
-      icon: 'check-circle-outline',
-    },
-    CANCELLED: {color: '#FF3B30', bgColor: '#FF3B3015', icon: 'cancel'},
-    FAILED: {color: '#8B0000', bgColor: '#8B000015', icon: 'error'},
+const getStatusColor = (status: OrderStatus): string => {
+  const colors: Record<OrderStatus, string> = {
+    PLACED: '#007AFF',
+    ACCEPTED: '#00C7BE',
+    REJECTED: '#FF3B30',
+    PREPARING: '#FFCC00',
+    READY: '#FF9500',
+    PICKED_UP: '#AF52DE',
+    OUT_FOR_DELIVERY: '#5856D6',
+    DELIVERED: '#34C759',
+    CANCELLED: '#FF3B30',
+    FAILED: '#8B0000',
   };
-  return configs[status] || {color: '#8E8E93', bgColor: '#8E8E9315', icon: 'help'};
+  return colors[status] || '#8E8E93';
 };
 
-const getMenuTypeConfig = (
-  menuType: MenuType,
-): {color: string; bgColor: string; label: string} => {
-  return menuType === 'MEAL_MENU'
-    ? {color: '#34C759', bgColor: '#34C75915', label: 'MEAL'}
-    : {color: '#007AFF', bgColor: '#007AFF15', label: 'ON-DEMAND'};
+const getStatusIcon = (status: OrderStatus): string => {
+  const icons: Record<OrderStatus, string> = {
+    PLACED: 'receipt',
+    ACCEPTED: 'check-circle',
+    PREPARING: 'restaurant',
+    READY: 'done-all',
+    PICKED_UP: 'local-shipping',
+    OUT_FOR_DELIVERY: 'delivery-dining',
+    DELIVERED: 'home',
+    CANCELLED: 'close',
+    REJECTED: 'cancel',
+    FAILED: 'error',
+  };
+  return icons[status] || 'fiber-manual-record';
+};
+
+const formatStatusText = (status: OrderStatus): string => {
+  const formatted: Record<OrderStatus, string> = {
+    PLACED: 'Placed',
+    ACCEPTED: 'Accepted',
+    PREPARING: 'Preparing',
+    READY: 'Ready',
+    PICKED_UP: 'Picked Up',
+    OUT_FOR_DELIVERY: 'Out for Delivery',
+    DELIVERED: 'Delivered',
+    CANCELLED: 'Cancelled',
+    REJECTED: 'Rejected',
+    FAILED: 'Failed',
+  };
+  return formatted[status] || status;
+};
+
+const getMenuTypeColor = (menuType: MenuType): string => {
+  return menuType === 'MEAL_MENU' ? '#34C759' : '#007AFF';
 };
 
 const formatTimeAgo = (date: string): string => {
@@ -58,12 +80,31 @@ const formatTimeAgo = (date: string): string => {
   }
 };
 
+// Quick status change options based on current status
+const getQuickStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
+  const statusFlow: Record<OrderStatus, OrderStatus[]> = {
+    PLACED: ['ACCEPTED', 'REJECTED'],
+    ACCEPTED: ['PREPARING', 'CANCELLED'],
+    PREPARING: ['READY', 'CANCELLED'],
+    READY: ['PICKED_UP', 'CANCELLED'],
+    PICKED_UP: ['OUT_FOR_DELIVERY'],
+    OUT_FOR_DELIVERY: ['DELIVERED'],
+    DELIVERED: [], // No changes after delivered
+    CANCELLED: [], // No changes after cancelled
+    REJECTED: [], // No changes after rejected
+    FAILED: [], // No changes after failed
+  };
+
+  return statusFlow[currentStatus] || [];
+};
+
 const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
   order,
   onPress,
+  onStatusChange,
+  isUpdating = false,
 }) => {
-  const statusConfig = getStatusConfig(order.status);
-  const menuConfig = getMenuTypeConfig(order.menuType);
+  const [showStatusModal, setShowStatusModal] = useState(false);
 
   const handleCallCustomer = (e: any) => {
     e.stopPropagation();
@@ -72,302 +113,523 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
     }
   };
 
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
-          <View style={styles.timeRow}>
-            <Icon name="access-time" size={14} color="#8E8E93" />
-            <Text style={styles.timeAgo}>{formatTimeAgo(order.placedAt)}</Text>
-          </View>
-        </View>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor: statusConfig.bgColor,
-              borderColor: statusConfig.color,
-            },
-          ]}>
-          <Icon name={statusConfig.icon} size={16} color={statusConfig.color} />
-          <Text style={[styles.statusText, {color: statusConfig.color}]}>
-            {order.status}
-          </Text>
-        </View>
-      </View>
+  const handleStatusPress = (e: any) => {
+    e.stopPropagation();
+    if (!isUpdating && onStatusChange) {
+      try {
+        Vibration.vibrate(5);
+      } catch (error) {
+        // Ignore vibration errors
+      }
+      setShowStatusModal(true);
+    }
+  };
 
-      {/* Customer Info */}
-      <View style={styles.customerSection}>
-        <View style={styles.avatarPlaceholder}>
-          <Icon name="person" size={20} color="#8E8E93" />
-        </View>
-        <View style={styles.customerInfo}>
-          <Text style={styles.customerName}>{order.userId?.name || 'Unknown'}</Text>
-          <TouchableOpacity onPress={handleCallCustomer} style={styles.phoneRow}>
-            <Icon name="phone" size={14} color="#007AFF" />
-            <Text style={styles.customerPhone}>{order.userId?.phone || 'N/A'}</Text>
+  const handleStatusSelect = (newStatus: OrderStatus) => {
+    try {
+      Vibration.vibrate(10);
+    } catch (error) {
+      // Ignore vibration errors
+    }
+
+    setShowStatusModal(false);
+    if (onStatusChange) {
+      onStatusChange(order._id, newStatus);
+    }
+  };
+
+  const quickStatusOptions = getQuickStatusOptions(order.status);
+  const canChangeStatus = onStatusChange && quickStatusOptions.length > 0;
+
+  return (
+    <>
+      <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+        {/* Header with Status Dropdown */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.orderNumber} numberOfLines={1}>
+              {order.orderNumber || 'N/A'}
+            </Text>
+            <Text style={styles.timeAgo} numberOfLines={1}>
+              {formatTimeAgo(order.placedAt)}
+            </Text>
+          </View>
+
+          {/* Status Badge with Dropdown */}
+          <TouchableOpacity
+            onPress={handleStatusPress}
+            disabled={!canChangeStatus || isUpdating}
+            activeOpacity={0.8}
+            style={styles.statusContainer}>
+            <View
+              style={[
+                styles.statusBadge,
+                {backgroundColor: getStatusColor(order.status)},
+                !canChangeStatus && styles.statusBadgeDisabled,
+              ]}>
+              <Icon
+                name={getStatusIcon(order.status)}
+                size={12}
+                color="#FFFFFF"
+                style={styles.statusIcon}
+              />
+              <Text style={styles.statusText} numberOfLines={1}>
+                {formatStatusText(order.status)}
+              </Text>
+              {canChangeStatus && !isUpdating && (
+                <Icon name="arrow-drop-down" size={14} color="#FFFFFF" />
+              )}
+              {isUpdating && (
+                <Icon name="sync" size={12} color="#FFFFFF" style={styles.syncIcon} />
+              )}
+            </View>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Kitchen & Tags */}
-      <View style={styles.detailsSection}>
-        <View style={styles.detailRow}>
-          <Icon name="restaurant" size={16} color="#8E8E93" />
-          <Text style={styles.detailText} numberOfLines={1}>
+        {/* Customer Info - Compact */}
+        <View style={styles.compactInfoRow}>
+          <Icon name="person" size={16} color="#6b7280" style={styles.compactIcon} />
+          <Text style={styles.compactText} numberOfLines={1}>
+            {order.userId?.name || 'Unknown'}
+          </Text>
+          <TouchableOpacity onPress={handleCallCustomer} style={styles.compactPhoneButton}>
+            <Icon name="phone" size={14} color="#f97316" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Kitchen Info - Compact */}
+        <View style={styles.compactInfoRow}>
+          <Icon name="restaurant" size={16} color="#6b7280" style={styles.compactIcon} />
+          <Text style={styles.compactText} numberOfLines={1}>
             {order.kitchenId?.name || 'Unknown'}
           </Text>
         </View>
 
+        {/* Tags Row */}
         <View style={styles.tagsRow}>
           <View
             style={[
               styles.tag,
               {
-                borderColor: menuConfig.color,
-                backgroundColor: menuConfig.bgColor,
+                borderColor: getMenuTypeColor(order.menuType),
+                backgroundColor: `${getMenuTypeColor(order.menuType)}10`,
               },
             ]}>
-            <Text style={[styles.tagText, {color: menuConfig.color}]}>
-              {menuConfig.label}
+            <Text
+              style={[
+                styles.tagText,
+                {color: getMenuTypeColor(order.menuType)},
+              ]}>
+              {order.menuType === 'MEAL_MENU' ? 'MEAL' : 'ON-DEMAND'}
             </Text>
           </View>
 
           {order.mealWindow && (
-            <View style={styles.mealTag}>
-              <Icon
-                name={order.mealWindow === 'LUNCH' ? 'wb-sunny' : 'nights-stay'}
-                size={12}
-                color="#3C3C43"
-              />
-              <Text style={styles.mealText}>{order.mealWindow}</Text>
-            </View>
-          )}
-
-          <View style={styles.itemsBadge}>
-            <Icon name="shopping-bag" size={12} color="#8E8E93" />
-            <Text style={styles.itemsText}>
-              {order.itemCount || order.items?.length || 0}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View style={styles.amountSection}>
-          <Text style={styles.amountLabel}>Total</Text>
-          <Text style={styles.amountValue}>
-            ₹{(order.grandTotal || 0).toFixed(2)}
-          </Text>
-        </View>
-
-        <View style={styles.footerRight}>
-          {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
-            <View style={styles.voucherBadge}>
-              <Icon name="confirmation-number" size={12} color="#34C759" />
-              <Text style={styles.voucherText}>
-                {order.voucherUsage.voucherCount}
+            <View style={[styles.tag, styles.mealWindowTag]}>
+              <Text style={styles.mealWindowText} numberOfLines={1}>
+                {order.mealWindow}
               </Text>
             </View>
           )}
-          <Icon name="chevron-right" size={20} color="#C7C7CC" />
+
+          <View style={styles.itemCountBadge}>
+            <Text style={styles.itemCountText} numberOfLines={1}>
+              {order.itemCount || order.items?.length || 0} items
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.amountContainer}>
+            <Text style={styles.amountLabel}>Total:</Text>
+            <Text style={styles.amountValue} numberOfLines={1}>
+              ₹{(order.grandTotal || 0).toFixed(2)}
+            </Text>
+          </View>
+          {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
+            <View style={styles.voucherBadge}>
+              <Text style={styles.voucherText} numberOfLines={1}>
+                {order.voucherUsage.voucherCount}V
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+
+      {/* Status Change Modal */}
+      <Modal
+        visible={showStatusModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowStatusModal(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatusModal(false)}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Icon name="swap-vert" size={20} color="#007AFF" />
+              <Text style={styles.modalTitle}>Quick Status Change</Text>
+              <TouchableOpacity
+                onPress={() => setShowStatusModal(false)}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                <Icon name="close" size={20} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalOrderNumber}>{order.orderNumber}</Text>
+
+            <View style={styles.currentStatusRow}>
+              <Text style={styles.currentStatusLabel}>Current:</Text>
+              <View
+                style={[
+                  styles.currentStatusBadge,
+                  {backgroundColor: getStatusColor(order.status)},
+                ]}>
+                <Icon
+                  name={getStatusIcon(order.status)}
+                  size={14}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.currentStatusText}>
+                  {formatStatusText(order.status)}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.optionsLabel}>Change to:</Text>
+            <ScrollView style={styles.statusList}>
+              {quickStatusOptions.map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={styles.statusOption}
+                  onPress={() => handleStatusSelect(status)}
+                  activeOpacity={0.7}>
+                  <View
+                    style={[
+                      styles.statusOptionIcon,
+                      {backgroundColor: getStatusColor(status)},
+                    ]}>
+                    <Icon
+                      name={getStatusIcon(status)}
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                  <Text style={styles.statusOptionText}>
+                    {formatStatusText(status)}
+                  </Text>
+                  <Icon name="chevron-right" size={20} color="#8E8E93" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.viewDetailsButton}
+              onPress={() => {
+                setShowStatusModal(false);
+                onPress();
+              }}>
+              <Text style={styles.viewDetailsText}>View Full Details</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: '#F2F2F7',
+    borderColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
   },
   headerLeft: {
     flex: 1,
+    marginRight: 8,
+    minWidth: 0,
   },
   orderNumber: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#000000',
-    marginBottom: 6,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    color: '#111827',
+    marginBottom: 3,
+    letterSpacing: 0.2,
   },
   timeAgo: {
-    fontSize: 13,
-    color: '#8E8E93',
-    fontWeight: '500',
+    fontSize: 11,
+    color: '#9ca3af',
+    fontWeight: '600',
+  },
+  statusContainer: {
+    flexShrink: 0,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  customerSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-  },
-  avatarPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  customerInfo: {
-    flex: 1,
-  },
-  customerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  phoneRow: {
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  customerPhone: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '500',
+  statusBadgeDisabled: {
+    opacity: 0.9,
   },
-  detailsSection: {
-    marginBottom: 16,
+  statusIcon: {
+    marginRight: 2,
   },
-  detailRow: {
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  syncIcon: {
+    marginLeft: 2,
+  },
+  compactInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
+    paddingVertical: 1,
   },
-  detailText: {
-    fontSize: 14,
-    color: '#3C3C43',
-    fontWeight: '500',
+  compactIcon: {
+    marginRight: 8,
+    flexShrink: 0,
+  },
+  compactText: {
     flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+    lineHeight: 18,
+  },
+  compactPhoneButton: {
+    padding: 4,
+    marginLeft: 4,
   },
   tagsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 10,
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
   },
   tagText: {
-    fontSize: 11,
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  mealWindowTag: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+  },
+  mealWindowText: {
+    fontSize: 10,
     fontWeight: '700',
+    color: '#374151',
+    letterSpacing: 0.3,
   },
-  mealTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F2F2F7',
+  itemCountBadge: {
+    backgroundColor: '#f3f4f6',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  mealText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#3C3C43',
-  },
-  itemsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#F2F2F7',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  itemsText: {
-    fontSize: 11,
-    color: '#3C3C43',
-    fontWeight: '600',
+  itemCountText: {
+    fontSize: 10,
+    color: '#6b7280',
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F2F2F7',
+    borderTopColor: '#f3f4f6',
+    paddingTop: 10,
+    marginTop: 6,
   },
-  amountSection: {
+  amountContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     flex: 1,
+    minWidth: 0,
   },
   amountLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
-    marginBottom: 4,
+    fontSize: 10,
+    color: '#9ca3af',
+    marginBottom: 3,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   amountValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#000000',
-  },
-  footerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: -0.5,
   },
   voucherBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#34C75915',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    backgroundColor: '#d1fae5',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#10b981',
+    flexShrink: 0,
   },
   voucherText: {
-    fontSize: 12,
-    color: '#34C759',
+    fontSize: 10,
+    color: '#047857',
     fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 380,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  modalTitle: {
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  modalOrderNumber: {
+    fontSize: 13,
+    color: '#6b7280',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 12,
+  },
+  currentStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  currentStatusLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  currentStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  currentStatusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  optionsLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#374151',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statusList: {
+    maxHeight: 240,
+  },
+  statusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F2F7',
+  },
+  statusOptionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusOptionText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  viewDetailsButton: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F2F2F7',
+    backgroundColor: '#F9F9F9',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  viewDetailsText: {
+    fontSize: 14,
+    color: '#007AFF',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import OrdersScreen from './OrdersScreen';
+import OrdersScreenAdmin from './OrdersScreenAdmin';
 import OrderDetailAdminScreen from './OrderDetailAdminScreen';
 
 interface OrdersManagementContainerProps {
@@ -35,7 +35,7 @@ const OrdersManagementContainer: React.FC<OrdersManagementContainerProps> = ({
   }
 
   // Otherwise show the orders list
-  return <OrdersScreen onMenuPress={onMenuPress} navigation={navigation} />;
+  return <OrdersScreenAdmin onMenuPress={onMenuPress} navigation={navigation} />;
 };
 
 export default OrdersManagementContainer;
