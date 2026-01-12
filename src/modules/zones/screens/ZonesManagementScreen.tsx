@@ -10,7 +10,9 @@ import {
   ToastAndroid,
   Platform,
   Alert,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -27,6 +29,7 @@ interface ZonesManagementScreenProps {
 export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
   onMenuPress,
 }) => {
+  const insets = useSafeAreaInsets();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -263,9 +266,10 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
   if (loading && zones.length === 0) {
     return (
       <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#f97316" />
         {/* Header */}
         {onMenuPress && (
-          <View style={styles.header}>
+          <View style={[styles.header, {paddingTop: insets.top + 8}]}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
               <MaterialIcon name="menu" size={24} color="#ffffff" />
             </TouchableOpacity>
@@ -319,9 +323,10 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {/* Header */}
       {onMenuPress && (
-        <View style={styles.header}>
+        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -380,7 +385,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.primary,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },

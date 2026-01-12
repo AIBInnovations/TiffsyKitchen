@@ -14,7 +14,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SubscriptionPlanCard } from '../components/SubscriptionPlanCard';
 import { SubscriptionCard } from '../components/SubscriptionCard';
@@ -52,6 +54,7 @@ interface SubscriptionsScreenProps {
 
 export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenuPress }) => {
   console.log('SubscriptionsScreen: Component rendering');
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('plans');
 
   // Plans state
@@ -384,8 +387,9 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
         {onMenuPress && (
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
@@ -480,7 +484,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: PRIMARY_COLOR,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingBottom: 12,
   },
   menuButton: {
     marginRight: 16,

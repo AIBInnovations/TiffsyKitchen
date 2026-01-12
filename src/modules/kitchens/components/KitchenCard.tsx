@@ -19,6 +19,7 @@ interface KitchenCardProps {
   onToggleAcceptingOrders: (kitchen: Kitchen, value: boolean) => void;
   onEdit?: (kitchen: Kitchen) => void;
   onDelete?: (kitchen: Kitchen) => void;
+  onActivate?: (kitchen: Kitchen) => void;
 }
 
 export const KitchenCard: React.FC<KitchenCardProps> = ({
@@ -27,6 +28,7 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
   onToggleAcceptingOrders,
   onEdit,
   onDelete,
+  onActivate,
 }) => {
   const getStatusColor = () => {
     switch (kitchen.status) {
@@ -167,6 +169,17 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
         )}
       </View>
 
+      {/* Activation Button for Pending Approval */}
+      {kitchen.status === 'PENDING_APPROVAL' && onActivate && (
+        <TouchableOpacity
+          style={styles.activateButton}
+          onPress={() => onActivate(kitchen)}
+          activeOpacity={0.7}>
+          <Icon name="check-circle" size={20} color="#fff" />
+          <Text style={styles.activateButtonText}>Activate Kitchen</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={styles.footer}>
         <View style={styles.acceptingOrdersContainer}>
           <Icon
@@ -183,6 +196,7 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
           onValueChange={(value) => onToggleAcceptingOrders(kitchen, value)}
           trackColor={{ false: colors.border, true: colors.successLight }}
           thumbColor={kitchen.isAcceptingOrders ? colors.success : colors.textMuted}
+          disabled={kitchen.status === 'PENDING_APPROVAL'}
         />
       </View>
     </TouchableOpacity>
@@ -298,5 +312,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: colors.textPrimary,
+  },
+  activateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.success,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: spacing.borderRadiusMd,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  activateButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

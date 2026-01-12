@@ -10,7 +10,9 @@ import {
   Alert,
   Platform,
   ToastAndroid,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -34,6 +36,7 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
   onMenuPress,
   navigation,
 }) => {
+  const insets = useSafeAreaInsets();
   const [kitchens, setKitchens] = useState<Kitchen[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -302,6 +305,30 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
     }
   };
 
+  const handleActivateKitchen = async (kitchen: Kitchen) => {
+    Alert.alert(
+      'Activate Kitchen',
+      `Are you sure you want to activate "${kitchen.name}"? This will allow the kitchen to start accepting orders.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Activate',
+          style: 'default',
+          onPress: async () => {
+            try {
+              await kitchenService.activateKitchen(kitchen._id);
+              showToast('Kitchen activated successfully', 'success');
+              loadKitchens(true);
+            } catch (err: any) {
+              const errorMessage = err?.message || 'Failed to activate kitchen';
+              showToast(errorMessage, 'error');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const showToast = (message: string, type: 'success' | 'error') => {
     if (Platform.OS === 'android') {
       ToastAndroid.show(message, ToastAndroid.SHORT);
@@ -317,6 +344,7 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
       onToggleAcceptingOrders={handleToggleAcceptingOrders}
       onEdit={handleEditKitchen}
       onDelete={handleDeleteKitchen}
+      onActivate={handleActivateKitchen}
     />
   );
 
@@ -417,8 +445,9 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {onMenuPress && (
-        <View style={styles.header}>
+        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -477,7 +506,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: colors.primary,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },

@@ -8,6 +8,15 @@ interface StatusTimelineProps {
 }
 
 const StatusTimeline: React.FC<StatusTimelineProps> = ({timeline}) => {
+  // Handle undefined or null timeline
+  if (!timeline || !Array.isArray(timeline) || timeline.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>No status updates yet</Text>
+      </View>
+    );
+  }
+
   const sortedTimeline = [...timeline].sort(
     (a, b) =>
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
@@ -63,6 +72,13 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({timeline}) => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
+    paddingVertical: 20,
+    fontStyle: 'italic',
   },
   timelineItem: {
     flexDirection: 'row',

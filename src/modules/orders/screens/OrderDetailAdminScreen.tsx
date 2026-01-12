@@ -14,7 +14,12 @@ import {ordersService} from '../../../services/orders.service';
 import {Order, OrderStatus} from '../../../types/api.types';
 import StatusTimeline from '../components/StatusTimeline';
 import CancelOrderModal from '../components/CancelOrderModal';
+import {AcceptOrderModal} from '../components/AcceptOrderModal';
+import {RejectOrderModal} from '../components/RejectOrderModal';
+import {UpdateStatusModal} from '../components/UpdateStatusModal';
+import {DeliveryStatusModal} from '../components/DeliveryStatusModal';
 import {formatDistanceToNow} from 'date-fns';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 interface OrderDetailAdminScreenProps {
   route: {
@@ -41,12 +46,31 @@ const getStatusColor = (status: OrderStatus): string => {
   return colors[status] || '#8E8E93';
 };
 
+const safeFormatDate = (dateString: string | undefined | null): string => {
+  if (!dateString) return 'Unknown date';
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return formatDistanceToNow(date, {addSuffix: true});
+  } catch (error) {
+    console.error('Error formatting date:', dateString, error);
+    return 'Invalid date';
+  }
+};
+
 const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   route,
   navigation,
 }) => {
   const {orderId} = route.params;
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showUpdateStatusModal, setShowUpdateStatusModal] = useState(false);
+  const [showDeliveryStatusModal, setShowDeliveryStatusModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch order details
@@ -57,7 +81,105 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     refetch,
   } = useQuery({
     queryKey: ['order', orderId],
-    queryFn: () => ordersService.getOrderById(orderId),
+    queryFn: async () => {
+      console.log('📥 Fetching order:', orderId);
+      try {
+        const result = await ordersService.getOrderById(orderId);
+        console.log('✅ Order fetched successfully:', result?._id);
+        return result;
+      } catch (err) {
+        console.error('❌ Error fetching order:', err);
+        throw err;
+      }
+    },
+    retry: 2,
+    staleTime: 0, // Always fetch fresh data
+  });
+
+  // Accept order mutation
+  const acceptMutation = useMutation({
+    mutationFn: (estimatedPrepTime: number) =>
+      ordersService.acceptOrder(orderId, estimatedPrepTime),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['order', orderId]});
+      queryClient.invalidateQueries({queryKey: ['orders']});
+      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      Alert.alert('Success', 'Order accepted successfully');
+      setShowAcceptModal(false);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message ||
+          'Failed to accept order. Please try again.',
+      );
+    },
+  });
+
+  // Reject order mutation
+  const rejectMutation = useMutation({
+    mutationFn: (reason: string) => ordersService.rejectOrder(orderId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['order', orderId]});
+      queryClient.invalidateQueries({queryKey: ['orders']});
+      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      Alert.alert('Order Rejected', 'Order has been rejected successfully', [
+        {text: 'OK', onPress: () => setShowRejectModal(false)},
+      ]);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message ||
+          'Failed to reject order. Please try again.',
+      );
+    },
+  });
+
+  // Update status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: ({status, notes}: {status: OrderStatus; notes?: string}) =>
+      ordersService.updateOrderStatus(orderId, {status, notes}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['order', orderId]});
+      queryClient.invalidateQueries({queryKey: ['orders']});
+      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      Alert.alert('Success', 'Order status updated successfully');
+      setShowUpdateStatusModal(false);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message ||
+          'Failed to update order status. Please try again.',
+      );
+    },
+  });
+
+  // Update delivery status mutation
+  const updateDeliveryStatusMutation = useMutation({
+    mutationFn: (data: {
+      status: 'PICKED_UP' | 'OUT_FOR_DELIVERY' | 'DELIVERED';
+      notes?: string;
+      proofOfDelivery?: {
+        type: 'OTP' | 'SIGNATURE' | 'PHOTO';
+        value: string;
+      };
+    }) => ordersService.updateDeliveryStatus(orderId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['order', orderId]});
+      queryClient.invalidateQueries({queryKey: ['orders']});
+      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      Alert.alert('Success', 'Delivery status updated successfully');
+      setShowDeliveryStatusModal(false);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message ||
+          'Failed to update delivery status. Please try again.',
+      );
+    },
   });
 
   // Cancel order mutation
@@ -94,8 +216,9 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   });
 
   const handleCallCustomer = () => {
-    if (order?.userId?.phone) {
-      Linking.openURL(`tel:${order.userId.phone}`);
+    const phone = order?.userId?.phone || order?.deliveryAddress?.contactPhone;
+    if (phone) {
+      Linking.openURL(`tel:${phone}`);
     }
   };
 
@@ -109,7 +232,6 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
 
   const canCancelOrder = (order?: Order): boolean => {
     if (!order) return false;
-    // Can cancel if not yet picked up, delivered, or already cancelled
     const cancellableStatuses: OrderStatus[] = [
       'PLACED',
       'ACCEPTED',
@@ -117,6 +239,34 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       'READY',
     ];
     return cancellableStatuses.includes(order.status);
+  };
+
+  const canAcceptOrder = (order?: Order): boolean => {
+    return order?.status === 'PLACED';
+  };
+
+  const canRejectOrder = (order?: Order): boolean => {
+    return order?.status === 'PLACED';
+  };
+
+  const canUpdateStatus = (order?: Order): boolean => {
+    if (!order) return false;
+    const updatableStatuses: OrderStatus[] = [
+      'ACCEPTED',
+      'PREPARING',
+      'READY',
+    ];
+    return updatableStatuses.includes(order.status);
+  };
+
+  const canUpdateDeliveryStatus = (order?: Order): boolean => {
+    if (!order) return false;
+    const deliveryStatuses: OrderStatus[] = [
+      'READY',
+      'PICKED_UP',
+      'OUT_FOR_DELIVERY',
+    ];
+    return deliveryStatuses.includes(order.status);
   };
 
   if (isLoading) {
@@ -128,36 +278,128 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     );
   }
 
-  if (error || !order) {
+  if (error || (!order && !isLoading)) {
     return (
       <View style={styles.errorContainer}>
+        <MaterialIcons name="error-outline" size={64} color="#FF3B30" />
         <Text style={styles.errorText}>Failed to load order details</Text>
+        <Text style={styles.errorSubtext}>
+          Order ID: {orderId}
+        </Text>
+        {error && (
+          <Text style={styles.errorDetail}>
+            {(error as any)?.message || 'Unknown error occurred'}
+          </Text>
+        )}
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <MaterialIcons name="refresh" size={20} color="#FFFFFF" style={{marginRight: 8}} />
           <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.backButtonError}
+          onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonErrorText}>Back to Orders</Text>
         </TouchableOpacity>
       </View>
     );
   }
+
+  // Log order data for debugging
+  console.log('📦 Order Data:', {
+    _id: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    placedAt: order.placedAt,
+    menuType: order.menuType,
+    hasUserId: !!order.userId,
+    hasKitchenId: !!order.kitchenId,
+    hasItems: !!order.items && order.items.length > 0,
+  });
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Text style={styles.orderNumber}>{order.orderNumber}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                {backgroundColor: getStatusColor(order.status)},
-              ]}>
-              <Text style={styles.statusText}>{order.status}</Text>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}>
+              <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <View style={styles.headerTop}>
+                <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {backgroundColor: getStatusColor(order.status)},
+                  ]}>
+                  <Text style={styles.statusText}>{order.status || 'UNKNOWN'}</Text>
+                </View>
+              </View>
+              <Text style={styles.placedTime}>
+                Placed {safeFormatDate(order.placedAt)}
+              </Text>
+              {order.menuType && (
+                <View style={styles.menuTypeBadge}>
+                  <Text style={styles.menuTypeText}>
+                    {order.menuType === 'MEAL_MENU' ? '🍱 Meal Menu' : '🍔 On-Demand'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
-          <Text style={styles.placedTime}>
-            Placed {formatDistanceToNow(new Date(order.placedAt), {addSuffix: true})}
-          </Text>
         </View>
+
+        {/* Action Buttons */}
+        {(canAcceptOrder(order) || canRejectOrder(order) || canUpdateStatus(order) || canUpdateDeliveryStatus(order) || canCancelOrder(order)) && (
+          <View style={styles.actionsSection}>
+            <Text style={styles.sectionTitle}>Actions</Text>
+            <View style={styles.actionsGrid}>
+              {canAcceptOrder(order) && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.acceptButton]}
+                  onPress={() => setShowAcceptModal(true)}>
+                  <MaterialIcons name="check-circle" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Accept Order</Text>
+                </TouchableOpacity>
+              )}
+              {canRejectOrder(order) && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.rejectButton]}
+                  onPress={() => setShowRejectModal(true)}>
+                  <MaterialIcons name="cancel" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Reject Order</Text>
+                </TouchableOpacity>
+              )}
+              {canUpdateStatus(order) && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.updateButton]}
+                  onPress={() => setShowUpdateStatusModal(true)}>
+                  <MaterialIcons name="update" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Update Status</Text>
+                </TouchableOpacity>
+              )}
+              {canUpdateDeliveryStatus(order) && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deliveryButton]}
+                  onPress={() => setShowDeliveryStatusModal(true)}>
+                  <MaterialIcons name="local-shipping" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Delivery Status</Text>
+                </TouchableOpacity>
+              )}
+              {canCancelOrder(order) && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.cancelButton]}
+                  onPress={() => setShowCancelModal(true)}>
+                  <MaterialIcons name="close" size={20} color="#FFFFFF" />
+                  <Text style={styles.actionButtonText}>Cancel Order</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Customer Section */}
         <View style={styles.section}>
@@ -165,20 +407,22 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           <View style={styles.card}>
             <View style={styles.infoRow}>
               <Text style={styles.label}>Name:</Text>
-              <Text style={styles.value}>{order.userId?.name || 'N/A'}</Text>
+              <Text style={styles.value}>
+                {order.userId?.name || order.deliveryAddress?.contactName || 'N/A'}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.label}>Phone:</Text>
               <TouchableOpacity onPress={handleCallCustomer}>
                 <Text style={[styles.value, styles.linkText]}>
-                  {order.userId?.phone || 'N/A'}
+                  {order.userId?.phone || order.deliveryAddress?.contactPhone || 'N/A'}
                 </Text>
               </TouchableOpacity>
             </View>
             {order.userId?.email && (
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Email:</Text>
-                <Text style={styles.value}>{order.userId.email}</Text>
+                <Text style={styles.value}>{order.userId?.email}</Text>
               </View>
             )}
           </View>
@@ -236,7 +480,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
             {order.kitchenId?.contactPhone && (
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Phone:</Text>
-                <Text style={styles.value}>{order.kitchenId.contactPhone}</Text>
+                <Text style={styles.value}>{order.kitchenId?.contactPhone}</Text>
               </View>
             )}
           </View>
@@ -374,19 +618,47 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
-        {/* Cancel Button */}
-        {canCancelOrder(order) && (
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowCancelModal(true)}>
-              <Text style={styles.cancelButtonText}>Cancel Order</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={{height: 40}} />
       </ScrollView>
 
-      {/* Cancel Order Modal */}
+      {/* Modals */}
+      <AcceptOrderModal
+        visible={showAcceptModal}
+        orderNumber={order.orderNumber}
+        onClose={() => setShowAcceptModal(false)}
+        onAccept={async (prepTime) => {
+          await acceptMutation.mutateAsync(prepTime);
+        }}
+      />
+
+      <RejectOrderModal
+        visible={showRejectModal}
+        orderNumber={order.orderNumber}
+        onClose={() => setShowRejectModal(false)}
+        onReject={async (reason) => {
+          await rejectMutation.mutateAsync(reason);
+        }}
+      />
+
+      <UpdateStatusModal
+        visible={showUpdateStatusModal}
+        orderNumber={order.orderNumber}
+        currentStatus={order.status}
+        onClose={() => setShowUpdateStatusModal(false)}
+        onUpdate={async (status, notes) => {
+          await updateStatusMutation.mutateAsync({status, notes});
+        }}
+      />
+
+      <DeliveryStatusModal
+        visible={showDeliveryStatusModal}
+        orderNumber={order.orderNumber}
+        onClose={() => setShowDeliveryStatusModal(false)}
+        onUpdate={async (data) => {
+          await updateDeliveryStatusMutation.mutateAsync(data);
+        }}
+      />
+
       <CancelOrderModal
         visible={showCancelModal}
         onClose={() => setShowCancelModal(false)}
@@ -421,29 +693,72 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#F5F5F5',
   },
   errorText: {
-    fontSize: 16,
-    color: '#FF3B30',
-    marginBottom: 20,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
   },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#8E8E93',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  errorDetail: {
+    fontSize: 13,
+    color: '#FF3B30',
+    marginBottom: 24,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
   retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+    marginBottom: 12,
   },
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
+  backButtonError: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonErrorText: {
+    color: '#3C3C43',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   header: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: '#f97316',
+    paddingTop: 32,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  backButton: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTop: {
     flexDirection: 'row',
@@ -454,7 +769,7 @@ const styles = StyleSheet.create({
   orderNumber: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000000',
+    color: '#FFFFFF',
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -468,7 +783,54 @@ const styles = StyleSheet.create({
   },
   placedTime: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: '#FFFFFF',
+    opacity: 0.9,
+  },
+  menuTypeBadge: {
+    marginTop: 8,
+  },
+  menuTypeText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    opacity: 0.85,
+  },
+  actionsSection: {
+    marginTop: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  acceptButton: {
+    backgroundColor: '#34C759',
+  },
+  rejectButton: {
+    backgroundColor: '#FF3B30',
+  },
+  updateButton: {
+    backgroundColor: '#007AFF',
+  },
+  deliveryButton: {
+    backgroundColor: '#5856D6',
+  },
+  cancelButton: {
+    backgroundColor: '#FF3B30',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
     marginTop: 12,
@@ -575,19 +937,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#3C3C43',
     lineHeight: 20,
-  },
-  cancelButton: {
-    backgroundColor: '#FF3B30',
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

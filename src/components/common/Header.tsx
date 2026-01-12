@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -13,29 +13,32 @@ export const Header: React.FC<HeaderProps> = ({ title, onMenuPress, rightCompone
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      className="bg-orange-500 px-4 pb-4"
-      style={{ paddingTop: insets.top + 10 }}
-    >
-      <View className="flex-row items-center justify-between">
-        {/* Hamburger Menu */}
-        <TouchableOpacity
-          onPress={onMenuPress}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Icon name="menu" size={28} color="#ffffff" />
-        </TouchableOpacity>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <View
+        className="bg-orange-500 px-4 pb-3"
+        style={{ paddingTop: insets.top + 8 }}
+      >
+        <View className="flex-row items-center justify-between">
+          {/* Hamburger Menu */}
+          <TouchableOpacity
+            onPress={onMenuPress}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Icon name="menu" size={28} color="#ffffff" />
+          </TouchableOpacity>
 
-        {/* Title */}
-        <Text className="text-white text-xl font-bold flex-1 text-center">
-          {title}
-        </Text>
+          {/* Title */}
+          <Text className="text-white text-xl font-bold flex-1 text-center">
+            {title}
+          </Text>
 
-        {/* Right Component or Placeholder */}
-        <View className="w-10 h-10 items-center justify-center">
-          {rightComponent}
+          {/* Right Component or Placeholder */}
+          <View className="w-10 h-10 items-center justify-center">
+            {rightComponent}
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
 };

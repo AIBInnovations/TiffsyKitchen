@@ -7,6 +7,7 @@ import {
   Animated,
   Dimensions,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -31,9 +32,6 @@ const menuItems: MenuItem[] = [
   { id: '5', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
   { id: '6', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
   { id: '7', label: 'Users', icon: 'people', screen: 'Users' },
-  { id: '8', label: 'Deliveries', icon: 'local-shipping', screen: 'Deliveries' },
-  { id: '9', label: 'Analytics', icon: 'trending-up', screen: 'Analytics' },
-  { id: '10', label: 'Settings', icon: 'settings', screen: 'Settings' },
 ];
 
 interface SidebarProps {
@@ -112,44 +110,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Icon name="person" size={40} color="rgba(245, 107, 76, 1)" />
             </View>
             <Text className="text-white font-bold text-lg">
-              {user?.fullName || 'Kitchen Staff'}
+              {user?.fullName || 'Admin'}
             </Text>
             <Text className="text-orange-100 text-sm">
-              {user?.role === 'kitchen_staff' ? 'Kitchen Staff' : user?.role}
+              {user?.role === 'ADMIN' || user?.role === 'admin' ? 'Admin' : user?.role || 'Admin'}
             </Text>
           </View>
 
           {/* Menu Items */}
-          <View className="flex-1 py-2">
-            {menuItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => handleMenuPress(item.screen)}
-                className={`flex-row items-center px-4 py-4 ${
-                  currentScreen === item.screen ? 'bg-orange-50' : ''
-                }`}
-              >
-                <Icon
-                  name={item.icon}
-                  size={24}
-                  color="rgba(245, 107, 76, 1)"
-                  style={{ marginRight: 16 }}
-                />
-                <Text
-                  className={`text-base ${
-                    currentScreen === item.screen
-                      ? 'text-orange-600 font-semibold'
-                      : 'text-gray-700'
+          <ScrollView className="flex-1">
+            <View className="py-2">
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => handleMenuPress(item.screen)}
+                  className={`flex-row items-center px-4 py-4 ${
+                    currentScreen === item.screen ? 'bg-orange-50' : ''
                   }`}
                 >
-                  {item.label}
-                </Text>
-                {currentScreen === item.screen && (
-                  <View className="absolute right-0 w-1 h-8 bg-orange-500 rounded-l-full" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
+                  <Icon
+                    name={item.icon}
+                    size={24}
+                    color="rgba(245, 107, 76, 1)"
+                    style={{ marginRight: 16 }}
+                  />
+                  <Text
+                    className={`text-base ${
+                      currentScreen === item.screen
+                        ? 'text-orange-600 font-semibold'
+                        : 'text-gray-700'
+                    }`}
+                  >
+                    {item.label}
+                  </Text>
+                  {currentScreen === item.screen && (
+                    <View className="absolute right-0 w-1 h-8 bg-orange-500 rounded-l-full" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
 
           {/* Logout Button */}
           <View className="border-t border-gray-200 p-4" style={{ paddingBottom: insets.bottom + 16 }}>

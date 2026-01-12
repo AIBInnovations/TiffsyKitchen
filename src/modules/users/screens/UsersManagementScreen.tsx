@@ -9,7 +9,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
 import { User, UserRole, UserStatus } from '../../../types/api.types';
@@ -46,6 +48,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   onUserPress,
   onCreateUserPress,
 }) => {
+  const insets = useSafeAreaInsets();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -81,12 +84,24 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
         params.search = searchQuery.trim();
       }
 
-      const response = await adminUsersService.getUsers(params);
-      setUsers(response.users);
+      console.log('========== FETCHING USERS ==========');
+      console.log('Params:', JSON.stringify(params, null, 2));
+      console.log('====================================');
 
-      if (response.counts) {
+      const response = await adminUsersService.getUsers(params);
+
+      console.log('========== USERS RESPONSE ==========');
+      console.log('Response:', JSON.stringify(response, null, 2));
+      console.log('Users array:', response?.users);
+      console.log('Users length:', response?.users?.length);
+      console.log('Counts:', response?.counts);
+      console.log('====================================');
+
+      setUsers(response?.users || []);
+
+      if (response?.counts) {
         setTotalCounts({
-          all: response.counts.total,
+          all: response.counts.total || 0,
           customers: response.counts.byRole?.CUSTOMER || 0,
           staff: response.counts.byRole?.KITCHEN_STAFF || 0,
           drivers: response.counts.byRole?.DRIVER || 0,
@@ -94,7 +109,12 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
         });
       }
     } catch (err: any) {
+      console.log('========== FETCH USERS ERROR ==========');
+      console.log('Error:', err);
+      console.log('Error message:', err.message);
+      console.log('========================================');
       setError(err.message || 'Failed to load users');
+      setUsers([]);
       Alert.alert('Error', err.message || 'Failed to load users');
     } finally {
       setLoading(false);
@@ -199,7 +219,8 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcons name="menu" size={24} color={colors.black} />
           </TouchableOpacity>
@@ -218,8 +239,9 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={24} color={colors.black} />
         </TouchableOpacity>
@@ -295,7 +317,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
       {/* User Count */}
       <View style={styles.summaryContainer}>
         <Text style={styles.summaryText}>
-          {users.length} user{users.length !== 1 ? 's' : ''}
+          {users?.length || 0} user{(users?.length || 0) !== 1 ? 's' : ''}
           {searchQuery && ' found'}
         </Text>
       </View>
@@ -305,7 +327,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
         renderErrorState()
       ) : (
         <FlatList
-          data={users}
+          data={users || []}
           renderItem={({ item }) => <UserCard user={item} onPress={onUserPress} />}
           keyExtractor={item => item._id}
           contentContainerStyle={styles.listContent}
@@ -334,7 +356,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingBottom: 12,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

@@ -9,7 +9,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useQuery} from '@tanstack/react-query';
 import {ordersService} from '../../../services/orders.service';
 import {Order, OrderStatus} from '../../../types/api.types';
@@ -34,6 +36,7 @@ interface OrdersScreenProps {
 }
 
 const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
+  const insets = useSafeAreaInsets();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
 
@@ -209,9 +212,10 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {/* Header */}
       {onMenuPress && (
-        <View style={styles.header}>
+        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#f97316',
-    paddingVertical: 16,
+    paddingBottom: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',

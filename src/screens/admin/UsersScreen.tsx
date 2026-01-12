@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { User } from '../../types/user';
 import { useUsersStore } from '../../stores/useUsersStore';
@@ -24,6 +26,7 @@ export const UsersScreen: React.FC<UsersScreenProps> = ({
   onMenuPress,
   onUserPress,
 }) => {
+  const insets = useSafeAreaInsets();
   const {
     filteredUsers,
     filter,
@@ -146,8 +149,9 @@ export const UsersScreen: React.FC<UsersScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={26} color={colors.white} />
         </TouchableOpacity>
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingBottom: 12,
   },
   menuButton: {
     padding: spacing.xs,

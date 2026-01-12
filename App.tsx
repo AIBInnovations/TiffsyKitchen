@@ -7,12 +7,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
 import { AdminLoginScreen } from './src/screens/admin/AdminLoginScreen';
 import { DashboardScreen } from './src/screens/admin/DashboardScreen';
-import { UsersScreen } from './src/screens/admin/UsersScreen';
-import OrdersScreen from './src/modules/orders/screens/OrdersScreen';
-import MenuManagementScreen from './src/modules/menu/screens/MenuManagementScreen';
+import OrdersManagementContainer from './src/modules/orders/screens/OrdersManagementContainer';
+import { MenuManagementMain } from './src/modules/menu/screens/MenuManagementMain';
 import { ZonesManagementScreen } from './src/modules/zones';
 import { KitchensManagementScreen } from './src/modules/kitchens/screens';
 import { SubscriptionsScreen } from './src/modules/subscriptions';
+import { UsersManagementScreen } from './src/modules/users/screens/UsersManagementScreen';
+import { UserDetailAdminScreen } from './src/modules/users/screens/UserDetailAdminScreen';
+import { CreateUserModal } from './src/modules/users/components/CreateUserModal';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -20,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { User } from './src/types/api.types';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -66,21 +69,58 @@ const MainContent: React.FC<{
   onLogout: () => void;
 }> = ({ onMenuPress, onLogout }) => {
   const { currentScreen } = useNavigation();
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
-  const handleUserPress = (userId: string) => {
-    console.log('User pressed:', userId);
-    // Navigate to user details if needed
+  const handleUserPress = (user: User) => {
+    setSelectedUserId(user._id);
   };
+
+  const handleBackFromUserDetail = () => {
+    setSelectedUserId(null);
+  };
+
+  const handleCreateUserPress = () => {
+    setShowCreateUserModal(true);
+  };
+
+  const handleCreateUserSuccess = () => {
+    setShowCreateUserModal(false);
+    // Refresh users list by toggling state
+  };
+
+  // If viewing user details
+  if (currentScreen === 'Users' && selectedUserId) {
+    return (
+      <UserDetailAdminScreen
+        userId={selectedUserId}
+        onBack={handleBackFromUserDetail}
+      />
+    );
+  }
 
   switch (currentScreen) {
     case 'Dashboard':
       return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
 
     case 'Orders':
-      return <OrdersScreen onMenuPress={onMenuPress} />;
+      return <OrdersManagementContainer onMenuPress={onMenuPress} />;
 
     case 'Users':
-      return <UsersScreen onMenuPress={onMenuPress} onUserPress={handleUserPress} />;
+      return (
+        <>
+          <UsersManagementScreen
+            onMenuPress={onMenuPress}
+            onUserPress={handleUserPress}
+            onCreateUserPress={handleCreateUserPress}
+          />
+          <CreateUserModal
+            visible={showCreateUserModal}
+            onClose={() => setShowCreateUserModal(false)}
+            onSuccess={handleCreateUserSuccess}
+          />
+        </>
+      );
 
     case 'Kitchens':
       return <KitchensManagementScreen onMenuPress={onMenuPress} />;
@@ -89,19 +129,10 @@ const MainContent: React.FC<{
       return <ZonesManagementScreen onMenuPress={onMenuPress} />;
 
     case 'MenuManagement':
-      return <MenuManagementScreen onMenuPress={onMenuPress} />;
+      return <MenuManagementMain onMenuPress={onMenuPress} />;
 
     case 'Subscriptions':
       return <SubscriptionsScreen onMenuPress={onMenuPress} />;
-
-    case 'Deliveries':
-      return <PlaceholderScreen title="Deliveries" onMenuPress={onMenuPress} />;
-
-    case 'Analytics':
-      return <PlaceholderScreen title="Analytics" onMenuPress={onMenuPress} />;
-
-    case 'Settings':
-      return <PlaceholderScreen title="Settings" onMenuPress={onMenuPress} />;
 
     default:
       return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;

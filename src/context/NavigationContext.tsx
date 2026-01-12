@@ -8,9 +8,10 @@ export type ScreenName =
   | 'MenuManagement'
   | 'Subscriptions'
   | 'Users'
-  | 'Deliveries'
-  | 'Analytics'
-  | 'Settings';
+  | 'Reports'
+  | 'AuditLogs'
+  | 'SystemConfig'
+  | 'DeliveryConfig';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

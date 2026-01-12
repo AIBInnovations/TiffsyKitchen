@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing } from '../../../theme';
 
@@ -8,18 +9,23 @@ interface MenuHeaderProps {
 }
 
 export const MenuHeader: React.FC<MenuHeaderProps> = ({ onMenuPress }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.titleRow}>
-        <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-          <MaterialIcons name="menu" size={26} color={colors.white} />
-        </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Menu Management</Text>
-          <Text style={styles.subtitle}>Configure daily Lunch/Dinner menus</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <View style={styles.container}>
+        <View style={[styles.titleRow, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
+            <MaterialIcons name="menu" size={26} color={colors.white} />
+          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Menu Management</Text>
+            <Text style={styles.subtitle}>Configure daily Lunch/Dinner menus</Text>
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
 };
 
@@ -32,7 +38,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
   menuButton: {

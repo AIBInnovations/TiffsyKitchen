@@ -631,52 +631,173 @@ export interface OrderStatistics {
 }
 
 // ============================================================================
-// Menu Management Types
+// Menu Management Types (Updated for new API)
 // ============================================================================
 
 export type MealType = 'LUNCH' | 'DINNER';
-export type FoodType = 'VEG' | 'NON_VEG' | 'VEGAN';
-export type SpiceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type DietaryType = 'VEG' | 'NON_VEG' | 'VEGAN' | 'EGGETARIAN';
+export type SpiceLevel = 'MILD' | 'MEDIUM' | 'SPICY' | 'EXTRA_SPICY';
+export type MenuItemCategory = 'MAIN_COURSE' | 'APPETIZER' | 'DESSERT' | 'BEVERAGE' | 'SNACK';
+export type MenuItemStatus = 'ACTIVE' | 'INACTIVE' | 'DISABLED_BY_ADMIN';
 
-export interface MenuItem {
+// Add-on Types
+export interface Addon {
+  _id: string;
+  kitchenId: string;
+  name: string;
+  description?: string;
+  price: number;
+  dietaryType: DietaryType;
+  image?: string;
+  minQuantity: number;
+  maxQuantity: number;
+  isAvailable: boolean;
+  displayOrder: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AddonReference {
   _id: string;
   name: string;
-  description: string;
   price: number;
-  image: string;
-  mealTypes: MealType[];
-  foodType: FoodType;
+  isAvailable: boolean;
+}
+
+// Menu Item Types
+export interface MenuItem {
+  _id: string;
+  kitchenId: string | Kitchen;
+  name: string;
+  description?: string;
+  category: MenuItemCategory;
+  menuType: MenuType;
+  mealWindow?: MealWindow;
+  price: number;
+  discountedPrice?: number;
+  portionSize?: string;
+  preparationTime?: number;
+  dietaryType: DietaryType;
   isJainFriendly: boolean;
   spiceLevel: SpiceLevel;
+  images: string[];
+  thumbnailImage?: string;
+  addonIds: AddonReference[];
+  includes: string[];
   isAvailable: boolean;
-  category?: string;
-  preparationTime?: number;
+  displayOrder: number;
+  isFeatured: boolean;
+  status: MenuItemStatus;
+  disabledReason?: string;
+  disabledBy?: string;
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+export interface MealMenuGroup {
+  lunch?: MenuItem;
+  dinner?: MenuItem;
+}
+
 export interface MenuItemsListResponse {
-  items: MenuItem[];
-  pagination?: PaginationMeta;
+  menuItems: MenuItem[];
+  mealMenu?: MealMenuGroup;
+  onDemandMenu?: MenuItem[];
+  pagination: PaginationMeta;
+}
+
+export interface MenuItemDetailsResponse {
+  menuItem: MenuItem;
+  addons: Addon[];
+  kitchen: Kitchen;
 }
 
 export interface CreateMenuItemRequest {
+  kitchenId: string;
   name: string;
-  description: string;
+  description?: string;
+  category: MenuItemCategory;
+  menuType: MenuType;
+  mealWindow?: MealWindow;
   price: number;
-  image?: File | string;
-  mealTypes: MealType[];
-  foodType: FoodType;
+  discountedPrice?: number;
+  portionSize?: string;
+  preparationTime?: number;
+  dietaryType: DietaryType;
   isJainFriendly: boolean;
   spiceLevel: SpiceLevel;
+  images: string[];
+  thumbnailImage?: string;
+  addonIds?: string[];
+  includes: string[];
   isAvailable: boolean;
-  category?: string;
-  preparationTime?: number;
+  displayOrder: number;
+  isFeatured: boolean;
 }
 
-export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> {
-  _id: string;
+export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> {}
+
+// Kitchen Menu Response
+export interface KitchenMenuResponse {
+  kitchen: Kitchen;
+  mealMenu: MealMenuGroup;
+  onDemandMenu: MenuItem[];
+  isVoucherEligible: boolean;
+  isCouponEligible: boolean;
 }
+
+// Meal Window Menu Item
+export interface MealMenuItemResponse {
+  item: MenuItem;
+  isAvailable: boolean;
+  canUseVoucher: boolean;
+  cutoffTime: string;
+  isPastCutoff: boolean;
+}
+
+// Add-on Management Types
+export interface CreateAddonRequest {
+  kitchenId: string;
+  name: string;
+  description?: string;
+  price: number;
+  dietaryType: DietaryType;
+  image?: string;
+  minQuantity?: number;
+  maxQuantity?: number;
+  isAvailable: boolean;
+  displayOrder?: number;
+}
+
+export interface UpdateAddonRequest extends Partial<CreateAddonRequest> {}
+
+export interface AddonListResponse {
+  addons: Addon[];
+  pagination: PaginationMeta;
+}
+
+export interface AddonDetailsResponse {
+  addon: Addon;
+  kitchen: Kitchen;
+  usedInMenuItems: number;
+}
+
+export interface AddonLibraryResponse {
+  addons: (Addon & { menuItemCount: number })[];
+  totalCount: number;
+  activeCount: number;
+}
+
+export interface AddonsForMenuItemResponse {
+  attached: (Addon & { isAttached: boolean })[];
+  available: (Addon & { isAttached: boolean })[];
+}
+
+// Legacy types for backward compatibility
+export type FoodType = DietaryType;
 
 // ============================================================================
 // Delivery/Batch Management Types

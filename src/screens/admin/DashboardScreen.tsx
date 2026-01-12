@@ -8,7 +8,9 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { MealType } from '../../types/dashboard';
 import {
@@ -17,19 +19,10 @@ import {
   OrderStatusFunnel,
   MealSlotCard,
   BusinessChart,
-  PlanSummaryRow,
   RecentActivityList,
   SectionHeader,
   DatePickerModal,
 } from '../../components/dashboard';
-import {
-  mockKpiMetrics,
-  mockOrderStatusFunnel,
-  mockMealSlots,
-  mockChartData,
-  mockPlanSummary,
-  mockRecentActivity,
-} from '../../data/dashboardMockData';
 import { useApi } from '../../hooks/useApi';
 import { DashboardData } from '../../types/api.types';
 
@@ -44,6 +37,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onNotificationPress,
   onLogout,
 }) => {
+  const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMealType, setSelectedMealType] = useState<MealType>('all');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
@@ -51,7 +45,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   // Fetch real dashboard data from API
   const { data: apiData, loading, error, refresh } = useApi<DashboardData>(
     '/api/admin/dashboard',
-    { cache: 30000 } // Cache for 30 seconds
+    { cache: 30000, autoFetch: true } // Cache for 30 seconds, auto-fetch on mount
   );
 
   const handleDatePress = () => {
@@ -90,9 +84,42 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     Alert.alert('Activity', 'Navigating to all activity');
   };
 
+  // Transform API activity data to match component format
+  const getTransformedActivity = () => {
+    if (!apiData?.recentActivity) return [];
+
+    return apiData.recentActivity.map((activity) => {
+      const actionColors: Record<string, string> = {
+        CREATE: '#22c55e',
+        UPDATE: '#3b82f6',
+        DELETE: '#ef4444',
+        LOGIN: '#8b5cf6',
+        LOGOUT: '#6b7280',
+      };
+
+      const actionIcons: Record<string, string> = {
+        CREATE: 'add-circle',
+        UPDATE: 'edit',
+        DELETE: 'delete',
+        LOGIN: 'login',
+        LOGOUT: 'logout',
+      };
+
+      return {
+        id: activity._id,
+        type: 'system' as const,
+        title: `${activity.action} ${activity.entityType}`,
+        description: `by ${activity.userId.name} (${activity.userId.role})`,
+        timestamp: new Date(activity.createdAt),
+        icon: actionIcons[activity.action] || 'info',
+        color: actionColors[activity.action] || '#6b7280',
+      };
+    });
+  };
+
   // Map real API data to KPI metrics
   const getKpiMetrics = () => {
-    if (!apiData) return mockKpiMetrics;
+    if (!apiData) return [];
 
     return [
       {
@@ -172,9 +199,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     ];
   };
 
-  // Map real API data to order status (use mock for now as API doesn't provide this)
+  // Map real API data to order status
   const getOrderStatus = () => {
-    if (!apiData) return mockOrderStatusFunnel;
+    if (!apiData) return [];
 
     // Use today's orders for pending status
     return [
@@ -189,10 +216,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   // Map real API data to chart format
   const getChartData = () => {
-    if (!apiData) return mockChartData;
+    if (!apiData) return {
+      title: '7-Day Trend',
+      primaryLabel: 'Revenue (₹)',
+      secondaryLabel: 'Orders',
+      primaryColor: '#f97316',
+      secondaryColor: '#3b82f6',
+      points: [],
+    };
 
     // Create a simple 7-day trend using today's data
-    // Since API doesn't provide historical data, we'll use mock structure
     const today = new Date();
     const points = [];
 
@@ -224,11 +257,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     };
   };
 
-  // Filter meal slots based on selected meal type (use mock for now)
-  const filteredMealSlots =
-    selectedMealType === 'all'
-      ? mockMealSlots
-      : mockMealSlots.filter((slot) => slot.mealType === selectedMealType);
+  // Note: Meal slots data not available from API, will be empty until API provides this
+  const filteredMealSlots: any[] = [];
 
   const filteredKpis = getKpiMetrics();
   const filteredOrderStatus = getOrderStatus();
@@ -236,8 +266,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={26} color="#ffffff" />
         </TouchableOpacity>
@@ -323,16 +354,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Business Chart */}
         <BusinessChart data={chartData} />
 
-        {/* Plan Summary */}
-        <PlanSummaryRow
-          plans={mockPlanSummary}
+        {/* Plan Summary - Hidden until API provides this data */}
+        {/* <PlanSummaryRow
+          plans={[]}
           onPlanPress={handlePlanPress}
           onViewAllPress={handleViewAllPlans}
-        />
+        /> */}
 
         {/* Recent Activity */}
         <RecentActivityList
-          activities={apiData?.recentActivity || mockRecentActivity}
+          activities={getTransformedActivity()}
           onActivityPress={handleActivityPress}
           onViewAllPress={handleViewAllActivity}
           maxItems={5}
@@ -365,7 +396,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
   },
   menuButton: {
     padding: 4,

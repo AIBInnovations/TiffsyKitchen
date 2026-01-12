@@ -18,7 +18,9 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { menuService } from '../../../services/menu.service';
 import { MenuItem, MealType, FoodType } from '../../../types/api.types';
@@ -38,6 +40,7 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
   onAddItem,
   onEditItem,
 }) => {
+  const insets = useSafeAreaInsets();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -260,7 +263,8 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
   if (loading) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcons name="menu" size={24} color="#1f2937" />
           </TouchableOpacity>
@@ -300,8 +304,9 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={24} color="#1f2937" />
         </TouchableOpacity>
@@ -429,7 +434,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    paddingBottom: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',

@@ -55,6 +55,30 @@ export const KitchenDetailScreen: React.FC<KitchenDetailScreenProps> = ({
     }
   };
 
+  const handleActivate = async () => {
+    if (!kitchen) return;
+
+    Alert.alert(
+      'Activate Kitchen',
+      `Are you sure you want to activate "${kitchen.name}"? This will allow the kitchen to start accepting orders.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Activate',
+          onPress: async () => {
+            try {
+              await kitchenService.activateKitchen(kitchen._id);
+              showToast('Kitchen activated successfully', 'success');
+              loadKitchenDetails();
+            } catch (err: any) {
+              showToast(err?.message || 'Failed to activate kitchen', 'error');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleToggleStatus = async () => {
     if (!kitchen) return;
 
@@ -263,6 +287,27 @@ export const KitchenDetailScreen: React.FC<KitchenDetailScreenProps> = ({
           )}
         </View>
 
+        {/* Pending Approval Alert */}
+        {kitchen.status === 'PENDING_APPROVAL' && (
+          <View style={styles.pendingApprovalBanner}>
+            <View style={styles.pendingApprovalContent}>
+              <Icon name="clock-alert" size={24} color={colors.warning} />
+              <View style={styles.pendingApprovalTextContainer}>
+                <Text style={styles.pendingApprovalTitle}>Pending Approval</Text>
+                <Text style={styles.pendingApprovalMessage}>
+                  This kitchen is awaiting approval. Activate it to allow order acceptance.
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.activateButtonLarge}
+              onPress={handleActivate}>
+              <Icon name="check-circle" size={20} color="#fff" />
+              <Text style={styles.activateButtonLargeText}>Activate Kitchen</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Quality Flags */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quality Flags</Text>
@@ -446,17 +491,19 @@ export const KitchenDetailScreen: React.FC<KitchenDetailScreenProps> = ({
         {/* Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Actions</Text>
-          <TouchableOpacity style={styles.actionButton} onPress={handleToggleStatus}>
-            <Icon
-              name={kitchen.status === 'ACTIVE' ? 'pause-circle' : 'play-circle'}
-              size={20}
-              color={kitchen.status === 'ACTIVE' ? colors.warning : colors.success}
-            />
-            <Text style={styles.actionButtonText}>
-              {kitchen.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} Kitchen
-            </Text>
-          </TouchableOpacity>
-          {kitchen.status !== 'SUSPENDED' && (
+          {kitchen.status !== 'PENDING_APPROVAL' && (
+            <TouchableOpacity style={styles.actionButton} onPress={handleToggleStatus}>
+              <Icon
+                name={kitchen.status === 'ACTIVE' ? 'pause-circle' : 'play-circle'}
+                size={20}
+                color={kitchen.status === 'ACTIVE' ? colors.warning : colors.success}
+              />
+              <Text style={styles.actionButtonText}>
+                {kitchen.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} Kitchen
+              </Text>
+            </TouchableOpacity>
+          )}
+          {kitchen.status !== 'SUSPENDED' && kitchen.status !== 'PENDING_APPROVAL' && (
             <TouchableOpacity style={styles.actionButton} onPress={handleSuspend}>
               <Icon name="block-helper" size={20} color={colors.error} />
               <Text style={styles.actionButtonText}>Suspend Kitchen</Text>
@@ -678,5 +725,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.textPrimary,
+  },
+  pendingApprovalBanner: {
+    backgroundColor: '#fffbeb',
+    borderLeftWidth: 4,
+    borderLeftColor: colors.warning,
+    padding: spacing.md,
+    marginTop: spacing.sm,
+  },
+  pendingApprovalContent: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  pendingApprovalTextContainer: {
+    flex: 1,
+  },
+  pendingApprovalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.warning,
+    marginBottom: 4,
+  },
+  pendingApprovalMessage: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  activateButtonLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.success,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: spacing.borderRadiusMd,
+    gap: spacing.sm,
+  },
+  activateButtonLargeText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

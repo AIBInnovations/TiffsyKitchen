@@ -65,11 +65,16 @@ class AdminUsersService {
     const queryString = queryParams.toString();
     const endpoint = `/api/admin/users${queryString ? `?${queryString}` : ''}`;
 
-    const response = await apiService.get<{
-      success: boolean;
-      data: UserListResponse;
-    }>(endpoint);
+    const response = await apiService.get<any>(endpoint);
 
+    // Handle incorrect API response structure where data is in 'error' field
+    // TODO: Backend should fix this to return data in 'data' field
+    if (response.error && response.error.users) {
+      console.log('⚠️  API returning data in error field - using that instead');
+      return response.error as UserListResponse;
+    }
+
+    // Handle correct response structure
     return response.data;
   }
 
@@ -78,10 +83,12 @@ class AdminUsersService {
    * GET /api/admin/users/:id
    */
   async getUserById(userId: string): Promise<UserDetailsResponse> {
-    const response = await apiService.get<{
-      success: boolean;
-      data: UserDetailsResponse;
-    }>(`/api/admin/users/${userId}`);
+    const response = await apiService.get<any>(`/api/admin/users/${userId}`);
+
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error as UserDetailsResponse;
+    }
 
     return response.data;
   }
@@ -91,13 +98,14 @@ class AdminUsersService {
    * POST /api/admin/users
    */
   async createUser(data: CreateUserRequest): Promise<User> {
-    const response = await apiService.post<{
-      success: boolean;
-      data: { user: User };
-      message: string;
-    }>('/api/admin/users', data);
+    const response = await apiService.post<any>('/api/admin/users', data);
 
-    return response.data.user;
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error.user;
+    }
+
+    return response.data?.user || response.data;
   }
 
   /**
@@ -105,13 +113,14 @@ class AdminUsersService {
    * PUT /api/admin/users/:id
    */
   async updateUser(userId: string, data: UpdateUserRequest): Promise<User> {
-    const response = await apiService.put<{
-      success: boolean;
-      data: { user: User };
-      message: string;
-    }>(`/api/admin/users/${userId}`, data);
+    const response = await apiService.put<any>(`/api/admin/users/${userId}`, data);
 
-    return response.data.user;
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error.user;
+    }
+
+    return response.data?.user || response.data;
   }
 
   /**
@@ -119,13 +128,14 @@ class AdminUsersService {
    * PATCH /api/admin/users/:id/activate
    */
   async activateUser(userId: string): Promise<User> {
-    const response = await apiService.patch<{
-      success: boolean;
-      data: { user: User };
-      message: string;
-    }>(`/api/admin/users/${userId}/activate`, {});
+    const response = await apiService.patch<any>(`/api/admin/users/${userId}/activate`, {});
 
-    return response.data.user;
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error.user;
+    }
+
+    return response.data?.user || response.data;
   }
 
   /**
@@ -133,13 +143,14 @@ class AdminUsersService {
    * PATCH /api/admin/users/:id/deactivate
    */
   async deactivateUser(userId: string): Promise<User> {
-    const response = await apiService.patch<{
-      success: boolean;
-      data: { user: User };
-      message: string;
-    }>(`/api/admin/users/${userId}/deactivate`, {});
+    const response = await apiService.patch<any>(`/api/admin/users/${userId}/deactivate`, {});
 
-    return response.data.user;
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error.user;
+    }
+
+    return response.data?.user || response.data;
   }
 
   /**
@@ -147,13 +158,14 @@ class AdminUsersService {
    * PATCH /api/admin/users/:id/suspend
    */
   async suspendUser(userId: string, data: SuspendUserRequest): Promise<User> {
-    const response = await apiService.patch<{
-      success: boolean;
-      data: { user: User };
-      message: string;
-    }>(`/api/admin/users/${userId}/suspend`, data);
+    const response = await apiService.patch<any>(`/api/admin/users/${userId}/suspend`, data);
 
-    return response.data.user;
+    // Handle incorrect API response structure
+    if (response.error && response.error.user) {
+      return response.error.user;
+    }
+
+    return response.data?.user || response.data;
   }
 
   /**
