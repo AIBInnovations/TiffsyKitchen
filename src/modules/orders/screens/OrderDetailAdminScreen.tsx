@@ -18,8 +18,6 @@ import {AcceptOrderModal} from '../components/AcceptOrderModal';
 import {RejectOrderModal} from '../components/RejectOrderModal';
 import {UpdateStatusModal} from '../components/UpdateStatusModal';
 import {DeliveryStatusModal} from '../components/DeliveryStatusModal';
-import OrderTracking from '../components/OrderTracking';
-import OrderStatusProgress from '../components/OrderStatusProgress';
 import OrderStatusDropdown from '../components/OrderStatusDropdown';
 import {formatDistanceToNow} from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -456,16 +454,6 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
-        {/* Professional Status Progress Display */}
-        <View style={styles.statusSection}>
-          <OrderStatusProgress
-            currentStatus={order.status}
-            orderType={order.menuType || 'ON_DEMAND_MENU'}
-            onStatusChange={handleStatusChangeFromProgress}
-            disabled={updateStatusMutation.isPending || updateDeliveryStatusMutation.isPending}
-          />
-        </View>
-
         {/* Action Buttons */}
         {(canAcceptOrder(order) || canRejectOrder(order) || canUpdateStatus(order) || canUpdateDeliveryStatus(order) || canCancelOrder(order)) && (
           <View style={styles.actionsSection}>
@@ -514,25 +502,6 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
             </View>
           </View>
         )}
-
-        {/* Track Order Button */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.trackOrderButton}
-            onPress={() => setShowTracking(!showTracking)}>
-            <MaterialIcons
-              name={showTracking ? 'expand-less' : 'expand-more'}
-              size={24}
-              color="#f97316"
-            />
-            <Text style={styles.trackOrderButtonText}>
-              {showTracking ? 'Hide Tracking' : 'Track Order'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Order Tracking Section */}
-        {showTracking && <OrderTracking orderId={orderId} />}
 
         {/* Customer Section */}
         <View style={styles.section}>
