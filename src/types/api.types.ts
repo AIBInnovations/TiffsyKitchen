@@ -582,6 +582,8 @@ export interface Order {
   status: OrderStatus;
   statusTimeline: StatusEntry[];
   specialInstructions?: string;
+  batchId?: string; // Added when order is batched for delivery
+  driverId?: string; // Added when driver is assigned
   placedAt: string;
   estimatedDeliveryTime?: string;
   cancelledAt?: string;

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// const BASE_URL = 'http://192.168.1.16:5005';
 const BASE_URL = 'https://tiffsy-backend.onrender.com';
 
 interface RequestConfig {
@@ -39,15 +40,23 @@ class ApiService {
 
     console.log(response)
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      console.log('❌ Response:', response.status, JSON.stringify(error, null, 2));
-      throw new Error(error.message || 'Request failed');
+      const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+      console.log('❌ Response:', response.status, JSON.stringify(errorData, null, 2));
+
+      // Create a detailed error object that preserves backend response structure
+      const error: any = new Error(errorData.data || errorData.message || 'Request failed');
+      error.status = response.status;
+      error.response = {
+        status: response.status,
+        data: errorData,
+      };
+      throw error;
     }
 
     const responseData = await response.json();
 
     // Log response
-
+    console.log('✅ RESPONSE:', config.method, `${BASE_URL}${endpoint}`, JSON.stringify(responseData, null, 2));
 
     return responseData;
   }

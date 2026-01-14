@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { DrawerParamList } from './types';
 import DashboardScreen from '../screens/admin/DashboardScreen.enhanced';
 import OrdersNavigator from './OrdersNavigator';
-import { KitchensManagementScreen, KitchenDetailScreen } from '../modules/kitchens/screens';
+import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen } from '../modules/kitchens/screens';
 import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
 import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
 
@@ -30,6 +30,7 @@ function KitchensNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="KitchensList" component={KitchensManagementScreen} />
       <Stack.Screen name="KitchenDetail" component={KitchenDetailScreen} />
+      <Stack.Screen name="BatchManagement" component={BatchManagementScreen} />
     </Stack.Navigator>
   );
 }
@@ -45,6 +46,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const menuItems = [
     { name: 'Dashboard', icon: 'dashboard', route: 'Dashboard' },
     { name: 'Orders', icon: 'receipt-long', route: 'Orders' },
+    { name: 'Batch Management', icon: 'local-shipping', route: 'BatchManagement' },
     { name: 'Users', icon: 'people', route: 'Users' },
     { name: 'Kitchens', icon: 'restaurant', route: 'Kitchens' },
     { name: 'Zones', icon: 'location-on', route: 'Zones' },
@@ -123,6 +125,10 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
       </Drawer.Screen>
 
       <Drawer.Screen name="Kitchens" component={KitchensNavigator} />
+
+      <Drawer.Screen name="BatchManagement">
+        {(props) => <BatchManagementLandingScreen {...props} />}
+      </Drawer.Screen>
 
       <Drawer.Screen name="Zones" component={ZonesManagementScreen} />
 

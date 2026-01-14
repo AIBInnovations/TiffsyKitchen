@@ -12,6 +12,7 @@ import { MenuManagementMain } from './src/modules/menu/screens/MenuManagementMai
 import { ZonesManagementScreen } from './src/modules/zones';
 import { KitchensManagementScreen } from './src/modules/kitchens/screens';
 import { SubscriptionsScreen } from './src/modules/subscriptions';
+import { BatchManagementLandingScreen } from './src/modules/kitchens/screens';
 import { UsersManagementScreen } from './src/modules/users/screens/UsersManagementScreen';
 import { UserDetailAdminScreen } from './src/modules/users/screens/UserDetailAdminScreen';
 import { CreateUserModal } from './src/modules/users/components/CreateUserModal';
@@ -133,6 +134,9 @@ const MainContent: React.FC<{
 
     case 'Subscriptions':
       return <SubscriptionsScreen onMenuPress={onMenuPress} />;
+
+    case 'BatchManagement':
+      return <BatchManagementLandingScreen onMenuPress={onMenuPress} />;
 
     default:
       return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;

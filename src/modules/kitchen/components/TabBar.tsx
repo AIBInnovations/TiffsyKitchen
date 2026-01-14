@@ -17,6 +17,7 @@ interface TabBarProps {
 
 const TABS: { key: KitchenTab; label: string; icon: string }[] = [
   { key: 'Overview', label: 'Overview', icon: 'dashboard' },
+  { key: 'Batches', label: 'Batches', icon: 'local-shipping' },
   { key: 'Inventory', label: 'Inventory', icon: 'inventory' },
   { key: 'Staff', label: 'Staff', icon: 'people' },
   { key: 'Settings', label: 'Settings', icon: 'settings' },

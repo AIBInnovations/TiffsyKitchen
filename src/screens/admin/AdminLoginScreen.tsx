@@ -193,10 +193,13 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
       console.log('Raw Response:', JSON.stringify(data, null, 2));
       console.log('==========================================');
 
-      // Check if response is successful (no error and has data)
-      if (response.ok && !data.error && data.data) {
+      // Backend quirk: response structure is { success, message: { user, token, expiresIn }, data, error }
+      const responseData = data.message || data.data;
+
+      // Check if response is successful (no error and has responseData)
+      if (response.ok && !data.error && responseData) {
         // Verify user role is ADMIN
-        const userRole = data.data?.user?.role;
+        const userRole = responseData?.user?.role;
 
         if (userRole !== 'ADMIN') {
           setGlobalError('Access Denied. Admin privileges required.');
@@ -210,9 +213,9 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
         // Call onLoginSuccess callback with full response data
         if (onLoginSuccess) {
           onLoginSuccess(JSON.stringify({
-            token: data.data.token,
-            user: data.data.user,
-            expiresIn: data.data.expiresIn,
+            token: responseData.token,
+            user: responseData.user,
+            expiresIn: responseData.expiresIn,
             rememberMe: rememberMe,
           }));
         }

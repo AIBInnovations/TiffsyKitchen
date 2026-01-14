@@ -47,6 +47,7 @@ import {
   KitchenHeader,
   TabBar,
   OverviewTab,
+  BatchManagementTab,
   InventoryTab,
   StaffTab,
   SettingsTab,
@@ -227,6 +228,10 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
             deliveryBatches={deliveryBatches}
             onBatchStatusChange={handleBatchStatusChange}
           />
+        );
+      case 'Batches':
+        return (
+          <BatchManagementTab kitchenId="your-kitchen-id" />
         );
       case 'Inventory':
         return (

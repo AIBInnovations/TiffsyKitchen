@@ -488,6 +488,22 @@ export const KitchenDetailScreen: React.FC<KitchenDetailScreenProps> = ({
           </View>
         )}
 
+        {/* Batch Management */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Delivery Batches</Text>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.batchManagementButton]}
+            onPress={() => navigation.navigate('BatchManagement', { kitchenId: kitchen._id, kitchenName: kitchen.name })}
+          >
+            <Icon name="truck-delivery" size={20} color={colors.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.actionButtonText}>Manage Delivery Batches</Text>
+              <Text style={styles.actionButtonSubtext}>Create and dispatch order batches</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Actions</Text>
@@ -725,6 +741,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.textPrimary,
+  },
+  actionButtonSubtext: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  batchManagementButton: {
+    backgroundColor: colors.primaryLight || '#fff5f0',
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   pendingApprovalBanner: {
     backgroundColor: '#fffbeb',

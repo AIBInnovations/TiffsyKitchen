@@ -47,13 +47,14 @@ class OrdersService {
     const endpoint = `/api/orders/admin/all${queryString ? `?${queryString}` : ''}`;
 
     const response = await apiService.get<{
-      message: boolean;
-      data: string;
-      error: OrderListResponse;
+      success: boolean;
+      message: string;
+      data: OrderListResponse;
+      error: null;
     }>(endpoint);
 
-    // Backend returns data in 'error' field
-    return response.error;
+    // Backend now consistently returns data in 'data' field
+    return response.data;
   }
 
   /**
@@ -88,13 +89,14 @@ class OrdersService {
    */
   async getOrderStatistics(): Promise<OrderStatistics> {
     const response = await apiService.get<{
-      message: boolean;
-      data: string;
-      error: any;
+      success: boolean;
+      message: string;
+      data: any;
+      error: null;
     }>('/api/orders/admin/stats');
 
-    // Backend returns data in 'error' field with different structure
-    const statsData = response.error;
+    // Backend now consistently returns data in 'data' field
+    const statsData = response.data;
 
     // Transform the backend response to match our OrderStatistics interface
     return {

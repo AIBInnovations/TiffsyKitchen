@@ -312,7 +312,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
           onEndReachedThreshold={0.5}
           contentContainerStyle={[
             styles.listContainer,
-            (!ordersData || ordersData.orders.length === 0) &&
+            (!ordersData || !ordersData.orders || ordersData.orders.length === 0) &&
               styles.emptyListContainer,
           ]}
         />

@@ -10,7 +10,7 @@ export type BatchStatus = 'Preparing' | 'Ready for pickup' | 'Dispatched' | 'Com
 
 export type StockStatus = 'OK' | 'Low' | 'Critical';
 
-export type KitchenTab = 'Overview' | 'Inventory' | 'Staff' | 'Settings' | 'Activity';
+export type KitchenTab = 'Overview' | 'Inventory' | 'Staff' | 'Settings' | 'Activity' | 'Batches';
 
 export type ActivityCategory = 'status' | 'capacity' | 'cutoff' | 'staff' | 'settings' | 'all';
 

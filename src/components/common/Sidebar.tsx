@@ -28,10 +28,11 @@ const menuItems: MenuItem[] = [
   { id: '1', label: 'Dashboard', icon: 'dashboard', screen: 'Dashboard' },
   { id: '2', label: 'Orders', icon: 'inventory-2', screen: 'Orders' },
   { id: '3', label: 'Kitchens', icon: 'restaurant', screen: 'Kitchens' },
-  { id: '4', label: 'Zones', icon: 'location-on', screen: 'Zones' },
-  { id: '5', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
-  { id: '6', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
-  { id: '7', label: 'Users', icon: 'people', screen: 'Users' },
+  { id: '4', label: 'Batch Management', icon: 'local-shipping', screen: 'BatchManagement' },
+  { id: '5', label: 'Zones', icon: 'location-on', screen: 'Zones' },
+  { id: '6', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
+  { id: '7', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
+  { id: '8', label: 'Users', icon: 'people', screen: 'Users' },
 ];
 
 interface SidebarProps {
