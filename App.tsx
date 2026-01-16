@@ -5,7 +5,6 @@ import { StatusBar, useColorScheme, View, Text, TouchableOpacity } from 'react-n
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
-import { AdminLoginScreen } from './src/screens/admin/AdminLoginScreen';
 import { DashboardScreen } from './src/screens/admin/DashboardScreen';
 import OrdersManagementContainer from './src/modules/orders/screens/OrdersManagementContainer';
 import { MenuManagementMain } from './src/modules/menu/screens/MenuManagementMain';
@@ -145,7 +144,6 @@ const MainContent: React.FC<{
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -185,79 +183,31 @@ function App() {
     }
   };
 
-  const handleVerificationComplete = (token: string) => {
+  const handleVerificationComplete = async (token: string) => {
     console.log('========== APP.TSX: OTP VERIFIED ==========');
     console.log('Firebase Token Received:', token ? 'YES' : 'NO');
     console.log('Token Length:', token?.length);
-    console.log('Setting firebaseToken state...');
+    console.log('Authenticating user directly...');
     console.log('===========================================');
-    setFirebaseToken(token);
-  };
 
-  const handleLoginSuccess = async (responseData: string) => {
     try {
-      // Parse the response data
-      const data = JSON.parse(responseData);
+      // Store auth token and admin role
+      await AsyncStorage.setItem('authToken', token);
+      await AsyncStorage.setItem('adminRole', 'ADMIN');
 
-      // Validate the response data
-      if (!data.token || !data.user || !data.user.role) {
-        console.error('Invalid response data received');
-        return;
+      // Get phone number that was stored during OTP verification
+      const phoneNumber = await AsyncStorage.getItem('userPhoneNumber');
+      if (phoneNumber) {
+        await AsyncStorage.setItem('adminPhone', phoneNumber);
       }
 
-      // Verify user role is ADMIN
-      if (data.user.role !== 'ADMIN') {
-        console.error('User role is not ADMIN:', data.user.role);
-        return;
-      }
+      // Update API service with the token
+      await apiService.login(token);
 
-      console.log('Clearing old session data...');
-      // FIRST: Clear all old data
-      await authService.clearAdminData();
-      await apiService.logout();
-
-      console.log('Storing new session data...');
-      console.log('Backend JWT Token (first 50 chars):', data.token.substring(0, 50));
-
-      // SECOND: Store new auth token and update API service cache
-      await apiService.login(data.token);
-
-      // Verify token was stored correctly
-      const storedToken = await AsyncStorage.getItem('authToken');
-      console.log('Verified stored token (first 50 chars):', storedToken?.substring(0, 50));
-      console.log('Token match:', storedToken === data.token);
-
-      // Store admin user data as JSON
-      await AsyncStorage.setItem('adminUser', JSON.stringify(data.user));
-
-      // Store individual user fields for easy access
-      await AsyncStorage.setItem('adminUserId', data.user._id);
-      await AsyncStorage.setItem('adminUsername', data.user.username);
-      await AsyncStorage.setItem('adminEmail', data.user.email);
-      await AsyncStorage.setItem('adminName', data.user.name);
-      await AsyncStorage.setItem('adminRole', data.user.role);
-      await AsyncStorage.setItem('adminPhone', data.user.phone);
-
-      // Store token expiry
-      if (data.expiresIn) {
-        await AsyncStorage.setItem('tokenExpiresIn', String(data.expiresIn));
-      }
-
-      // Store session if remember me is checked
-      if (data.rememberMe) {
-        await AsyncStorage.setItem('@admin_session_indicator', 'admin_session_active');
-      }
-
-      // Always store remember me preference
-      await AsyncStorage.setItem('@admin_remember_me', String(data.rememberMe));
-
-      console.log('All data stored successfully, navigating to dashboard...');
-
-      // Navigate to dashboard
+      console.log('User authenticated successfully, navigating to dashboard...');
       setIsAuthenticated(true);
-
     } catch (error) {
-      console.error('Error in handleLoginSuccess:', error);
+      console.error('Error during authentication:', error);
     }
   };
 
@@ -273,7 +223,6 @@ function App() {
     console.log('=====================================');
 
     setIsAuthenticated(false);
-    setFirebaseToken(null);
     setSidebarVisible(false);
   };
 
@@ -291,8 +240,7 @@ function App() {
 
   console.log('========== APP.TSX RENDER ==========');
   console.log('isAuthenticated:', isAuthenticated);
-  console.log('firebaseToken:', firebaseToken ? 'EXISTS' : 'NULL');
-  console.log('Current Screen:', isAuthenticated ? 'DASHBOARD' : !firebaseToken ? 'PHONE_AUTH' : 'ADMIN_LOGIN');
+  console.log('Current Screen:', isAuthenticated ? 'DASHBOARD' : 'PHONE_AUTH');
   console.log('====================================');
 
   return (
@@ -306,10 +254,8 @@ function App() {
                 <MainContent onMenuPress={handleMenuPress} onLogout={handleLogout} />
                 <Sidebar visible={sidebarVisible} onClose={handleCloseSidebar} onLogout={handleLogout} />
               </>
-            ) : !firebaseToken ? (
-              <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
             ) : (
-              <AdminLoginScreen firebaseToken={firebaseToken} onLoginSuccess={handleLoginSuccess} />
+              <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
             )}
           </NavigationProvider>
         </AuthProvider>
