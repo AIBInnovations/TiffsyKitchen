@@ -40,7 +40,6 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
 }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedMealType, setSelectedMealType] = useState<MealType>('all');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   // Fetch real dashboard data from API
@@ -57,9 +56,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     setSelectedDate(date);
   };
 
-  const handleMealTypeChange = (mealType: MealType) => {
-    setSelectedMealType(mealType);
-  };
+
 
   const handleRefresh = async () => {
     await refresh();
@@ -169,13 +166,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         icon: 'shopping-cart',
         color: '#06b6d4',
       },
+      /*
       {
         id: 'today-revenue',
         label: "Today's Revenue",
         value: apiData.today.revenue,
         changePercent: 0,
         changeDirection: 'neutral' as const,
-        icon: 'attach-money',
+        icon: 'currency-rupee',
         color: '#22c55e',
         prefix: '₹',
       },
@@ -188,6 +186,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         icon: 'person-add',
         color: '#f59e0b',
       },
+      */
       {
         id: 'pending-orders',
         label: 'Pending Orders',
@@ -325,9 +324,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             {/* Filter Bar */}
             <FilterBar
               selectedDate={selectedDate}
-              selectedMealType={selectedMealType}
               onDatePress={handleDatePress}
-              onMealTypeChange={handleMealTypeChange}
             />
 
             {/* KPI Cards */}

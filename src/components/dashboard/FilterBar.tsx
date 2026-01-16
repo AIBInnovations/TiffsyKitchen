@@ -5,16 +5,12 @@ import { MealType } from '../../types/dashboard';
 
 interface FilterBarProps {
   selectedDate: Date;
-  selectedMealType: MealType;
   onDatePress: () => void;
-  onMealTypeChange: (mealType: MealType) => void;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
   selectedDate,
-  selectedMealType,
   onDatePress,
-  onMealTypeChange,
 }) => {
   const formatDate = (date: Date): string => {
     const today = new Date();
@@ -33,18 +29,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     });
   };
 
-  const mealTypes: MealType[] = ['all', 'lunch', 'dinner'];
 
-  const getMealTypeLabel = (type: MealType): string => {
-    switch (type) {
-      case 'all':
-        return 'All';
-      case 'lunch':
-        return 'Lunch';
-      case 'dinner':
-        return 'Dinner';
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -54,27 +39,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <MaterialIcons name="keyboard-arrow-down" size={20} color="#6b7280" />
       </TouchableOpacity>
 
-      <View style={styles.mealTypeContainer}>
-        {mealTypes.map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.mealTypeButton,
-              selectedMealType === type && styles.mealTypeButtonActive,
-            ]}
-            onPress={() => onMealTypeChange(type)}
-          >
-            <Text
-              style={[
-                styles.mealTypeText,
-                selectedMealType === type && styles.mealTypeTextActive,
-              ]}
-            >
-              {getMealTypeLabel(type)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+
     </View>
   );
 };
@@ -110,29 +75,7 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginHorizontal: 8,
   },
-  mealTypeContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    padding: 4,
-    marginLeft: 8,
-  },
-  mealTypeButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  mealTypeButtonActive: {
-    backgroundColor: '#f97316',
-  },
-  mealTypeText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  mealTypeTextActive: {
-    color: '#ffffff',
-  },
+
 });
 
 FilterBar.displayName = 'FilterBar';

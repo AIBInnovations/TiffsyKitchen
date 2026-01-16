@@ -9,9 +9,7 @@ interface KpiCardProps {
 
 export const KpiCard: React.FC<KpiCardProps> = ({ metric }) => {
   const formatValue = (value: number, prefix?: string, unit?: string): string => {
-    const formattedNumber = value >= 1000
-      ? `${(value / 1000).toFixed(1)}k`
-      : value.toString();
+    const formattedNumber = value.toLocaleString('en-IN');
     return `${prefix || ''}${formattedNumber}${unit || ''}`;
   };
 
@@ -48,20 +46,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({ metric }) => {
       <Text style={styles.label} numberOfLines={1}>
         {metric.label}
       </Text>
-      {metric.changePercent !== undefined && (
-        <View style={styles.changeContainer}>
-          <MaterialIcons
-            name={getChangeIcon(metric.changeDirection)}
-            size={14}
-            color={getChangeColor(metric.changeDirection)}
-          />
-          <Text
-            style={[styles.changeText, { color: getChangeColor(metric.changeDirection) }]}
-          >
-            {metric.changePercent}%
-          </Text>
-        </View>
-      )}
+
     </View>
   );
 };
@@ -98,15 +83,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 8,
   },
-  changeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  changeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 2,
-  },
+
 });
 
 KpiCard.displayName = 'KpiCard';
