@@ -19,7 +19,7 @@ import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subsc
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const Stack = createStackNavigator();
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 /**
  * Kitchens Stack Navigator

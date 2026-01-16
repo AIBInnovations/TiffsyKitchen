@@ -57,7 +57,7 @@ const SystemConfigScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f97316" />
+        <ActivityIndicator size="large" color="#F56B4C" />
       </View>
     );
   }
@@ -68,7 +68,7 @@ const SystemConfigScreen: React.FC = () => {
       <View className="p-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="schedule" size={24} color="#f97316" />
+            <Icon name="schedule" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Cutoff Times</Text>
           </View>
 
@@ -98,7 +98,7 @@ const SystemConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="attach-money" size={24} color="#f97316" />
+            <Icon name="attach-money" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Fees</Text>
           </View>
 
@@ -163,7 +163,7 @@ const SystemConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="cancel" size={24} color="#f97316" />
+            <Icon name="cancel" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Cancellation Policy</Text>
           </View>
 
@@ -194,7 +194,7 @@ const SystemConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="money-off" size={24} color="#f97316" />
+            <Icon name="money-off" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Refund Settings</Text>
           </View>
 

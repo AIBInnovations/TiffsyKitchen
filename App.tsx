@@ -1,7 +1,7 @@
 import "./global.css";
 
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
+import { StatusBar, useColorScheme, View, Text, TouchableOpacity, BackHandler } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
@@ -42,7 +42,7 @@ const PlaceholderScreen: React.FC<{
 }> = ({ title, onMenuPress }) => (
   <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
     {/* Header */}
-    <View style={{ backgroundColor: '#f97316', padding: 16, flexDirection: 'row', alignItems: 'center' }}>
+    <View style={{ backgroundColor: '#F56B4C', padding: 16, flexDirection: 'row', alignItems: 'center' }}>
       <TouchableOpacity onPress={onMenuPress} style={{ marginRight: 16 }}>
         <Icon name="menu" size={24} color="#ffffff" />
       </TouchableOpacity>
@@ -68,9 +68,26 @@ const MainContent: React.FC<{
   onMenuPress: () => void;
   onLogout: () => void;
 }> = ({ onMenuPress, onLogout }) => {
-  const { currentScreen } = useNavigation();
+  const { currentScreen, goBack } = useNavigation();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (currentScreen === 'Users' && selectedUserId) {
+        setSelectedUserId(null);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [currentScreen, selectedUserId]);
 
   const handleUserPress = (user: User) => {
     setSelectedUserId(user._id);

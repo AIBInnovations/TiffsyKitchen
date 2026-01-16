@@ -58,7 +58,7 @@ const DeliveryConfigScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f97316" />
+        <ActivityIndicator size="large" color="#F56B4C" />
       </View>
     );
   }
@@ -69,7 +69,7 @@ const DeliveryConfigScreen: React.FC = () => {
       <View className="p-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="list-alt" size={24} color="#f97316" />
+            <Icon name="list-alt" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Max Batch Size</Text>
           </View>
 
@@ -86,9 +86,9 @@ const DeliveryConfigScreen: React.FC = () => {
             minimumValue={5}
             maximumValue={25}
             step={1}
-            minimumTrackTintColor="#f97316"
+            minimumTrackTintColor="#F56B4C"
             maximumTrackTintColor="#d1d5db"
-            thumbTintColor="#f97316"
+            thumbTintColor="#F56B4C"
           />
 
           <View className="flex-row justify-between mt-2">
@@ -108,7 +108,7 @@ const DeliveryConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="error-outline" size={24} color="#f97316" />
+            <Icon name="error-outline" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Failed Order Policy</Text>
           </View>
 
@@ -116,29 +116,26 @@ const DeliveryConfigScreen: React.FC = () => {
             <TouchableOpacity
               key={option.value}
               onPress={() => setFormData({ ...formData, failedOrderPolicy: option.value })}
-              className={`flex-row items-center p-4 mb-3 rounded-lg border ${
-                formData.failedOrderPolicy === option.value
+              className={`flex-row items-center p-4 mb-3 rounded-lg border ${formData.failedOrderPolicy === option.value
                   ? 'border-orange-500 bg-orange-50'
                   : 'border-gray-200 bg-white'
-              }`}
+                }`}
             >
               <View
-                className={`w-5 h-5 rounded-full border-2 mr-3 ${
-                  formData.failedOrderPolicy === option.value
+                className={`w-5 h-5 rounded-full border-2 mr-3 ${formData.failedOrderPolicy === option.value
                     ? 'border-orange-500'
                     : 'border-gray-300'
-                }`}
+                  }`}
               >
                 {formData.failedOrderPolicy === option.value && (
                   <View className="w-3 h-3 rounded-full bg-orange-500 m-0.5" />
                 )}
               </View>
               <Text
-                className={`text-base ${
-                  formData.failedOrderPolicy === option.value
+                className={`text-base ${formData.failedOrderPolicy === option.value
                     ? 'text-orange-800 font-semibold'
                     : 'text-gray-700'
-                }`}
+                  }`}
               >
                 {option.label}
               </Text>
@@ -162,7 +159,7 @@ const DeliveryConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4">
           <View className="flex-row items-center mb-4">
-            <Icon name="access-time" size={24} color="#f97316" />
+            <Icon name="access-time" size={24} color="#F56B4C" />
             <Text className="text-lg font-semibold text-gray-800 ml-2">Auto Dispatch Delay</Text>
           </View>
 
@@ -191,7 +188,7 @@ const DeliveryConfigScreen: React.FC = () => {
       <View className="px-4 pb-4">
         <Card className="p-4 bg-gradient-to-r from-orange-50 to-white">
           <View className="flex-row items-center mb-3">
-            <Icon name="info" size={20} color="#f97316" />
+            <Icon name="info" size={20} color="#F56B4C" />
             <Text className="text-base font-semibold text-gray-800 ml-2">Current Configuration</Text>
           </View>
 

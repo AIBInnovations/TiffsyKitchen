@@ -14,9 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ title, onMenuPress, rightCompone
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       <View
-        className="bg-orange-500 px-4 pb-3"
+        className="bg-[#F56B4C] px-4 pb-3"
         style={{ paddingTop: insets.top + 8 }}
       >
         <View className="flex-row items-center justify-between">

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { BackHandler } from 'react-native';
 
 export type ScreenName =
   | 'Dashboard'
@@ -28,7 +29,11 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
   const [screenHistory, setScreenHistory] = useState<ScreenName[]>(['Dashboard']);
 
   const navigate = (screen: ScreenName) => {
-    setScreenHistory(prev => [...prev, screen]);
+    // Avoid pushing the same screen multiple times consecutively
+    setScreenHistory(prev => {
+      if (prev[prev.length - 1] === screen) return prev;
+      return [...prev, screen];
+    });
     setCurrentScreen(screen);
   };
 
@@ -36,10 +41,26 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
     if (screenHistory.length > 1) {
       const newHistory = [...screenHistory];
       newHistory.pop();
+      const previousScreen = newHistory[newHistory.length - 1];
       setScreenHistory(newHistory);
-      setCurrentScreen(newHistory[newHistory.length - 1]);
+      setCurrentScreen(previousScreen);
+      return true;
     }
+    return false;
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      return goBack();
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, [screenHistory]);
 
   return (
     <NavigationContext.Provider

@@ -25,7 +25,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useInfiniteScroll } from '../../hooks/useApi';
 import { Order, OrderStatus } from '../../types/api.types';
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 type TabType = 'all' | 'action_needed';
 

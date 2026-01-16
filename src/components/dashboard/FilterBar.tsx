@@ -34,7 +34,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.dateButton} onPress={onDatePress}>
-        <MaterialIcons name="calendar-today" size={18} color="#f97316" />
+        <MaterialIcons name="calendar-today" size={18} color="#F56B4C" />
         <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
         <MaterialIcons name="keyboard-arrow-down" size={20} color="#6b7280" />
       </TouchableOpacity>

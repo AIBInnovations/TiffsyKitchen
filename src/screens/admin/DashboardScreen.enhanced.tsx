@@ -34,7 +34,7 @@ interface DashboardScreenProps {
   onLogout?: () => void;
 }
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 export const DashboardScreenEnhanced: React.FC<DashboardScreenProps> = ({
   onMenuPress,
@@ -67,7 +67,7 @@ export const DashboardScreenEnhanced: React.FC<DashboardScreenProps> = ({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton} onPress={onMenuPress || (() => {})}>
+        <TouchableOpacity style={styles.menuButton} onPress={onMenuPress || (() => { })}>
           <Icon name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Dashboard</Text>
@@ -82,14 +82,14 @@ export const DashboardScreenEnhanced: React.FC<DashboardScreenProps> = ({
               data.pendingActions.pendingRefunds +
               data.pendingActions.pendingKitchenApprovals
             ) > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {data.pendingActions.pendingOrders +
-                    data.pendingActions.pendingRefunds +
-                    data.pendingActions.pendingKitchenApprovals}
-                </Text>
-              </View>
-            )}
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {data.pendingActions.pendingOrders +
+                      data.pendingActions.pendingRefunds +
+                      data.pendingActions.pendingKitchenApprovals}
+                  </Text>
+                </View>
+              )}
           </TouchableOpacity>
           {onLogout && (
             <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>

@@ -134,16 +134,14 @@ const ReportsScreen: React.FC = () => {
                 <TouchableOpacity
                   key={type.value}
                   onPress={() => setReportType(type.value)}
-                  className={`px-4 py-2 rounded-lg ${
-                    reportType === type.value
-                      ? 'bg-orange-500'
-                      : 'bg-gray-100'
-                  }`}
+                  className={`px-4 py-2 rounded-lg ${reportType === type.value
+                    ? 'bg-[#F56B4C]'
+                    : 'bg-gray-100'
+                    }`}
                 >
                   <Text
-                    className={`font-medium ${
-                      reportType === type.value ? 'text-white' : 'text-gray-700'
-                    }`}
+                    className={`font-medium ${reportType === type.value ? 'text-white' : 'text-gray-700'
+                      }`}
                   >
                     {type.label}
                   </Text>
@@ -161,16 +159,14 @@ const ReportsScreen: React.FC = () => {
               <TouchableOpacity
                 key={option.value}
                 onPress={() => setSegmentBy(option.value)}
-                className={`flex-1 px-4 py-2 rounded-lg ${
-                  segmentBy === option.value
-                    ? 'bg-orange-500'
-                    : 'bg-gray-100'
-                }`}
+                className={`flex-1 px-4 py-2 rounded-lg ${segmentBy === option.value
+                  ? 'bg-[#F56B4C]'
+                  : 'bg-gray-100'
+                  }`}
               >
                 <Text
-                  className={`font-medium text-center ${
-                    segmentBy === option.value ? 'text-white' : 'text-gray-700'
-                  }`}
+                  className={`font-medium text-center ${segmentBy === option.value ? 'text-white' : 'text-gray-700'
+                    }`}
                 >
                   {option.label}
                 </Text>
@@ -209,9 +205,8 @@ const ReportsScreen: React.FC = () => {
           <TouchableOpacity
             onPress={handleExport}
             disabled={isExporting}
-            className={`flex-row items-center justify-center py-3 rounded-lg ${
-              isExporting ? 'bg-gray-300' : 'bg-green-600'
-            }`}
+            className={`flex-row items-center justify-center py-3 rounded-lg ${isExporting ? 'bg-gray-300' : 'bg-green-600'
+              }`}
           >
             {isExporting ? (
               <ActivityIndicator color="#ffffff" />
@@ -228,7 +223,7 @@ const ReportsScreen: React.FC = () => {
       {/* Report Data */}
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#f97316" />
+          <ActivityIndicator size="large" color="#F56B4C" />
         </View>
       ) : (
         <FlatList
@@ -248,7 +243,7 @@ const ReportsScreen: React.FC = () => {
       <DatePickerModal
         visible={showDatePicker}
         selectedDate={datePickerMode === 'from' ? dateFrom : dateTo}
-        onDateChange={handleDateChange}
+        onDateSelect={handleDateChange}
         onClose={() => setShowDatePicker(false)}
       />
     </View>

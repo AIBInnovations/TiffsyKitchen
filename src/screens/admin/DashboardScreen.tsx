@@ -220,7 +220,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       title: '7-Day Trend',
       primaryLabel: 'Revenue (₹)',
       secondaryLabel: 'Orders',
-      primaryColor: '#f97316',
+      primaryColor: '#F56B4C',
       secondaryColor: '#3b82f6',
       points: [],
     };
@@ -251,7 +251,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       title: '7-Day Trend',
       primaryLabel: 'Revenue (₹)',
       secondaryLabel: 'Orders',
-      primaryColor: '#f97316',
+      primaryColor: '#F56B4C',
       secondaryColor: '#3b82f6',
       points,
     };
@@ -265,7 +265,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const chartData = getChartData();
 
   return (
-    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor="#f97316" bottomBackgroundColor="#f3f4f6">
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor="#F56B4C" bottomBackgroundColor="#f3f4f6">
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
@@ -292,7 +292,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
         {/* Loading State */}
         {loading && !apiData ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#f97316" />
+            <ActivityIndicator size="large" color="#F56B4C" />
             <Text style={styles.loadingText}>Loading dashboard...</Text>
           </View>
         ) : error ? (
@@ -316,16 +316,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               <RefreshControl
                 refreshing={loading && !!apiData}
                 onRefresh={handleRefresh}
-                colors={['#f97316']}
-                tintColor="#f97316"
+                colors={['#F56B4C']}
+                tintColor="#F56B4C"
               />
             }
           >
-            {/* Filter Bar */}
-            <FilterBar
+            {/* Filter Bar - Removed */}
+            {/* <FilterBar
               selectedDate={selectedDate}
               onDatePress={handleDatePress}
-            />
+            /> */}
 
             {/* KPI Cards */}
             <SectionHeader title="Today's Overview" />
@@ -372,13 +372,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           </ScrollView>
         )}
 
-        {/* Date Picker Modal */}
-        <DatePickerModal
+        {/* Date Picker Modal - Commented out */}
+        {/* <DatePickerModal
           visible={datePickerVisible}
           selectedDate={selectedDate}
           onClose={() => setDatePickerVisible(false)}
           onDateSelect={handleDateSelect}
-        />
+        /> */}
       </View>
     </SafeAreaScreen>
   );
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
   },
   header: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#f97316',
+    color: '#F56B4C',
   },
   scrollView: {
     flex: 1,
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

@@ -24,7 +24,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
       {actionLabel && onActionPress && (
         <TouchableOpacity style={styles.actionButton} onPress={onActionPress}>
           <Text style={styles.actionLabel}>{actionLabel}</Text>
-          <MaterialIcons name="chevron-right" size={18} color="#f97316" />
+          <MaterialIcons name="chevron-right" size={18} color="#F56B4C" />
         </TouchableOpacity>
       )}
     </View>
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 14,
-    color: '#f97316',
+    color: '#F56B4C',
     fontWeight: '600',
   },
 });

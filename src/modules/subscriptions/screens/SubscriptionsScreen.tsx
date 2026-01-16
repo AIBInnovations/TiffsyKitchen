@@ -16,7 +16,7 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SubscriptionPlanCard } from '../components/SubscriptionPlanCard';
 import { SubscriptionCard } from '../components/SubscriptionCard';
@@ -44,7 +44,7 @@ import {
   cancelSubscription,
 } from '../../../services/subscriptions.service';
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 type TabType = 'plans' | 'subscriptions';
 
@@ -162,15 +162,17 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
       plan.name,
       'Choose an action',
       [
-        { text: 'Edit', onPress: () => {
-          setSelectedPlan(plan);
-          setShowPlanForm(true);
-        }},
+        {
+          text: 'Edit', onPress: () => {
+            setSelectedPlan(plan);
+            setShowPlanForm(true);
+          }
+        },
         ...(plan.status === 'ACTIVE'
           ? [{ text: 'Deactivate', onPress: () => handleDeactivatePlan(plan._id) }]
           : plan.status === 'INACTIVE'
-          ? [{ text: 'Activate', onPress: () => handleActivatePlan(plan._id) }]
-          : []),
+            ? [{ text: 'Activate', onPress: () => handleActivatePlan(plan._id) }]
+            : []),
         ...(plan.status !== 'ARCHIVED'
           ? [{ text: 'Archive', onPress: () => handleArchivePlan(plan._id), style: 'destructive' as const }]
           : []),
@@ -387,9 +389,9 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       {/* Header */}
-      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {onMenuPress && (
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />

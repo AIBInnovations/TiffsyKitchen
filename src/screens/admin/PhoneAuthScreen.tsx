@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import auth, { FirebaseAuthTypes, signInWithPhoneNumber } from '@react-native-firebase/auth';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 interface PhoneAuthScreenProps {
   onVerificationComplete: (token: string) => void;

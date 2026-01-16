@@ -15,7 +15,7 @@ interface SubscriptionCardProps {
   onPress: () => void;
 }
 
-const PRIMARY_COLOR = '#f97316';
+const PRIMARY_COLOR = '#F56B4C';
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, onPress }) => {
   // Calculate voucher usage percentage

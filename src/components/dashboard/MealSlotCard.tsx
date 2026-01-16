@@ -13,11 +13,11 @@ export const MealSlotCard: React.FC<MealSlotCardProps> = ({ slot }) => {
   };
 
   const getMealColor = (type: 'lunch' | 'dinner'): string => {
-    return type === 'lunch' ? '#f97316' : '#6366f1';
+    return type === 'lunch' ? '#F56B4C' : '#6366f1';
   };
 
   const statItems = [
-    { label: 'Preparing', value: slot.preparing, color: '#f97316' },
+    { label: 'Preparing', value: slot.preparing, color: '#F56B4C' },
     { label: 'Packed', value: slot.packed, color: '#eab308' },
     { label: 'Delivered', value: slot.delivered, color: '#22c55e' },
     { label: 'Pending', value: slot.pending, color: '#6b7280' },
@@ -73,7 +73,7 @@ export const MealSlotCard: React.FC<MealSlotCardProps> = ({ slot }) => {
             style={[
               styles.progressSegment,
               {
-                backgroundColor: '#f97316',
+                backgroundColor: '#F56B4C',
                 width: `${(slot.preparing / slot.totalOrders) * 100}%`,
               },
             ]}

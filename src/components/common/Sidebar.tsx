@@ -106,14 +106,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="bg-white h-full shadow-2xl"
         >
           {/* User Profile Section */}
-          <View className="bg-orange-500 px-4 py-6">
+          <View className="bg-[#F56B4C] px-4 py-6">
             <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3">
-              <Icon name="person" size={40} color="rgba(245, 107, 76, 1)" />
+              <Icon name="person" size={40} color="#F56B4C" />
             </View>
             <Text className="text-white font-bold text-lg">
               {user?.fullName || 'Admin'}
             </Text>
-            <Text className="text-orange-100 text-sm">
+            <Text className="text-orange-50 text-sm opacity-90">
               {user?.role === 'ADMIN' || user?.role === 'admin' ? 'Admin' : user?.role || 'Admin'}
             </Text>
           </View>
@@ -125,27 +125,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <TouchableOpacity
                   key={item.id}
                   onPress={() => handleMenuPress(item.screen)}
-                  className={`flex-row items-center px-4 py-4 ${
-                    currentScreen === item.screen ? 'bg-orange-50' : ''
-                  }`}
+                  className={`flex-row items-center px-4 py-4 ${currentScreen === item.screen ? 'bg-[#FFF7F5]' : ''
+                    }`}
                 >
                   <Icon
                     name={item.icon}
                     size={24}
-                    color="rgba(245, 107, 76, 1)"
+                    color="#F56B4C"
                     style={{ marginRight: 16 }}
                   />
                   <Text
-                    className={`text-base ${
-                      currentScreen === item.screen
-                        ? 'text-orange-600 font-semibold'
-                        : 'text-gray-700'
-                    }`}
+                    className={`text-base ${currentScreen === item.screen
+                      ? 'text-[#F56B4C] font-semibold'
+                      : 'text-gray-700'
+                      }`}
                   >
                     {item.label}
                   </Text>
                   {currentScreen === item.screen && (
-                    <View className="absolute right-0 w-1 h-8 bg-orange-500 rounded-l-full" />
+                    <View className="absolute right-0 w-1 h-8 bg-[#F56B4C] rounded-l-full" />
                   )}
                 </TouchableOpacity>
               ))}
@@ -158,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onPress={handleLogout}
               className="flex-row items-center py-3"
             >
-              <Icon name="logout" size={24} color="rgba(245, 107, 76, 1)" style={{ marginRight: 16 }} />
+              <Icon name="logout" size={24} color="#F56B4C" style={{ marginRight: 16 }} />
               <Text className="text-red-500 font-medium text-base">Logout</Text>
             </TouchableOpacity>
           </View>

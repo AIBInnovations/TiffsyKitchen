@@ -162,7 +162,7 @@ export const OrdersListScreen: React.FC<OrdersListScreenProps> = ({
           title="Lunch"
           value={summaryStats.lunchOrders}
           icon="wb-sunny"
-          iconColor="#f97316"
+          iconColor="#F56B4C"
           iconBgColor="#fff7ed"
           style={styles.statCard}
           compact

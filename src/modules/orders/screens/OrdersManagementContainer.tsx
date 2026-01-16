@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, BackHandler } from 'react-native';
 import OrdersScreenAdmin from './OrdersScreenAdmin';
 import OrderDetailAdminScreen from './OrderDetailAdminScreen';
 
@@ -11,6 +11,23 @@ const OrdersManagementContainer: React.FC<OrdersManagementContainerProps> = ({
   onMenuPress,
 }) => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (selectedOrderId) {
+        setSelectedOrderId(null);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress,
+    );
+
+    return () => backHandler.remove();
+  }, [selectedOrderId]);
 
   // Create a navigation object that mimics React Navigation
   const navigation = {
@@ -28,7 +45,7 @@ const OrdersManagementContainer: React.FC<OrdersManagementContainerProps> = ({
   if (selectedOrderId) {
     return (
       <OrderDetailAdminScreen
-        route={{params: {orderId: selectedOrderId}}}
+        route={{ params: { orderId: selectedOrderId } }}
         navigation={navigation}
       />
     );

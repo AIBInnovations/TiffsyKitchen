@@ -1,6 +1,6 @@
 export const colors = {
   // Primary
-  primary: '#f97316',
+  primary: '#F56B4C',
   primaryLight: '#fff7ed',
   primaryDark: '#ea580c',
 
@@ -42,7 +42,7 @@ export const colors = {
   // User role colors
   roleCustomer: '#3b82f6',
   roleDriver: '#8b5cf6',
-  roleKitchenStaff: '#f97316',
+  roleKitchenStaff: '#F56B4C',
   roleKitchenAdmin: '#ef4444',
 
   // Overlay

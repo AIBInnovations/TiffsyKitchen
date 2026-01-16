@@ -223,7 +223,7 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
           {/* Lunch Section */}
           <View style={styles.mealSection}>
             <View style={styles.mealHeader}>
-              <MaterialIcons name="wb-sunny" size={20} color="#f97316" />
+              <MaterialIcons name="wb-sunny" size={20} color="#F56B4C" />
               <Text style={styles.mealTitle}>Lunch Ordering Window</Text>
             </View>
             <Text style={styles.mealHelper}>
@@ -449,7 +449,7 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
                       style={[
                         styles.mealChipText,
                         settings.emergencyOverride.meals.includes(meal) &&
-                          styles.mealChipTextSelected,
+                        styles.mealChipTextSelected,
                       ]}
                     >
                       {meal.charAt(0) + meal.slice(1).toLowerCase()}

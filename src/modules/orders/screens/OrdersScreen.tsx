@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,23 +11,23 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useQuery} from '@tanstack/react-query';
-import {ordersService} from '../../../services/orders.service';
-import {Order, OrderStatus} from '../../../types/api.types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { ordersService } from '../../../services/orders.service';
+import { Order, OrderStatus } from '../../../types/api.types';
 import OrderCardAdmin from '../components/OrderCardAdmin';
 import OrderStatsCard from '../components/OrderStatsCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const STATUS_FILTERS: {label: string; value: OrderStatus | 'ALL'}[] = [
-  {label: 'All', value: 'ALL'},
-  {label: 'Placed', value: 'PLACED'},
-  {label: 'Accepted', value: 'ACCEPTED'},
-  {label: 'Preparing', value: 'PREPARING'},
-  {label: 'Ready', value: 'READY'},
-  {label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY'},
-  {label: 'Delivered', value: 'DELIVERED'},
-  {label: 'Cancelled', value: 'CANCELLED'},
+const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Placed', value: 'PLACED' },
+  { label: 'Accepted', value: 'ACCEPTED' },
+  { label: 'Preparing', value: 'PREPARING' },
+  { label: 'Ready', value: 'READY' },
+  { label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY' },
+  { label: 'Delivered', value: 'DELIVERED' },
+  { label: 'Cancelled', value: 'CANCELLED' },
 ];
 
 interface OrdersScreenProps {
@@ -35,7 +35,7 @@ interface OrdersScreenProps {
   navigation?: any; // For React Navigation compatibility
 }
 
-const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
+const OrdersScreen = ({ onMenuPress, navigation }: OrdersScreenProps) => {
   const insets = useSafeAreaInsets();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
@@ -78,7 +78,7 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
 
   const handleOrderPress = (orderId: string) => {
     if (navigation) {
-      navigation.navigate('OrderDetail', {orderId});
+      navigation.navigate('OrderDetail', { orderId });
     } else {
       // Fallback: show alert if navigation is not available
       Alert.alert(
@@ -102,12 +102,12 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
     if (statsLoading || !statsData) {
       return (
         <View style={styles.statsLoadingContainer}>
-          <ActivityIndicator size="small" color="#f97316" />
+          <ActivityIndicator size="small" color="#F56B4C" />
         </View>
       );
     }
 
-    const {today, revenue} = statsData;
+    const { today, revenue } = statsData;
 
     return (
       <ScrollView
@@ -118,7 +118,7 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
         <OrderStatsCard
           label="Today's Orders"
           value={today.total}
-          color="#f97316"
+          color="#F56B4C"
           icon="receipt-long"
         />
         <OrderStatsCard
@@ -148,7 +148,7 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
         />
         <OrderStatsCard
           label="Today's Revenue"
-          value={`₹${revenue.today.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+          value={`₹${revenue.today.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           color="#5856D6"
           icon="currency-rupee"
         />
@@ -184,7 +184,7 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
     );
   };
 
-  const renderOrderItem = ({item}: {item: Order}) => {
+  const renderOrderItem = ({ item }: { item: Order }) => {
     return <OrderCardAdmin order={item} onPress={() => handleOrderPress(item._id)} />;
   };
 
@@ -212,10 +212,10 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -248,7 +248,7 @@ const OrdersScreen = ({onMenuPress, navigation}: OrdersScreenProps) => {
           contentContainerStyle={[
             styles.listContainer,
             (!ordersData || ordersData.orders.length === 0) &&
-              styles.emptyListContainer,
+            styles.emptyListContainer,
           ]}
         />
       </View>
@@ -262,14 +262,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   header: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingBottom: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -328,16 +328,16 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     elevation: 1,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
   filterChipActive: {
-    backgroundColor: '#f97316',
-    borderColor: '#f97316',
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
     elevation: 3,
-    shadowColor: '#f97316',
-    shadowOffset: {width: 0, height: 2},
+    shadowColor: '#F56B4C',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },

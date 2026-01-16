@@ -151,7 +151,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     if (statsLoading || !statsData) {
       return (
         <View style={styles.statsLoadingContainer}>
-          <ActivityIndicator size="small" color="#f97316" />
+          <ActivityIndicator size="small" color="#F56B4C" />
         </View>
       );
     }
@@ -167,7 +167,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         <OrderStatsCard
           label="Today's Orders"
           value={today.total}
-          color="#f97316"
+          color="#F56B4C"
           icon="receipt-long"
         />
         <OrderStatsCard
@@ -271,7 +271,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   };
 
   return (
-    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#f97316">
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#F56B4C">
       {/* Header */}
       {onMenuPress && (
         <View style={[styles.header, { paddingTop: 8 }]}>
@@ -302,8 +302,8 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
             <RefreshControl
               refreshing={ordersLoading && !isFetching}
               onRefresh={handleRefresh}
-              tintColor="#f97316"
-              colors={['#f97316']}
+              tintColor="#F56B4C"
+              colors={['#F56B4C']}
             />
           }
           ListEmptyComponent={!ordersLoading ? renderEmptyState : null}
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   header: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingBottom: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -413,10 +413,10 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   filterChipActive: {
-    backgroundColor: '#f97316',
-    borderColor: '#f97316',
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
     elevation: 3,
-    shadowColor: '#f97316',
+    shadowColor: '#F56B4C',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

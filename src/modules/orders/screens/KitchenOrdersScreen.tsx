@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,25 +10,25 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useQuery} from '@tanstack/react-query';
-import {ordersService} from '../../../services/orders.service';
-import {Order, OrderStatus} from '../../../types/api.types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { ordersService } from '../../../services/orders.service';
+import { Order, OrderStatus } from '../../../types/api.types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {format} from 'date-fns';
+import { format } from 'date-fns';
 
-const STATUS_FILTERS: {label: string; value: OrderStatus | 'ALL'}[] = [
-  {label: 'All', value: 'ALL'},
-  {label: 'Placed', value: 'PLACED'},
-  {label: 'Accepted', value: 'ACCEPTED'},
-  {label: 'Preparing', value: 'PREPARING'},
-  {label: 'Ready', value: 'READY'},
+const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Placed', value: 'PLACED' },
+  { label: 'Accepted', value: 'ACCEPTED' },
+  { label: 'Preparing', value: 'PREPARING' },
+  { label: 'Ready', value: 'READY' },
 ];
 
-const MEAL_WINDOW_FILTERS: {label: string; value: 'ALL' | 'LUNCH' | 'DINNER'}[] = [
-  {label: 'All', value: 'ALL'},
-  {label: 'Lunch', value: 'LUNCH'},
-  {label: 'Dinner', value: 'DINNER'},
+const MEAL_WINDOW_FILTERS: { label: string; value: 'ALL' | 'LUNCH' | 'DINNER' }[] = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Lunch', value: 'LUNCH' },
+  { label: 'Dinner', value: 'DINNER' },
 ];
 
 interface KitchenOrdersScreenProps {
@@ -96,7 +96,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 
   const handleOrderPress = (orderId: string) => {
     if (navigation) {
-      navigation.navigate('OrderDetail', {orderId});
+      navigation.navigate('OrderDetail', { orderId });
     }
   };
 
@@ -124,7 +124,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     setPage(1);
   };
 
-  const renderOrderItem = ({item}: {item: Order}) => {
+  const renderOrderItem = ({ item }: { item: Order }) => {
     return (
       <TouchableOpacity
         style={styles.orderCard}
@@ -135,7 +135,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
             <View
               style={[
                 styles.statusBadge,
-                {backgroundColor: getStatusColor(item.status)},
+                { backgroundColor: getStatusColor(item.status) },
               ]}>
               <Text style={styles.statusText}>{item.status}</Text>
             </View>
@@ -221,7 +221,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     if (!isFetching) return null;
     return (
       <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color="#f97316" />
+        <ActivityIndicator size="small" color="#F56B4C" />
       </View>
     );
   };
@@ -230,11 +230,11 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
 
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -247,7 +247,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
         <TouchableOpacity
           style={styles.dateButton}
           onPress={() => handleDateChange('prev')}>
-          <Icon name="chevron-left" size={24} color="#f97316" />
+          <Icon name="chevron-left" size={24} color="#F56B4C" />
         </TouchableOpacity>
 
         <View style={styles.dateDisplay}>
@@ -264,7 +264,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
         <TouchableOpacity
           style={styles.dateButton}
           onPress={() => handleDateChange('next')}>
-          <Icon name="chevron-right" size={24} color="#f97316" />
+          <Icon name="chevron-right" size={24} color="#F56B4C" />
         </TouchableOpacity>
       </View>
 
@@ -341,7 +341,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           contentContainerStyle={[
             styles.listContainer,
             (!ordersData || ordersData.orders.length === 0) &&
-              styles.emptyListContainer,
+            styles.emptyListContainer,
           ]}
         />
       </View>
@@ -355,14 +355,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   header: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingBottom: 12,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   todayButton: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#f97316',
+    color: '#F56B4C',
     textDecorationLine: 'underline',
   },
   filterSection: {
@@ -434,8 +434,8 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   filterChipActive: {
-    backgroundColor: '#f97316',
-    borderColor: '#f97316',
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
   },
   filterChipText: {
     fontSize: 13,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
