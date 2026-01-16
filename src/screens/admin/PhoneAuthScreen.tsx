@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import auth, { FirebaseAuthTypes, signInWithPhoneNumber } from '@react-native-firebase/auth';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 
 const PRIMARY_COLOR = '#f97316';
 
@@ -253,7 +253,7 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
   const isOtpComplete = otp.every(digit => digit !== '');
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaScreen style={styles.container} backgroundColor={PRIMARY_COLOR}>
       <View style={styles.contentContainer}>
         {/* Login Card */}
         <View style={styles.card}>
@@ -363,7 +363,7 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
                 ((!isPhoneValid && !showOtpInput) ||
                   (!isOtpComplete && showOtpInput) ||
                   isSubmitting) &&
-                  styles.actionButtonDisabled,
+                styles.actionButtonDisabled,
               ]}
               onPress={showOtpInput ? handleVerifyOtp : handleSendOtp}
               disabled={
@@ -415,7 +415,7 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
           </Text>
         </View>
       </View>
-    </SafeAreaView>
+    </SafeAreaScreen>
   );
 };
 

@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Plan, PlanFormData, PlanStatusFilter } from '../models/types';
 import { generatePlanId } from '../models/defaultPlans';
@@ -266,8 +267,8 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
           {hasSearch
             ? 'Try adjusting your search query'
             : hasFilter
-            ? `No ${statusFilter} plans available`
-            : 'No plans match the current filters'}
+              ? `No ${statusFilter} plans available`
+              : 'No plans match the current filters'}
         </Text>
         {(hasSearch || hasFilter) && (
           <TouchableOpacity
@@ -297,15 +298,17 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
 
   if (isLoading && plans.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading plans...</Text>
-      </View>
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading plans...</Text>
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
@@ -319,59 +322,61 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
           <MaterialIcons name="add" size={24} color={colors.white} />
         </TouchableOpacity>
       </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <MaterialIcons name="search" size={20} color={colors.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search plans by name or code"
-            placeholderTextColor={colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialIcons name="close" size={18} color={colors.textMuted} />
-            </TouchableOpacity>
-          )}
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <MaterialIcons name="search" size={20} color={colors.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search plans by name or code"
+              placeholderTextColor={colors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <MaterialIcons name="close" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
+
+        {/* Plans List */}
+        <FlatList
+          data={filteredPlans}
+          renderItem={renderPlanCard}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        />
+
+        {/* Floating Add Button */}
+        <TouchableOpacity style={styles.fab} onPress={handleAddPlan}>
+          <MaterialIcons name="add" size={28} color={colors.white} />
+        </TouchableOpacity>
+
+        {/* Plan Editor Modal */}
+        <PlanEditor
+          visible={isEditorVisible}
+          plan={editingPlan}
+          existingPlans={plans}
+          onSave={handleSavePlan}
+          onClose={handleCloseEditor}
+        />
       </View>
-
-      {/* Plans List */}
-      <FlatList
-        data={filteredPlans}
-        renderItem={renderPlanCard}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-      />
-
-      {/* Floating Add Button */}
-      <TouchableOpacity style={styles.fab} onPress={handleAddPlan}>
-        <MaterialIcons name="add" size={28} color={colors.white} />
-      </TouchableOpacity>
-
-      {/* Plan Editor Modal */}
-      <PlanEditor
-        visible={isEditorVisible}
-        plan={editingPlan}
-        existingPlans={plans}
-        onSave={handleSavePlan}
-        onClose={handleCloseEditor}
-      />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -14,6 +14,7 @@ import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
 import { deliveryService } from '../../../services/delivery.service';
 import { MealWindow } from '../../../types/api.types';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 
 interface BatchHistoryScreenProps {
   navigation?: any;
@@ -244,16 +245,16 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
     Alert.alert(
       batch.batchNumber,
       `Status: ${getStatusLabel(batch.status)}\n` +
-        `Meal Window: ${batch.mealWindow}\n` +
-        `Kitchen: ${batch.kitchenId?.name || 'N/A'}\n` +
-        `Zone: ${batch.zoneId?.name || 'N/A'}\n` +
-        `Driver: ${batch.driverId?.name || 'Not Assigned'}\n` +
-        `Orders: ${batch.orderIds?.length || 0}\n` +
-        `Delivered: ${batch.totalDelivered || 0}\n` +
-        `Failed: ${batch.totalFailed || 0}\n` +
-        `Created: ${formatDate(batch.createdAt)}\n` +
-        (batch.dispatchedAt ? `Dispatched: ${formatDate(batch.dispatchedAt)}\n` : '') +
-        (batch.completedAt ? `Completed: ${formatDate(batch.completedAt)}` : ''),
+      `Meal Window: ${batch.mealWindow}\n` +
+      `Kitchen: ${batch.kitchenId?.name || 'N/A'}\n` +
+      `Zone: ${batch.zoneId?.name || 'N/A'}\n` +
+      `Driver: ${batch.driverId?.name || 'Not Assigned'}\n` +
+      `Orders: ${batch.orderIds?.length || 0}\n` +
+      `Delivered: ${batch.totalDelivered || 0}\n` +
+      `Failed: ${batch.totalFailed || 0}\n` +
+      `Created: ${formatDate(batch.createdAt)}\n` +
+      (batch.dispatchedAt ? `Dispatched: ${formatDate(batch.dispatchedAt)}\n` : '') +
+      (batch.completedAt ? `Completed: ${formatDate(batch.completedAt)}` : ''),
       [{ text: 'OK' }]
     );
   };
@@ -374,7 +375,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor={colors.primary}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -398,91 +399,93 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
           <Icon name="refresh" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-      {/* Filters */}
-      <View style={styles.filtersSection}>
-        {/* Meal Window Filter */}
-        <View style={styles.filterRow}>
-          {MEAL_WINDOW_FILTERS.map((filter) => (
-            <TouchableOpacity
-              key={filter.value}
-              style={[
-                styles.filterChip,
-                selectedMealWindow === filter.value && styles.filterChipActive,
-              ]}
-              onPress={() => handleMealWindowFilter(filter.value as 'ALL' | MealWindow)}
-            >
-              <Text
+        {/* Filters */}
+        <View style={styles.filtersSection}>
+          {/* Meal Window Filter */}
+          <View style={styles.filterRow}>
+            {MEAL_WINDOW_FILTERS.map((filter) => (
+              <TouchableOpacity
+                key={filter.value}
                 style={[
-                  styles.filterChipText,
-                  selectedMealWindow === filter.value && styles.filterChipTextActive,
+                  styles.filterChip,
+                  selectedMealWindow === filter.value && styles.filterChipActive,
                 ]}
+                onPress={() => handleMealWindowFilter(filter.value as 'ALL' | MealWindow)}
               >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    selectedMealWindow === filter.value && styles.filterChipTextActive,
+                  ]}
+                >
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Status Filter */}
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={STATUS_FILTERS}
+            keyExtractor={(item) => item.value}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.filterChip,
+                  styles.statusFilterChip,
+                  selectedStatus === item.value && styles.filterChipActive,
+                ]}
+                onPress={() => handleStatusFilter(item.value)}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    selectedStatus === item.value && styles.filterChipTextActive,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.statusFilterList}
+          />
         </View>
 
-        {/* Status Filter */}
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={STATUS_FILTERS}
-          keyExtractor={(item) => item.value}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                styles.statusFilterChip,
-                selectedStatus === item.value && styles.filterChipActive,
-              ]}
-              onPress={() => handleStatusFilter(item.value)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedStatus === item.value && styles.filterChipTextActive,
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.statusFilterList}
-        />
+        {/* Batch List */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading batch history...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={batches}
+            renderItem={renderBatchItem}
+            keyExtractor={(item) => item._id}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={colors.primary}
+                colors={[colors.primary]}
+              />
+            }
+            ListEmptyComponent={renderEmptyState}
+            ListFooterComponent={renderFooter}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            contentContainerStyle={[
+              styles.listContainer,
+              batches.length === 0 && styles.emptyListContainer,
+            ]}
+          />
+        )}
       </View>
-
-      {/* Batch List */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading batch history...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={batches}
-          renderItem={renderBatchItem}
-          keyExtractor={(item) => item._id}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
-          ListEmptyComponent={renderEmptyState}
-          ListFooterComponent={renderFooter}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          contentContainerStyle={[
-            styles.listContainer,
-            batches.length === 0 && styles.emptyListContainer,
-          ]}
-        />
-      )}
-    </View>
+    </SafeAreaScreen>
   );
 };
 
@@ -496,11 +499,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: 16,
     backgroundColor: colors.primary,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: '#fff',
   },

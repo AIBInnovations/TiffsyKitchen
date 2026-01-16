@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,25 +9,25 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {ordersService} from '../../../services/orders.service';
-import {Order, OrderStatus} from '../../../types/api.types';
+// import {useSafeAreaInsets} from 'react-native-safe-area-context'; // Removed
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
+import { ordersService } from '../../../services/orders.service';
+import { Order, OrderStatus } from '../../../types/api.types';
 import OrderCardAdminImproved from '../components/OrderCardAdminImproved';
 import OrderStatsCard from '../components/OrderStatsCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const STATUS_FILTERS: {label: string; value: OrderStatus | 'ALL'}[] = [
-  {label: 'All', value: 'ALL'},
-  {label: 'Placed', value: 'PLACED'},
-  {label: 'Accepted', value: 'ACCEPTED'},
-  {label: 'Preparing', value: 'PREPARING'},
-  {label: 'Ready', value: 'READY'},
-  {label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY'},
-  {label: 'Delivered', value: 'DELIVERED'},
-  {label: 'Cancelled', value: 'CANCELLED'},
+const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Placed', value: 'PLACED' },
+  { label: 'Accepted', value: 'ACCEPTED' },
+  { label: 'Preparing', value: 'PREPARING' },
+  { label: 'Ready', value: 'READY' },
+  { label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY' },
+  { label: 'Delivered', value: 'DELIVERED' },
+  { label: 'Cancelled', value: 'CANCELLED' },
 ];
 
 interface OrdersScreenAdminProps {
@@ -35,10 +35,11 @@ interface OrdersScreenAdminProps {
   navigation?: any;
 }
 
-const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) => {
+const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) => {
   console.log('✨ OrdersScreenAdmin RENDERED - New version with inline status editing');
 
-  const insets = useSafeAreaInsets();
+  const onMenuPressProp = onMenuPress; // Renaming to avoid lint issues if needed, or just keep as is
+  // const insets = useSafeAreaInsets(); // Removed
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
@@ -72,7 +73,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
 
   // Update order status mutation (using ADMIN endpoint)
   const updateStatusMutation = useMutation({
-    mutationFn: ({orderId, status}: {orderId: string; status: OrderStatus}) => {
+    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
       console.log('====================================');
       console.log('🔄 QUICK STATUS UPDATE FROM LIST (ADMIN ENDPOINT)');
       console.log('====================================');
@@ -82,9 +83,9 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
       console.log('====================================');
 
       // Use the ADMIN endpoint which allows ALL statuses
-      return ordersService.updateOrderStatusAdmin(orderId, {status});
+      return ordersService.updateOrderStatusAdmin(orderId, { status });
     },
-    onMutate: ({orderId}) => {
+    onMutate: ({ orderId }) => {
       // Set loading state for this specific order
       setUpdatingOrderId(orderId);
     },
@@ -94,13 +95,13 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
       console.log('✅ Status updated successfully to:', newStatus);
 
       // Invalidate and refetch queries
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
 
       Alert.alert('Success', `Order status updated to ${newStatus}`);
       setUpdatingOrderId(null);
     },
-    onError: (error: any, {orderId}) => {
+    onError: (error: any, { orderId }) => {
       console.log('❌ Status update failed:', error);
 
       setUpdatingOrderId(null);
@@ -123,7 +124,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
 
   const handleOrderPress = (orderId: string) => {
     if (navigation) {
-      navigation.navigate('OrderDetail', {orderId});
+      navigation.navigate('OrderDetail', { orderId });
     } else {
       Alert.alert(
         'Order Details',
@@ -133,7 +134,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
   };
 
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    updateStatusMutation.mutate({orderId, status: newStatus});
+    updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
   const handleLoadMore = () => {
@@ -155,7 +156,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
       );
     }
 
-    const {today, revenue} = statsData;
+    const { today, revenue } = statsData;
 
     return (
       <ScrollView
@@ -235,7 +236,7 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
     );
   };
 
-  const renderOrderItem = ({item}: {item: Order}) => {
+  const renderOrderItem = ({ item }: { item: Order }) => {
     return (
       <OrderCardAdminImproved
         order={item}
@@ -270,11 +271,10 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#f97316">
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+        <View style={[styles.header, { paddingTop: 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -313,11 +313,11 @@ const OrdersScreenAdmin = ({onMenuPress, navigation}: OrdersScreenAdminProps) =>
           contentContainerStyle={[
             styles.listContainer,
             (!ordersData || !ordersData.orders || ordersData.orders.length === 0) &&
-              styles.emptyListContainer,
+            styles.emptyListContainer,
           ]}
         />
       </View>
-    </View>
+    </SafeAreaScreen>
   );
 };
 
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     elevation: 1,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     borderColor: '#f97316',
     elevation: 3,
     shadowColor: '#f97316',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },

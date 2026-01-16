@@ -17,6 +17,7 @@ import { deliveryService } from '../../../services/delivery.service';
 import { ordersService } from '../../../services/orders.service';
 import { Kitchen, MealWindow, Order } from '../../../types/api.types';
 import { BatchHistoryScreen } from './BatchHistoryScreen';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 
 interface BatchManagementLandingScreenProps {
   navigation?: any;
@@ -423,6 +424,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
             console.log('📤 API Request Payload:');
             const requestPayload = {
               mealWindow: selectedMealWindow,
+              kitchenId: selectedKitchen?._id,
               forceDispatch,
             };
             console.log(JSON.stringify(requestPayload, null, 2));
@@ -432,6 +434,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
             try {
               const result = await deliveryService.dispatchBatches({
                 mealWindow: selectedMealWindow,
+                kitchenId: selectedKitchen!._id,
                 forceDispatch,
               });
 
@@ -524,7 +527,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
   // Show batch operations screen when a kitchen is selected
   if (selectedKitchen) {
     return (
-      <View style={styles.container}>
+      <SafeAreaScreen style={{ flex: 1 }} backgroundColor={colors.primary}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBackToKitchenList}>
             <Icon name="arrow-left" size={24} color="#fff" />
@@ -536,7 +539,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView style={styles.content}>
+        <ScrollView style={[styles.content, { backgroundColor: colors.background }]}>
           {/* Meal Window Selection */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Select Meal Window</Text>
@@ -605,7 +608,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
               style={[
                 styles.operationButton,
                 (isProcessing || !canDispatchMealWindow(selectedMealWindow)) &&
-                  styles.operationButtonDisabled,
+                styles.operationButtonDisabled,
               ]}
               onPress={() => handleDispatchBatches(false)}
               disabled={isProcessing || !canDispatchMealWindow(selectedMealWindow)}
@@ -838,13 +841,13 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
             </View>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaScreen style={{ flex: 1 }} backgroundColor={colors.primary}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => {
             if (navigation) {
@@ -858,16 +861,16 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
           <Text style={styles.headerTitle}>Batch Management</Text>
           <View style={{ width: 24 }} />
         </View>
-        <View style={styles.loadingContainer}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading kitchens...</Text>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor={colors.primary}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => {
           if (navigation) {
@@ -882,7 +885,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
         <View style={styles.introSection}>
           <Icon name="truck-delivery" size={48} color={colors.primary} />
           <Text style={styles.introTitle}>Select a Kitchen</Text>
@@ -955,7 +958,7 @@ export const BatchManagementLandingScreen: React.FC<BatchManagementLandingScreen
           )}
         </ScrollView>
       </View>
-    </View>
+    </SafeAreaScreen>
   );
 };
 
@@ -969,11 +972,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: 16,
     backgroundColor: colors.primary,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: '#fff',
   },

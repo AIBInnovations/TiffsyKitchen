@@ -3,11 +3,13 @@
 // Order status enum
 export type OrderStatus =
   | 'ordered'
+  | 'confirmed'
   | 'preparing'
   | 'packed'
   | 'out_for_delivery'
   | 'delivered'
-  | 'failed';
+  | 'failed'
+  | 'cancelled';
 
 // Meal type enum
 export type MealType = 'lunch' | 'dinner' | 'all';

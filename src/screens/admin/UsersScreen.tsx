@@ -9,9 +9,10 @@ import {
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+// import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { User } from '../../types/user';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import { useUsersStore } from '../../stores/useUsersStore';
 import { UserListItem, SearchBar, FilterSheet } from '../../components/users';
 import { StatCard } from '../../components/common';
@@ -25,8 +26,9 @@ interface UsersScreenProps {
 export const UsersScreen: React.FC<UsersScreenProps> = ({
   onMenuPress,
   onUserPress,
+
 }) => {
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
   const {
     filteredUsers,
     filter,
@@ -148,10 +150,14 @@ export const UsersScreen: React.FC<UsersScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+    <SafeAreaScreen
+      style={{ flex: 1 }}
+      topBackgroundColor={colors.primary}
+      bottomBackgroundColor={colors.background}
+      darkIcon={false}
+    >
       {/* Header */}
-      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={26} color={colors.white} />
         </TouchableOpacity>
@@ -162,45 +168,48 @@ export const UsersScreen: React.FC<UsersScreenProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-      {/* Search Bar */}
-      <SearchBar
-        value={filter.searchQuery}
-        onChangeText={handleSearchChange}
-        placeholder="Search by name, email, or phone..."
-        onFilterPress={() => setFilterSheetVisible(true)}
-        hasActiveFilters={hasActiveFilters}
-      />
+        {/* Search Bar */}
+        <SearchBar
+          value={filter.searchQuery}
+          onChangeText={handleSearchChange}
+          placeholder="Search by name, email, or phone..."
+          onFilterPress={() => setFilterSheetVisible(true)}
+          hasActiveFilters={hasActiveFilters}
+        />
 
-      {/* Users List */}
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderUserItem}
-        keyExtractor={keyExtractor}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmpty}
-        ListFooterComponent={renderFooter}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={refresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-      />
+        {/* Users List */}
+        <FlatList
+          data={filteredUsers}
+          renderItem={renderUserItem}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmpty}
+          ListFooterComponent={renderFooter}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={refresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        />
 
-      {/* Filter Sheet */}
-      <FilterSheet
-        visible={filterSheetVisible}
-        filter={filter}
-        onClose={() => setFilterSheetVisible(false)}
-        onApply={updateFilter}
-        onReset={resetFilters}
-      />
-    </View>
+        {/* Filter Sheet */}
+        <FilterSheet
+          visible={filterSheetVisible}
+          filter={filter}
+          onClose={() => setFilterSheetVisible(false)}
+          onApply={updateFilter}
+          onReset={resetFilters}
+        />
+      </View>
+
+    </SafeAreaScreen >
   );
 };
 
@@ -226,6 +235,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     flex: 1,
     marginLeft: spacing.md,
+    textAlign: 'left',
   },
   headerRight: {
     flexDirection: 'row',

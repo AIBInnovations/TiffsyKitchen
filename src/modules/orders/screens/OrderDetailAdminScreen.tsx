@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,18 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {ordersService} from '../../../services/orders.service';
-import {Order, OrderStatus} from '../../../types/api.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
+import { ordersService } from '../../../services/orders.service';
+import { Order, OrderStatus } from '../../../types/api.types';
 import StatusTimeline from '../components/StatusTimeline';
 import CancelOrderModal from '../components/CancelOrderModal';
-import {AcceptOrderModal} from '../components/AcceptOrderModal';
-import {RejectOrderModal} from '../components/RejectOrderModal';
-import {UpdateStatusModal} from '../components/UpdateStatusModal';
-import {DeliveryStatusModal} from '../components/DeliveryStatusModal';
+import { AcceptOrderModal } from '../components/AcceptOrderModal';
+import { RejectOrderModal } from '../components/RejectOrderModal';
+import { UpdateStatusModal } from '../components/UpdateStatusModal';
+import { DeliveryStatusModal } from '../components/DeliveryStatusModal';
 import OrderStatusDropdown from '../components/OrderStatusDropdown';
-import {formatDistanceToNow} from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 interface OrderDetailAdminScreenProps {
@@ -55,7 +56,7 @@ const safeFormatDate = (dateString: string | undefined | null): string => {
     if (isNaN(date.getTime())) {
       return 'Invalid date';
     }
-    return formatDistanceToNow(date, {addSuffix: true});
+    return formatDistanceToNow(date, { addSuffix: true });
   } catch (error) {
     console.error('Error formatting date:', dateString, error);
     return 'Invalid date';
@@ -66,7 +67,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   route,
   navigation,
 }) => {
-  const {orderId} = route.params;
+  const { orderId } = route.params;
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -104,9 +105,9 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     mutationFn: (estimatedPrepTime: number) =>
       ordersService.acceptOrder(orderId, estimatedPrepTime),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['order', orderId]});
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       Alert.alert('Success', 'Order accepted successfully');
       setShowAcceptModal(false);
     },
@@ -114,7 +115,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
-          'Failed to accept order. Please try again.',
+        'Failed to accept order. Please try again.',
       );
     },
   });
@@ -123,25 +124,25 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   const rejectMutation = useMutation({
     mutationFn: (reason: string) => ordersService.rejectOrder(orderId, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['order', orderId]});
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       Alert.alert('Order Rejected', 'Order has been rejected successfully', [
-        {text: 'OK', onPress: () => setShowRejectModal(false)},
+        { text: 'OK', onPress: () => setShowRejectModal(false) },
       ]);
     },
     onError: (error: any) => {
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
-          'Failed to reject order. Please try again.',
+        'Failed to reject order. Please try again.',
       );
     },
   });
 
   // Update status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: ({status, notes}: {status: OrderStatus; notes?: string}) => {
+    mutationFn: ({ status, notes }: { status: OrderStatus; notes?: string }) => {
       // 🔍 LOG: About to call API for regular status update
       console.log('====================================');
       console.log('🚀 API CALL: updateOrderStatus');
@@ -158,12 +159,12 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       }
       console.log('====================================');
       console.log('📤 RAW API REQUEST PAYLOAD:');
-      console.log(JSON.stringify({status, notes}, null, 2));
+      console.log(JSON.stringify({ status, notes }, null, 2));
       console.log('Using Admin Endpoint: /api/orders/admin/:id/status');
       console.log('====================================');
 
       // Use ADMIN endpoint which allows ALL statuses
-      return ordersService.updateOrderStatusAdmin(orderId, {status, notes});
+      return ordersService.updateOrderStatusAdmin(orderId, { status, notes });
     },
     onSuccess: (response) => {
       console.log('====================================');
@@ -172,9 +173,9 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       console.log('Response:', response);
       console.log('====================================');
 
-      queryClient.invalidateQueries({queryKey: ['order', orderId]});
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       Alert.alert('Success', 'Order status updated successfully');
       setShowUpdateStatusModal(false);
     },
@@ -190,7 +191,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
-          'Failed to update order status. Please try again.',
+        'Failed to update order status. Please try again.',
       );
     },
   });
@@ -237,9 +238,9 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       console.log('Response:', response);
       console.log('====================================');
 
-      queryClient.invalidateQueries({queryKey: ['order', orderId]});
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       Alert.alert('Success', 'Delivery status updated successfully');
       setShowDeliveryStatusModal(false);
     },
@@ -255,7 +256,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
-          'Failed to update delivery status. Please try again.',
+        'Failed to update delivery status. Please try again.',
       );
     },
   });
@@ -268,27 +269,25 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       restoreVouchers: boolean;
     }) => ordersService.cancelOrder(orderId, data),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({queryKey: ['order', orderId]});
-      queryClient.invalidateQueries({queryKey: ['orders']});
-      queryClient.invalidateQueries({queryKey: ['orderStats']});
+      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderStats'] });
 
       Alert.alert(
         'Order Cancelled',
-        `Order cancelled successfully${
-          data.refund ? `\nRefund of ₹${data.refund.amount} initiated` : ''
-        }${
-          data.vouchersRestored
-            ? `\n${data.vouchersRestored} voucher(s) restored`
-            : ''
+        `Order cancelled successfully${data.refund ? `\nRefund of ₹${data.refund.amount} initiated` : ''
+        }${data.vouchersRestored
+          ? `\n${data.vouchersRestored} voucher(s) restored`
+          : ''
         }`,
-        [{text: 'OK', onPress: () => setShowCancelModal(false)}],
+        [{ text: 'OK', onPress: () => setShowCancelModal(false) }],
       );
     },
     onError: (error: any) => {
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message ||
-          'Failed to cancel order. Please try again.',
+        'Failed to cancel order. Please try again.',
       );
     },
   });
@@ -327,10 +326,10 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       setShowDeliveryStatusModal(true);
     } else {
       console.log('📤 REGULAR STATUS UPDATE');
-      console.log('Sending to API:', {status: newStatus});
-      console.log('Raw JSON:', JSON.stringify({status: newStatus}, null, 2));
+      console.log('Sending to API:', { status: newStatus });
+      console.log('Raw JSON:', JSON.stringify({ status: newStatus }, null, 2));
       // Use regular status update
-      updateStatusMutation.mutate({status: newStatus});
+      updateStatusMutation.mutate({ status: newStatus });
     }
   };
 
@@ -396,7 +395,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </Text>
         )}
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <MaterialIcons name="refresh" size={20} color="#FFFFFF" style={{marginRight: 8}} />
+          <MaterialIcons name="refresh" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -426,8 +425,8 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   });
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#f97316">
+      <ScrollView style={[styles.scrollView, { backgroundColor: '#F5F5F5' }]}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
@@ -737,7 +736,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
-        <View style={{height: 40}} />
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* Modals */}
@@ -765,7 +764,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
         currentStatus={order.status}
         onClose={() => setShowUpdateStatusModal(false)}
         onUpdate={async (status, notes) => {
-          await updateStatusMutation.mutateAsync({status, notes});
+          await updateStatusMutation.mutateAsync({ status, notes });
         }}
       />
 
@@ -790,7 +789,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
         loading={cancelMutation.isPending}
         hasVouchers={order.voucherUsage?.voucherCount > 0}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

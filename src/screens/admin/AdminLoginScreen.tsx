@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
   Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +20,7 @@ import { KitchenManagementScreen } from '../../modules/kitchen';
 import { MenuManagementScreen, MenuListScreen, AddEditMenuScreen } from '../../modules/menu';
 import { UsersListScreen, UserDetailScreen } from '../../modules/users';
 import { CutoffTimesSettingsScreen } from '../../modules/cutoff';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 
 // Constants
 const PRIMARY_COLOR = '#f97316';
@@ -281,184 +281,184 @@ const AdminLoginScreen: React.FC<AdminLoginScreenProps> = ({ firebaseToken, onLo
   // ============================================================
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaScreen style={styles.container} backgroundColor="#f97316">
       <View style={styles.contentContainer}>
-          {/* Login Card */}
-          <View style={styles.card}>
-            {/* Logo / Brand */}
-            <View style={styles.logoContainer}>
-              <View style={styles.logoPlaceholder}>
-                <Icon name="restaurant" size={40} color="#f97316" />
-              </View>
-              <Text style={styles.brandText}>Tiffin Platform</Text>
+        {/* Login Card */}
+        <View style={styles.card}>
+          {/* Logo / Brand */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoPlaceholder}>
+              <Icon name="restaurant" size={40} color="#f97316" />
             </View>
+            <Text style={styles.brandText}>Tiffin Platform</Text>
+          </View>
 
-            {/* Title & Subtitle */}
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Admin Console Login</Text>
-              <Text style={styles.subtitle}>For internal use only</Text>
-            </View>
+          {/* Title & Subtitle */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Admin Console Login</Text>
+            <Text style={styles.subtitle}>For internal use only</Text>
+          </View>
 
-            {/* Form Fields */}
-            <View style={styles.formContainer}>
-              {/* Username Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.label}>Username</Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    fieldErrors.username ? styles.inputError : null,
-                  ]}
-                >
-                  <Icon
-                    name="person-outline"
-                    size={20}
-                    color="#9ca3af"
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter your username"
-                    placeholderTextColor="#9ca3af"
-                    value={username}
-                    onChangeText={handleUsernameChange}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoFocus
-                    returnKeyType="next"
-                    onSubmitEditing={() => passwordInputRef.current?.focus()}
-                    editable={!isSubmitting}
-                    accessibilityLabel="Username input"
-                  />
-                </View>
-                {fieldErrors.username && (
-                  <Text style={styles.errorText}>{fieldErrors.username}</Text>
-                )}
-              </View>
-
-              {/* Password Field */}
-              <View style={styles.fieldContainer}>
-                <Text style={styles.label}>Password</Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    fieldErrors.password ? styles.inputError : null,
-                  ]}
-                >
-                  <Icon
-                    name="lock-outline"
-                    size={20}
-                    color="#9ca3af"
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    ref={passwordInputRef}
-                    style={styles.input}
-                    placeholder="Enter your password"
-                    placeholderTextColor="#9ca3af"
-                    value={password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    returnKeyType="done"
-                    onSubmitEditing={handleSignIn}
-                    editable={!isSubmitting}
-                    accessibilityLabel="Password input"
-                  />
-                  <TouchableOpacity
-                    style={styles.showHideButton}
-                    onPress={() => setShowPassword(!showPassword)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                    accessibilityRole="button"
-                  >
-                    <Icon
-                      name={showPassword ? 'visibility-off' : 'visibility'}
-                      size={20}
-                      color="#6b7280"
-                    />
-                  </TouchableOpacity>
-                </View>
-                {fieldErrors.password && (
-                  <Text style={styles.errorText}>{fieldErrors.password}</Text>
-                )}
-              </View>
-
-              {/* Remember Me */}
-              <TouchableOpacity
-                style={styles.rememberMeContainer}
-                onPress={toggleRememberMe}
-                activeOpacity={0.7}
-                accessibilityLabel="Remember this device for 7 days"
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: rememberMe }}
-              >
-                <View
-                  style={[
-                    styles.checkbox,
-                    rememberMe ? styles.checkboxChecked : null,
-                  ]}
-                >
-                  {rememberMe && (
-                    <Icon name="check" size={14} color="#ffffff" />
-                  )}
-                </View>
-                <Text style={styles.rememberMeText}>
-                  Remember this device for 7 days
-                </Text>
-              </TouchableOpacity>
-
-              {/* Global Error */}
-              {globalError && (
-                <View style={styles.globalErrorContainer}>
-                  <Icon name="error-outline" size={18} color="#dc2626" />
-                  <Text style={styles.globalErrorText}>{globalError}</Text>
-                </View>
-              )}
-
-              {/* Sign In Button */}
-              <TouchableOpacity
+          {/* Form Fields */}
+          <View style={styles.formContainer}>
+            {/* Username Field */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Username</Text>
+              <View
                 style={[
-                  styles.signInButton,
-                  (!isFormValid || isSubmitting) && styles.signInButtonDisabled,
+                  styles.inputWrapper,
+                  fieldErrors.username ? styles.inputError : null,
                 ]}
-                onPress={handleSignIn}
-                disabled={!isFormValid || isSubmitting}
-                activeOpacity={0.8}
-                accessibilityLabel="Sign In"
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !isFormValid || isSubmitting }}
               >
-                {isSubmitting ? (
-                  <View style={styles.buttonContent}>
-                    <ActivityIndicator size="small" color="#ffffff" />
-                    <Text style={[styles.signInButtonText, { marginLeft: 8 }]}>Signing In...</Text>
-                  </View>
-                ) : (
-                  <Text style={styles.signInButtonText}>Sign In</Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Forgot Password Link */}
-              <TouchableOpacity
-                style={styles.forgotPasswordContainer}
-                onPress={handleForgotPassword}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-              </TouchableOpacity>
+                <Icon
+                  name="person-outline"
+                  size={20}
+                  color="#9ca3af"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your username"
+                  placeholderTextColor="#9ca3af"
+                  value={username}
+                  onChangeText={handleUsernameChange}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordInputRef.current?.focus()}
+                  editable={!isSubmitting}
+                  accessibilityLabel="Username input"
+                />
+              </View>
+              {fieldErrors.username && (
+                <Text style={styles.errorText}>{fieldErrors.username}</Text>
+              )}
             </View>
-          </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              © Tiffin Platform · Admin Access Only
-            </Text>
+            {/* Password Field */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.label}>Password</Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  fieldErrors.password ? styles.inputError : null,
+                ]}
+              >
+                <Icon
+                  name="lock-outline"
+                  size={20}
+                  color="#9ca3af"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  ref={passwordInputRef}
+                  style={styles.input}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9ca3af"
+                  value={password}
+                  onChangeText={handlePasswordChange}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSignIn}
+                  editable={!isSubmitting}
+                  accessibilityLabel="Password input"
+                />
+                <TouchableOpacity
+                  style={styles.showHideButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityRole="button"
+                >
+                  <Icon
+                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    size={20}
+                    color="#6b7280"
+                  />
+                </TouchableOpacity>
+              </View>
+              {fieldErrors.password && (
+                <Text style={styles.errorText}>{fieldErrors.password}</Text>
+              )}
+            </View>
+
+            {/* Remember Me */}
+            <TouchableOpacity
+              style={styles.rememberMeContainer}
+              onPress={toggleRememberMe}
+              activeOpacity={0.7}
+              accessibilityLabel="Remember this device for 7 days"
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: rememberMe }}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  rememberMe ? styles.checkboxChecked : null,
+                ]}
+              >
+                {rememberMe && (
+                  <Icon name="check" size={14} color="#ffffff" />
+                )}
+              </View>
+              <Text style={styles.rememberMeText}>
+                Remember this device for 7 days
+              </Text>
+            </TouchableOpacity>
+
+            {/* Global Error */}
+            {globalError && (
+              <View style={styles.globalErrorContainer}>
+                <Icon name="error-outline" size={18} color="#dc2626" />
+                <Text style={styles.globalErrorText}>{globalError}</Text>
+              </View>
+            )}
+
+            {/* Sign In Button */}
+            <TouchableOpacity
+              style={[
+                styles.signInButton,
+                (!isFormValid || isSubmitting) && styles.signInButtonDisabled,
+              ]}
+              onPress={handleSignIn}
+              disabled={!isFormValid || isSubmitting}
+              activeOpacity={0.8}
+              accessibilityLabel="Sign In"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !isFormValid || isSubmitting }}
+            >
+              {isSubmitting ? (
+                <View style={styles.buttonContent}>
+                  <ActivityIndicator size="small" color="#ffffff" />
+                  <Text style={[styles.signInButtonText, { marginLeft: 8 }]}>Signing In...</Text>
+                </View>
+              ) : (
+                <Text style={styles.signInButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Forgot Password Link */}
+            <TouchableOpacity
+              style={styles.forgotPasswordContainer}
+              onPress={handleForgotPassword}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            © Tiffin Platform · Admin Access Only
+          </Text>
+        </View>
       </View>
-    </SafeAreaView>
+    </SafeAreaScreen>
   );
 };
 

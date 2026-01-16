@@ -7,6 +7,7 @@ import {
   ToastAndroid,
   Platform,
 } from 'react-native';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import {
   MenusByKey,
   Menu,
@@ -331,14 +332,16 @@ export const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
       {/* Header */}
       <MenuHeader onMenuPress={onMenuPress} />
 
@@ -346,62 +349,64 @@ export const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
       <View style={styles.savingIndicatorContainer}>
         <SavingIndicator isSaving={isSaving} hasError={saveError} />
       </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-      {/* City & Kitchen Selector */}
-      <CityKitchenSelector
-        cities={mockCities}
-        kitchens={mockKitchens}
-        selectedCityId={selectedCityId}
-        selectedKitchenId={selectedKitchenId}
-        onCityChange={handleCityChange}
-        onKitchenChange={handleKitchenChange}
-      />
-
-      {/* Date Strip */}
-      <DateStrip
-        selectedDate={selectedDate}
-        onDateChange={handleDateChange}
-      />
-
-      {/* Meal Toggle */}
-      <MealToggle
-        selectedMeal={selectedMealType}
-        onMealChange={handleMealTypeChange}
-      />
-
-      {/* Current Menu Section */}
-      {selectedCityId && selectedKitchenId ? (
-        <CurrentMenuSection
-          selectedDate={selectedDate}
-          selectedMealType={selectedMealType}
-          menuDishes={currentMenu?.menuDishes || []}
-          dishCatalog={mockDishCatalog}
-          onAddDishes={() => setShowDishCatalog(true)}
-          onRemoveDish={handleRemoveDish}
-          onToggleFeatured={handleToggleFeatured}
-          onReorderDishes={handleReorderDishes}
+        {/* City & Kitchen Selector */}
+        <CityKitchenSelector
+          cities={mockCities}
+          kitchens={mockKitchens}
+          selectedCityId={selectedCityId}
+          selectedKitchenId={selectedKitchenId}
+          onCityChange={handleCityChange}
+          onKitchenChange={handleKitchenChange}
         />
-      ) : (
-        <View style={styles.noSelectionContainer}>
-          <View style={styles.noSelectionContent}>
-            <View style={styles.noSelectionIcon}>
-              <View style={styles.noSelectionIconCircle} />
+
+        {/* Date Strip */}
+        <DateStrip
+          selectedDate={selectedDate}
+          onDateChange={handleDateChange}
+        />
+
+        {/* Meal Toggle */}
+        <MealToggle
+          selectedMeal={selectedMealType}
+          onMealChange={handleMealTypeChange}
+        />
+
+        {/* Current Menu Section */}
+        {selectedCityId && selectedKitchenId ? (
+          <CurrentMenuSection
+            selectedDate={selectedDate}
+            selectedMealType={selectedMealType}
+            menuDishes={currentMenu?.menuDishes || []}
+            dishCatalog={mockDishCatalog}
+            onAddDishes={() => setShowDishCatalog(true)}
+            onRemoveDish={handleRemoveDish}
+            onToggleFeatured={handleToggleFeatured}
+            onReorderDishes={handleReorderDishes}
+          />
+        ) : (
+          <View style={styles.noSelectionContainer}>
+            <View style={styles.noSelectionContent}>
+              <View style={styles.noSelectionIcon}>
+                <View style={styles.noSelectionIconCircle} />
+              </View>
             </View>
           </View>
-        </View>
-      )}
+        )}
 
-      {/* Dish Catalog Sheet */}
-      <DishCatalogSheet
-        visible={showDishCatalog}
-        dishes={mockDishCatalog}
-        existingDishIds={existingDishIds}
-        selectedDate={selectedDate}
-        mealType={selectedMealType}
-        onClose={() => setShowDishCatalog(false)}
-        onAddDishes={handleAddDishes}
-      />
-    </View>
+        {/* Dish Catalog Sheet */}
+        <DishCatalogSheet
+          visible={showDishCatalog}
+          dishes={mockDishCatalog}
+          existingDishIds={existingDishIds}
+          selectedDate={selectedDate}
+          mealType={selectedMealType}
+          onClose={() => setShowDishCatalog(false)}
+          onAddDishes={handleAddDishes}
+        />
+      </View>
+    </SafeAreaScreen>
   );
 };
 

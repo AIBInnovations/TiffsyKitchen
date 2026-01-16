@@ -136,6 +136,11 @@ export interface DashboardActivity {
   _id: string;
   action: AuditAction;
   entityType: EntityType;
+  userId: {
+    _id: string;
+    name: string;
+    role: UserRole;
+  };
   createdAt: string;
 }
 
@@ -740,7 +745,7 @@ export interface CreateMenuItemRequest {
   isFeatured: boolean;
 }
 
-export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> {}
+export interface UpdateMenuItemRequest extends Partial<CreateMenuItemRequest> { }
 
 // Kitchen Menu Response
 export interface KitchenMenuResponse {
@@ -774,7 +779,7 @@ export interface CreateAddonRequest {
   displayOrder?: number;
 }
 
-export interface UpdateAddonRequest extends Partial<CreateAddonRequest> {}
+export interface UpdateAddonRequest extends Partial<CreateAddonRequest> { }
 
 export interface AddonListResponse {
   addons: Addon[];

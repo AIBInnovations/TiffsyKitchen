@@ -12,7 +12,8 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -265,11 +266,10 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
 
   if (loading && zones.length === 0) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
         {/* Header */}
         {onMenuPress && (
-          <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+          <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
               <MaterialIcon name="menu" size={24} color="#ffffff" />
             </TouchableOpacity>
@@ -285,20 +285,20 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading zones...</Text>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   if (error && zones.length === 0) {
     return (
-      <View style={styles.container}>
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.background} bottomBackgroundColor={colors.background} darkIcon>
         {/* Header */}
         {onMenuPress && (
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: colors.background, paddingTop: 12 }]}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-              <MaterialIcon name="menu" size={24} color="#ffffff" />
+              <MaterialIcon name="menu" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Zone Management</Text>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Zone Management</Text>
           </View>
         )}
         <ZoneFiltersComponent
@@ -317,16 +317,15 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+        <View style={styles.header}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -374,7 +373,7 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
         }}
         onSave={handleSaveZone}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

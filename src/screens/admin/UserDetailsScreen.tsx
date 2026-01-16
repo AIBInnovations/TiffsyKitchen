@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+
 } from 'react-native';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   User,
@@ -113,9 +115,11 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
 
   if (isLoading || !selectedUser) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaScreen>
     );
   }
 
@@ -276,7 +280,7 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -287,53 +291,55 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
           <MaterialIcons name="more-vert" size={24} color={colors.white} />
         </TouchableOpacity>
       </View>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
 
-      {/* User Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatarLarge}>
-          <Text style={styles.avatarTextLarge}>{getInitials(user.fullName)}</Text>
+        {/* User Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarLarge}>
+            <Text style={styles.avatarTextLarge}>{getInitials(user.fullName)}</Text>
+          </View>
+          <Text style={styles.userName}>{user.fullName}</Text>
+          <Text style={styles.userRole}>{getRoleLabel(user.role)}</Text>
+          <Chip
+            label={statusConfig.label}
+            color={statusConfig.color}
+            backgroundColor={statusConfig.bgColor}
+            size="medium"
+            style={styles.statusChip}
+          />
         </View>
-        <Text style={styles.userName}>{user.fullName}</Text>
-        <Text style={styles.userRole}>{getRoleLabel(user.role)}</Text>
-        <Chip
-          label={statusConfig.label}
-          color={statusConfig.color}
-          backgroundColor={statusConfig.bgColor}
-          size="medium"
-          style={styles.statusChip}
-        />
-      </View>
 
-      {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-              onPress={() => setActiveTab(tab.key)}
-            >
-              <MaterialIcons
-                name={tab.icon}
-                size={18}
-                color={activeTab === tab.key ? colors.primary : colors.textMuted}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab.key && styles.tabTextActive,
-                ]}
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+                onPress={() => setActiveTab(tab.key)}
               >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+                <MaterialIcons
+                  name={tab.icon}
+                  size={18}
+                  color={activeTab === tab.key ? colors.primary : colors.textMuted}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.key && styles.tabTextActive,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-      {/* Tab Content */}
-      {renderTabContent()}
-    </View>
+        {/* Tab Content */}
+        {renderTabContent()}
+      </View>
+    </SafeAreaScreen>
   );
 };
 

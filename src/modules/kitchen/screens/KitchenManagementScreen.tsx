@@ -54,6 +54,7 @@ import {
   ActivityTab,
 } from '../components';
 import { colors, spacing } from '../../../theme';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -270,45 +271,49 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
 
   if (isLoading || !settings) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
+        <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header with stats */}
-      <KitchenHeader
-        status={settings.kitchenStatus}
-        selectedDate={selectedDate}
-        pauseNewOrders={pauseNewOrders}
-        mealSummaries={mockMealSummaries}
-        ordersInProgress={ordersInProgress}
-        cutoffSettings={settings.cutoffSettings}
-        onStatusChange={handleStatusChange}
-        onDateChange={handleDateChange}
-        onTogglePauseOrders={handleTogglePauseOrders}
-        onCutoffChange={handleCutoffChange}
-        onDownloadSummary={handleDownloadSummary}
-        onMenuPress={onMenuPress}
-      />
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background}>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
+        {/* Header with stats */}
+        <KitchenHeader
+          status={settings.kitchenStatus}
+          selectedDate={selectedDate}
+          pauseNewOrders={pauseNewOrders}
+          mealSummaries={mockMealSummaries}
+          ordersInProgress={ordersInProgress}
+          cutoffSettings={settings.cutoffSettings}
+          onStatusChange={handleStatusChange}
+          onDateChange={handleDateChange}
+          onTogglePauseOrders={handleTogglePauseOrders}
+          onCutoffChange={handleCutoffChange}
+          onDownloadSummary={handleDownloadSummary}
+          onMenuPress={onMenuPress}
+        />
 
-      {/* Tab Bar */}
-      <TabBar
-        activeTab={settings.lastSelectedTab}
-        onTabChange={handleTabChange}
-      />
+        {/* Tab Bar */}
+        <TabBar
+          activeTab={settings.lastSelectedTab}
+          onTabChange={handleTabChange}
+        />
 
-      {/* Tab Content */}
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderTabContent()}
-      </ScrollView>
-    </View>
+        {/* Tab Content */}
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderTabContent()}
+        </ScrollView>
+      </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -8,9 +8,9 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
+
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { MealType } from '../../types/dashboard';
 import {
@@ -25,6 +25,7 @@ import {
 } from '../../components/dashboard';
 import { useApi } from '../../hooks/useApi';
 import { DashboardData } from '../../types/api.types';
+import { OrderStatus as DashboardOrderStatus } from '../../types/dashboard';
 
 interface DashboardScreenProps {
   onMenuPress: () => void;
@@ -36,8 +37,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   onMenuPress,
   onNotificationPress,
   onLogout,
+
 }) => {
-  const insets = useSafeAreaInsets();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMealType, setSelectedMealType] = useState<MealType>('all');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
@@ -205,12 +206,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
     // Use today's orders for pending status
     return [
-      { status: 'Pending', count: apiData.pendingActions.pendingOrders, color: '#f59e0b' },
-      { status: 'Confirmed', count: Math.round(apiData.today.orders * 0.3), color: '#3b82f6' },
-      { status: 'Preparing', count: Math.round(apiData.today.orders * 0.25), color: '#8b5cf6' },
-      { status: 'Out for Delivery', count: Math.round(apiData.today.orders * 0.2), color: '#06b6d4' },
-      { status: 'Delivered', count: Math.round(apiData.today.orders * 0.15), color: '#10b981' },
-      { status: 'Cancelled', count: Math.round(apiData.today.orders * 0.1), color: '#ef4444' },
+      { status: 'ordered' as DashboardOrderStatus, label: 'Pending', icon: 'pending', count: apiData.pendingActions.pendingOrders, color: '#f59e0b' },
+      { status: 'confirmed' as DashboardOrderStatus, label: 'Confirmed', icon: 'check-circle', count: Math.round(apiData.today.orders * 0.3), color: '#3b82f6' },
+      { status: 'preparing' as DashboardOrderStatus, label: 'Preparing', icon: 'restaurant-menu', count: Math.round(apiData.today.orders * 0.25), color: '#8b5cf6' },
+      { status: 'out_for_delivery' as DashboardOrderStatus, label: 'Out for Delivery', icon: 'delivery-dining', count: Math.round(apiData.today.orders * 0.2), color: '#06b6d4' },
+      { status: 'delivered' as DashboardOrderStatus, label: 'Delivered', icon: 'done-all', count: Math.round(apiData.today.orders * 0.15), color: '#10b981' },
+      { status: 'cancelled' as DashboardOrderStatus, label: 'Cancelled', icon: 'cancel', count: Math.round(apiData.today.orders * 0.1), color: '#ef4444' },
     ];
   };
 
@@ -265,10 +266,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const chartData = getChartData();
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+    <SafeAreaScreen style={{ flex: 1 }} topBackgroundColor="#f97316" bottomBackgroundColor="#f3f4f6">
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={26} color="#ffffff" />
         </TouchableOpacity>
@@ -288,100 +288,102 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           </View>
         </View>
       </View>
+      <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
 
-      {/* Loading State */}
-      {loading && !apiData ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#f97316" />
-          <Text style={styles.loadingText}>Loading dashboard...</Text>
-        </View>
-      ) : error ? (
-        /* Error State */
-        <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={64} color="#ef4444" />
-          <Text style={styles.errorTitle}>Unable to Load Dashboard</Text>
-          <Text style={styles.errorMessage}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={refresh}>
-            <MaterialIcons name="refresh" size={20} color="#ffffff" />
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        /* Dashboard Content */
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading && !!apiData}
-              onRefresh={handleRefresh}
-              colors={['#f97316']}
-              tintColor="#f97316"
+        {/* Loading State */}
+        {loading && !apiData ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#f97316" />
+            <Text style={styles.loadingText}>Loading dashboard...</Text>
+          </View>
+        ) : error ? (
+          /* Error State */
+          <View style={styles.errorContainer}>
+            <MaterialIcons name="error-outline" size={64} color="#ef4444" />
+            <Text style={styles.errorTitle}>Unable to Load Dashboard</Text>
+            <Text style={styles.errorMessage}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={refresh}>
+              <MaterialIcons name="refresh" size={20} color="#ffffff" />
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* Dashboard Content */
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={loading && !!apiData}
+                onRefresh={handleRefresh}
+                colors={['#f97316']}
+                tintColor="#f97316"
+              />
+            }
+          >
+            {/* Filter Bar */}
+            <FilterBar
+              selectedDate={selectedDate}
+              selectedMealType={selectedMealType}
+              onDatePress={handleDatePress}
+              onMealTypeChange={handleMealTypeChange}
             />
-          }
-        >
-        {/* Filter Bar */}
-        <FilterBar
-          selectedDate={selectedDate}
-          selectedMealType={selectedMealType}
-          onDatePress={handleDatePress}
-          onMealTypeChange={handleMealTypeChange}
-        />
 
-        {/* KPI Cards */}
-        <SectionHeader title="Today's Overview" />
-        <View style={styles.kpiGrid}>
-          {filteredKpis.map((metric) => (
-            <KpiCard key={metric.id} metric={metric} />
-          ))}
-        </View>
+            {/* KPI Cards */}
+            <SectionHeader title="Today's Overview" />
+            <View style={styles.kpiGrid}>
+              {filteredKpis.map((metric) => (
+                <KpiCard key={metric.id} metric={metric} />
+              ))}
+            </View>
 
-        {/* Order Status Funnel */}
-        <OrderStatusFunnel
-          items={filteredOrderStatus}
-          onItemPress={handleOrderStatusPress}
-        />
+            {/* Order Status Funnel */}
+            <OrderStatusFunnel
+              items={filteredOrderStatus}
+              onItemPress={handleOrderStatusPress}
+            />
 
-        {/* Meal Slot Snapshot */}
-        <SectionHeader title="Meal Slots" subtitle="Current status" />
-        <View style={styles.mealSlotGrid}>
-          {filteredMealSlots.map((slot) => (
-            <MealSlotCard key={slot.mealType} slot={slot} />
-          ))}
-        </View>
+            {/* Meal Slot Snapshot */}
+            <SectionHeader title="Meal Slots" subtitle="Current status" />
+            <View style={styles.mealSlotGrid}>
+              {filteredMealSlots.map((slot) => (
+                <MealSlotCard key={slot.mealType} slot={slot} />
+              ))}
+            </View>
 
-        {/* Business Chart */}
-        <BusinessChart data={chartData} />
+            {/* Business Chart */}
+            <BusinessChart data={chartData} />
 
-        {/* Plan Summary - Hidden until API provides this data */}
-        {/* <PlanSummaryRow
+            {/* Plan Summary - Hidden until API provides this data */}
+            {/* <PlanSummaryRow
           plans={[]}
           onPlanPress={handlePlanPress}
           onViewAllPress={handleViewAllPlans}
         /> */}
 
-        {/* Recent Activity */}
-        <RecentActivityList
-          activities={getTransformedActivity()}
-          onActivityPress={handleActivityPress}
-          onViewAllPress={handleViewAllActivity}
-          maxItems={5}
+            {/* Recent Activity */}
+            <RecentActivityList
+              activities={getTransformedActivity()}
+              onActivityPress={handleActivityPress}
+              onViewAllPress={handleViewAllActivity}
+              maxItems={5}
+            />
+
+            {/* Bottom Spacing - Use dynamic safe area padding */}
+            <View style={{ height: 20 }} />
+          </ScrollView>
+        )}
+
+        {/* Date Picker Modal */}
+        <DatePickerModal
+          visible={datePickerVisible}
+          selectedDate={selectedDate}
+          onClose={() => setDatePickerVisible(false)}
+          onDateSelect={handleDateSelect}
         />
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-      )}
-
-      {/* Date Picker Modal */}
-      <DatePickerModal
-        visible={datePickerVisible}
-        selectedDate={selectedDate}
-        onClose={() => setDatePickerVisible(false)}
-        onDateSelect={handleDateSelect}
-      />
-    </View>
+      </View>
+    </SafeAreaScreen>
   );
 };
 

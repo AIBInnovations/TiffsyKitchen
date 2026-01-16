@@ -70,6 +70,7 @@ class DeliveryService {
 
   async dispatchBatches(data: {
     mealWindow: 'LUNCH' | 'DINNER';
+    kitchenId: string;
     forceDispatch?: boolean;
   }): Promise<{
     success: boolean;
