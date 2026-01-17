@@ -12,7 +12,11 @@ import { RouteProp } from '@react-navigation/native';
 export type DrawerParamList = {
   Dashboard: undefined;
   Orders: undefined;
+  BatchManagement: undefined;
+  DriverDeliveries: undefined;
+  DriverOrdersBatches: undefined;
   Users: undefined;
+  Drivers: undefined;
   Kitchens: undefined;
   Zones: undefined;
   Subscriptions: undefined;

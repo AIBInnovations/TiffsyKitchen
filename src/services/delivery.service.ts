@@ -162,6 +162,95 @@ class DeliveryService {
     }
     return apiService.get(`/api/delivery/admin/stats?${query.toString()}`);
   }
+
+  /**
+   * Get available batches for driver to accept
+   */
+  async getAvailableBatches(): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batches: Array<{
+        _id: string;
+        batchNumber: string;
+        kitchenId: { _id: string; name: string; address: string };
+        zoneId: { _id: string; name: string; code: string };
+        mealWindow: 'LUNCH' | 'DINNER';
+        orderCount: number;
+        estimatedEarnings?: number;
+        pickupAddress: string;
+        windowEndTime: string;
+      }>;
+    };
+  }> {
+    return apiService.get('/api/delivery/available-batches');
+  }
+
+  /**
+   * Driver accepts a batch
+   */
+  async acceptBatch(batchId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batch: any;
+      orders: any[];
+      pickupAddress: string;
+    };
+  }> {
+    return apiService.post(`/api/delivery/batches/${batchId}/accept`);
+  }
+
+  /**
+   * Driver marks batch as picked up from kitchen
+   */
+  async pickupBatch(batchId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batch: any;
+    };
+  }> {
+    return apiService.patch(`/api/delivery/batches/${batchId}/pickup`);
+  }
+
+  /**
+   * Update order delivery status (driver)
+   */
+  async updateOrderDeliveryStatus(
+    orderId: string,
+    data: {
+      status: 'DELIVERED' | 'FAILED';
+      proofOfDelivery?: {
+        type: 'OTP' | 'SIGNATURE' | 'PHOTO';
+        value: string;
+      };
+      failureReason?: string;
+      notes?: string;
+    }
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      order: any;
+    };
+  }> {
+    return apiService.patch(`/api/delivery/orders/${orderId}/status`, data);
+  }
+
+  /**
+   * Get batch details with orders
+   */
+  async getBatchDetails(batchId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batch: any;
+      orders: any[];
+    };
+  }> {
+    return apiService.get(`/api/delivery/batches/${batchId}`);
+  }
 }
 
 export const deliveryService = new DeliveryService();

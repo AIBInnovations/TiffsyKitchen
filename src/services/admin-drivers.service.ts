@@ -203,6 +203,196 @@ class AdminDriversService {
       return { pending: 0, approved: 0, rejected: 0, total: 0 };
     }
   }
+
+  /**
+   * Get all drivers with filters
+   */
+  async getAllDrivers(filters?: {
+    status?: string;
+    approvalStatus?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<DriverListResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('role', 'DRIVER');
+      if (filters?.status) queryParams.append('status', filters.status);
+      if (filters?.approvalStatus) queryParams.append('approvalStatus', filters.approvalStatus);
+      if (filters?.search) queryParams.append('search', filters.search);
+      if (filters?.page) queryParams.append('page', filters.page.toString());
+      if (filters?.limit) queryParams.append('limit', filters.limit.toString());
+
+      const endpoint = `/api/admin/users?${queryParams.toString()}`;
+      const response = await apiService.get<any>(endpoint);
+
+      return {
+        success: response.success,
+        message: response.message || 'Drivers retrieved',
+        data: {
+          drivers: response.data?.users || [],
+          pagination: response.data?.pagination || {
+            page: filters?.page || 1,
+            limit: filters?.limit || 20,
+            total: 0,
+            pages: 0,
+          },
+        },
+      };
+    } catch (error) {
+      console.error('❌ Failed to fetch drivers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update driver profile
+   */
+  async updateDriver(
+    driverId: string,
+    updates: { name?: string; email?: string }
+  ): Promise<DriverDetailsResponse> {
+    try {
+      const endpoint = `/api/admin/users/${driverId}`;
+      const response = await apiService.put<DriverDetailsResponse>(endpoint, updates);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to update driver:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update vehicle details
+   */
+  async updateVehicle(updates: {
+    vehicleName?: string;
+    vehicleNumber?: string;
+    vehicleType?: string;
+  }): Promise<any> {
+    try {
+      const endpoint = '/api/driver/vehicle';
+      const response = await apiService.patch(endpoint, updates);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to update vehicle:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Activate driver
+   */
+  async activateDriver(driverId: string): Promise<DriverDetailsResponse> {
+    try {
+      const endpoint = `/api/admin/users/${driverId}/activate`;
+      const response = await apiService.patch<DriverDetailsResponse>(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to activate driver:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deactivate driver
+   */
+  async deactivateDriver(driverId: string): Promise<DriverDetailsResponse> {
+    try {
+      const endpoint = `/api/admin/users/${driverId}/deactivate`;
+      const response = await apiService.patch<DriverDetailsResponse>(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to deactivate driver:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Suspend driver with reason
+   */
+  async suspendDriver(driverId: string, reason: string): Promise<DriverDetailsResponse> {
+    try {
+      const endpoint = `/api/admin/users/${driverId}/suspend`;
+      const response = await apiService.patch<DriverDetailsResponse>(endpoint, { reason });
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to suspend driver:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete driver (soft delete)
+   */
+  async deleteDriver(driverId: string): Promise<any> {
+    try {
+      const endpoint = `/api/admin/users/${driverId}`;
+      const response = await apiService.delete(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to delete driver:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get driver delivery statistics
+   */
+  async getDriverStats(driverId: string): Promise<{
+    totalDeliveries: number;
+    deliveredCount: number;
+    failedCount: number;
+    activeCount: number;
+    successRate: string;
+  }> {
+    try {
+      // Use delivery admin stats endpoint with driver filter
+      const endpoint = `/api/delivery/admin/stats?driverId=${driverId}`;
+      console.log('📊 Fetching driver stats from:', endpoint);
+      const response = await apiService.get<any>(endpoint);
+      console.log('📊 Driver stats response:', JSON.stringify(response, null, 2));
+
+      const stats = response.data;
+
+      // Extract stats from the response
+      return {
+        totalDeliveries: stats?.totalOrders || 0,
+        deliveredCount: stats?.successfulDeliveries || 0,
+        failedCount: stats?.failedDeliveries || 0,
+        activeCount: 0, // Not provided by this endpoint
+        successRate: stats?.successRate?.toFixed(1) || '0',
+      };
+    } catch (error) {
+      console.error('❌ Failed to fetch driver stats:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get audit logs for driver
+   */
+  async getAuditLogs(filters?: {
+    userId?: string;
+    action?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters?.userId) queryParams.append('userId', filters.userId);
+      if (filters?.action) queryParams.append('action', filters.action);
+      if (filters?.page) queryParams.append('page', filters.page.toString());
+      if (filters?.limit) queryParams.append('limit', filters.limit.toString());
+
+      const endpoint = `/api/admin/audit-logs?${queryParams.toString()}`;
+      const response = await apiService.get<any>(endpoint);
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to fetch audit logs:', error);
+      throw error;
+    }
+  }
 }
 
 export const adminDriversService = new AdminDriversService();

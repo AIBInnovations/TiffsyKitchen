@@ -27,13 +27,16 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { id: '1', label: 'Dashboard', icon: 'dashboard', screen: 'Dashboard' },
   { id: '2', label: 'Orders', icon: 'inventory-2', screen: 'Orders' },
-  { id: '3', label: 'Kitchens', icon: 'restaurant', screen: 'Kitchens' },
-  { id: '4', label: 'Batch Management', icon: 'local-shipping', screen: 'BatchManagement' },
-  { id: '5', label: 'Zones', icon: 'location-on', screen: 'Zones' },
-  { id: '6', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
-  { id: '7', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
-  { id: '8', label: 'Users', icon: 'people', screen: 'Users' },
-  { id: '9', label: 'Driver Approvals', icon: 'verified-user', screen: 'DriverApprovals' },
+  { id: '3', label: 'Zones', icon: 'location-on', screen: 'Zones' },
+  { id: '4', label: 'Users', icon: 'people', screen: 'Users' },
+  { id: '5', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
+  { id: '6', label: 'Kitchen Approvals', icon: 'check-circle', screen: 'KitchenApprovals' },
+  { id: '7', label: 'Kitchens', icon: 'restaurant', screen: 'Kitchens' },
+  { id: '8', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
+  { id: '9', label: 'Batch Management', icon: 'local-shipping', screen: 'BatchManagement' },
+  { id: '10', label: 'Driver Approvals', icon: 'verified-user', screen: 'DriverApprovals' },
+  { id: '11', label: 'Driver Profile Management', icon: 'local-shipping', screen: 'DriverProfileManagement' },
+  { id: '12', label: 'Drivers Order Management', icon: 'assignment', screen: 'DriverOrdersBatches' },
 ];
 
 interface SidebarProps {
@@ -107,10 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="bg-white h-full shadow-2xl"
         >
           {/* User Profile Section */}
-          <View className="bg-[#F56B4C] px-4 py-6">
-            <View className="w-16 h-16 bg-white rounded-full items-center justify-center mb-3">
-              <Icon name="person" size={40} color="#F56B4C" />
-            </View>
+          <View className="bg-[#F56B4C] px-4 py-5">
             <Text className="text-white font-bold text-lg">
               {user?.fullName || 'Admin'}
             </Text>
@@ -121,19 +121,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Menu Items */}
           <ScrollView className="flex-1">
-            <View className="py-2">
+            <View className="py-1">
               {menuItems.map((item) => (
                 <TouchableOpacity
                   key={item.id}
                   onPress={() => handleMenuPress(item.screen)}
-                  className={`flex-row items-center px-4 py-4 ${currentScreen === item.screen ? 'bg-[#FFF7F5]' : ''
+                  className={`flex-row items-center px-4 py-3 ${currentScreen === item.screen ? 'bg-[#FFF7F5]' : ''
                     }`}
                 >
                   <Icon
                     name={item.icon}
                     size={24}
                     color="#F56B4C"
-                    style={{ marginRight: 16 }}
+                    style={{ marginRight: 14 }}
                   />
                   <Text
                     className={`text-base ${currentScreen === item.screen
@@ -152,10 +152,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </ScrollView>
 
           {/* Logout Button */}
-          <View className="border-t border-gray-200 p-4" style={{ paddingBottom: insets.bottom + 16 }}>
+          <View className="border-t border-gray-200 px-4 py-3" style={{ paddingBottom: insets.bottom + 14 }}>
             <TouchableOpacity
               onPress={handleLogout}
-              className="flex-row items-center py-3"
+              className="flex-row items-center py-2"
             >
               <Icon name="logout" size={24} color="#F56B4C" style={{ marginRight: 16 }} />
               <Text className="text-red-500 font-medium text-base">Logout</Text>

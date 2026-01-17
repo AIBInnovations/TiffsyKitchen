@@ -15,6 +15,8 @@ import OrdersNavigator from './OrdersNavigator';
 import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen } from '../modules/kitchens/screens';
 import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
 import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
+import { DriversManagementScreen } from '../modules/drivers/screens/DriversManagementScreen';
+import { DriverDeliveriesScreen, DriverOrdersBatchesScreen } from '../modules/drivers/screens';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const Stack = createStackNavigator();
@@ -46,8 +48,10 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   const menuItems = [
     { name: 'Dashboard', icon: 'dashboard', route: 'Dashboard' },
     { name: 'Orders', icon: 'receipt-long', route: 'Orders' },
-    { name: 'Batch Management', icon: 'local-shipping', route: 'BatchManagement' },
+    { name: 'Batch Management (Admin)', icon: 'inventory', route: 'BatchManagement' },
+    { name: 'My Deliveries (Driver)', icon: 'local-shipping', route: 'DriverDeliveries' },
     { name: 'Users', icon: 'people', route: 'Users' },
+    { name: 'Driver Profile Management', icon: 'delivery-dining', route: 'Drivers' },
     { name: 'Kitchens', icon: 'restaurant', route: 'Kitchens' },
     { name: 'Zones', icon: 'location-on', route: 'Zones' },
     { name: 'Subscriptions', icon: 'card-membership', route: 'Subscriptions' },
@@ -124,11 +128,19 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
         {() => <PlaceholderScreen title="Users Management" />}
       </Drawer.Screen>
 
+      <Drawer.Screen name="Drivers">
+        {(props) => <DriversManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
       <Drawer.Screen name="Kitchens" component={KitchensNavigator} />
 
       <Drawer.Screen name="BatchManagement">
         {(props) => <BatchManagementLandingScreen {...props} />}
       </Drawer.Screen>
+
+      <Drawer.Screen name="DriverDeliveries" component={DriverDeliveriesScreen} />
+
+      <Drawer.Screen name="DriverOrdersBatches" component={DriverOrdersBatchesScreen} />
 
       <Drawer.Screen name="Zones" component={ZonesManagementScreen} />
 

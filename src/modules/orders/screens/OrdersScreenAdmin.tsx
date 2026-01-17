@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 // import {useSafeAreaInsets} from 'react-native-safe-area-context'; // Removed
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,6 +18,7 @@ import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
 import OrderCardAdminImproved from '../components/OrderCardAdminImproved';
 import OrderStatsCard from '../components/OrderStatsCard';
+import ExpandableKitchenOrderCard from '../components/ExpandableKitchenOrderCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
@@ -28,6 +30,7 @@ const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'Out for Delivery', value: 'OUT_FOR_DELIVERY' },
   { label: 'Delivered', value: 'DELIVERED' },
   { label: 'Cancelled', value: 'CANCELLED' },
+  { label: 'Failed', value: 'FAILED' },
 ];
 
 interface OrdersScreenAdminProps {
@@ -44,6 +47,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch order statistics
   const {
@@ -147,6 +151,75 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     }
   };
 
+  // Group orders by kitchen with search filtering
+  const kitchenOrdersGroups = useMemo(() => {
+    if (!ordersData?.orders) return [];
+
+    // Filter orders based on search query
+    let filteredOrders = ordersData.orders;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredOrders = ordersData.orders.filter((order) => {
+        const orderNumber = order.orderNumber?.toLowerCase() || '';
+        const customerName = typeof order.userId === 'string'
+          ? ''
+          : order.userId.name?.toLowerCase() || '';
+        const customerPhone = typeof order.userId === 'string'
+          ? ''
+          : order.userId.phone?.toLowerCase() || '';
+        const kitchenName = typeof order.kitchenId === 'string'
+          ? ''
+          : order.kitchenId.name?.toLowerCase() || '';
+        const kitchenCode = typeof order.kitchenId === 'string'
+          ? ''
+          : order.kitchenId.code?.toLowerCase() || '';
+
+        return (
+          orderNumber.includes(query) ||
+          customerName.includes(query) ||
+          customerPhone.includes(query) ||
+          kitchenName.includes(query) ||
+          kitchenCode.includes(query)
+        );
+      });
+    }
+
+    const groupedMap = new Map<string, {
+      kitchenId: string;
+      kitchenName: string;
+      kitchenCode: string;
+      orders: Order[];
+    }>();
+
+    filteredOrders.forEach((order) => {
+      const kitchenId = typeof order.kitchenId === 'string'
+        ? order.kitchenId
+        : order.kitchenId._id;
+      const kitchenName = typeof order.kitchenId === 'string'
+        ? 'Unknown Kitchen'
+        : order.kitchenId.name;
+      const kitchenCode = typeof order.kitchenId === 'string'
+        ? 'N/A'
+        : order.kitchenId.code;
+
+      if (!groupedMap.has(kitchenId)) {
+        groupedMap.set(kitchenId, {
+          kitchenId,
+          kitchenName,
+          kitchenCode,
+          orders: [],
+        });
+      }
+
+      groupedMap.get(kitchenId)!.orders.push(order);
+    });
+
+    // Convert map to array and sort by kitchen name
+    return Array.from(groupedMap.values()).sort((a, b) =>
+      a.kitchenName.localeCompare(b.kitchenName)
+    );
+  }, [ordersData, searchQuery]);
+
   const renderStatsSection = () => {
     if (statsLoading || !statsData) {
       return (
@@ -236,13 +309,21 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     );
   };
 
-  const renderOrderItem = ({ item }: { item: Order }) => {
+  const renderKitchenGroup = ({ item }: { item: {
+    kitchenId: string;
+    kitchenName: string;
+    kitchenCode: string;
+    orders: Order[];
+  } }) => {
     return (
-      <OrderCardAdminImproved
-        order={item}
-        onPress={() => handleOrderPress(item._id)}
+      <ExpandableKitchenOrderCard
+        kitchenId={item.kitchenId}
+        kitchenName={item.kitchenName}
+        kitchenCode={item.kitchenCode}
+        orders={item.orders}
+        onOrderPress={handleOrderPress}
         onStatusChange={handleStatusChange}
-        isUpdating={updatingOrderId === item._id}
+        updatingOrderId={updatingOrderId}
       />
     );
   };
@@ -290,14 +371,44 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
       <View style={styles.topSection}>
         {renderStatsSection()}
         {renderStatusFilters()}
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by order number, customer, kitchen..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={(text) => {
+              console.log('🔍 Search query changed:', text);
+              setSearchQuery(text);
+            }}
+            autoCorrect={false}
+            autoCapitalize="none"
+            autoComplete="off"
+            clearButtonMode="never"
+            underlineColorAndroid="transparent"
+            returnKeyType="search"
+            enablesReturnKeyAutomatically
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Icon name="close" size={20} color="#6b7280" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {/* Orders List Section */}
+      {/* Orders List Section - Grouped by Kitchen */}
       <View style={styles.ordersSection}>
         <FlatList
-          data={ordersData?.orders || []}
-          renderItem={renderOrderItem}
-          keyExtractor={(item) => item._id}
+          data={kitchenOrdersGroups}
+          renderItem={renderKitchenGroup}
+          keyExtractor={(item) => item.kitchenId}
           refreshControl={
             <RefreshControl
               refreshing={ordersLoading && !isFetching}
@@ -462,6 +573,36 @@ const styles = StyleSheet.create({
   loadingFooter: {
     paddingVertical: 24,
     alignItems: 'center',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#111827',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 4,
   },
 });
 

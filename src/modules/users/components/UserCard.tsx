@@ -6,7 +6,7 @@ import { RoleBadge } from './RoleBadge';
 import { StatusBadge } from './StatusBadge';
 
 interface UserCardProps {
-  user: User;
+  user: User & { availableVouchers?: number; hasActiveSubscription?: boolean };
   onPress: (user: User) => void;
 }
 
@@ -26,6 +26,16 @@ const spacing = {
 };
 
 export const UserCard: React.FC<UserCardProps> = ({ user, onPress }) => {
+  // Debug logging for customer vouchers
+  if (user.role === 'CUSTOMER') {
+    console.log(`🎫 UserCard rendering customer: ${user.name}`, {
+      hasActiveSubscription: user.hasActiveSubscription,
+      availableVouchers: user.availableVouchers,
+      willShowSubscriptionBadge: user.hasActiveSubscription,
+      willShowVoucherBadge: (user.availableVouchers ?? 0) > 0,
+    });
+  }
+
   const formatLastLogin = (lastLoginAt?: string) => {
     if (!lastLoginAt) return 'Never';
 
@@ -77,11 +87,25 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onPress }) => {
         </View>
         <View style={styles.badges}>
           <RoleBadge role={user.role} size="small" />
+          {user.role === 'CUSTOMER' && user.hasActiveSubscription && (
+            <View style={styles.subscriptionBadge}>
+              <MaterialIcons name="verified" size={16} color="#10b981" />
+            </View>
+          )}
         </View>
       </View>
 
+      {/* Voucher Info for Customers */}
+      {user.role === 'CUSTOMER' && (
+        <View style={styles.voucherSection}>
+          <MaterialIcons name="confirmation-number" size={16} color="#6b7280" />
+          <Text style={styles.voucherLabel}>Vouchers:</Text>
+          <Text style={styles.voucherValue}>{user.availableVouchers ?? 0}</Text>
+        </View>
+      )}
+
       {kitchenName && (
-        <View style={styles.kitchenInfo}>
+        <View style={[styles.kitchenInfo, styles.withBorderTop]}>
           <MaterialIcons name="restaurant" size={14} color={colors.gray} />
           <Text style={styles.kitchenText} numberOfLines={1}>
             {kitchenName}
@@ -90,7 +114,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onPress }) => {
       )}
 
       {user.role === 'ADMIN' && user.username && (
-        <View style={styles.kitchenInfo}>
+        <View style={[styles.kitchenInfo, styles.withBorderTop]}>
           <MaterialIcons name="account-circle" size={14} color={colors.gray} />
           <Text style={styles.kitchenText}>@{user.username}</Text>
         </View>
@@ -163,13 +187,57 @@ const styles = StyleSheet.create({
     color: colors.gray,
   },
   badges: {
+    flexDirection: 'column',
     gap: spacing.xs,
+    alignItems: 'flex-end',
+  },
+  subscriptionBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f0fdf4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  voucherBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs / 2,
+    paddingHorizontal: spacing.sm - 2,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: 10,
+    backgroundColor: '#4ECDC4',
+    minWidth: 24,
+    justifyContent: 'center',
+  },
+  voucherBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  voucherSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.xs,
+  },
+  voucherLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.gray,
+  },
+  voucherValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4ECDC4',
   },
   kitchenInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
     marginBottom: spacing.sm,
+  },
+  withBorderTop: {
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -184,8 +252,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   footerLeft: {
     flexDirection: 'row',

@@ -14,6 +14,7 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
+import { vouchersService } from '../../../services/vouchers.service';
 import { User, UserRole, UserStatus } from '../../../types/api.types';
 import { UserCard } from '../components/UserCard';
 
@@ -49,7 +50,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   onCreateUserPress,
 }) => {
   const insets = useSafeAreaInsets();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<(User & { availableVouchers?: number; hasActiveSubscription?: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
     drivers: 0,
     admins: 0,
   });
+  const [customersData, setCustomersData] = useState<Map<string, { availableVouchers: number; hasActiveSubscription: boolean }>>(new Map());
 
   const fetchUsers = async (showRefresh = false) => {
     try {
@@ -88,6 +90,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
       console.log('Params:', JSON.stringify(params, null, 2));
       console.log('====================================');
 
+      // Fetch users from admin endpoint
       const response = await adminUsersService.getUsers(params);
 
       console.log('========== USERS RESPONSE ==========');
@@ -97,7 +100,67 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
       console.log('Counts:', response?.counts);
       console.log('====================================');
 
-      setUsers(response?.users || []);
+      // Fetch voucher balances for customers (only if we have customers)
+      const customerUsers = response?.users?.filter(u => u.role === 'CUSTOMER') || [];
+      let customerMap = new Map<string, { availableVouchers: number; hasActiveSubscription: boolean }>();
+
+      if (customerUsers.length > 0) {
+        try {
+          console.log('========== FETCHING VOUCHER BALANCES ==========');
+          console.log('Customer IDs:', customerUsers.map(u => u._id));
+          console.log('===============================================');
+
+          const customerIds = customerUsers.map(u => u._id);
+          const voucherBalances = await vouchersService.getVoucherBalancesForUsers(customerIds);
+
+          voucherBalances.forEach((balance, userId) => {
+            customerMap.set(userId, {
+              availableVouchers: balance.available,
+              hasActiveSubscription: balance.available > 0, // Assuming active subscription if they have vouchers
+            });
+          });
+
+          setCustomersData(customerMap);
+          console.log('========== VOUCHER BALANCES FETCHED ==========');
+          console.log('Voucher data map size:', customerMap.size);
+          Array.from(customerMap.entries()).forEach(([userId, data]) => {
+            const user = customerUsers.find(u => u._id === userId);
+            console.log(`  ${user?.name}: ${data.availableVouchers} vouchers`);
+          });
+          console.log('==============================================');
+        } catch (voucherErr) {
+          console.log('Failed to fetch voucher balances:', voucherErr);
+          // Continue without voucher data
+        }
+      }
+
+      // Merge user data with customer data
+      const usersWithVouchers = response?.users?.map(user => {
+        if (user.role === 'CUSTOMER') {
+          if (customerMap.has(user._id)) {
+            const customerInfo = customerMap.get(user._id)!;
+            console.log(`✅ Merging customer ${user.name} with vouchers:`, customerInfo.availableVouchers);
+            return {
+              ...user,
+              availableVouchers: customerInfo.availableVouchers,
+              hasActiveSubscription: customerInfo.hasActiveSubscription,
+            };
+          } else {
+            console.log(`⚠️  Customer ${user.name} not found in customer map`);
+          }
+        }
+        return user;
+      }) || [];
+
+      console.log('========== USERS WITH VOUCHERS ==========');
+      console.log('Total users:', usersWithVouchers.length);
+      console.log('Customers with vouchers:', usersWithVouchers.filter(u => u.role === 'CUSTOMER' && u.availableVouchers).length);
+      usersWithVouchers.filter(u => u.role === 'CUSTOMER' && u.availableVouchers).forEach(u => {
+        console.log(`  - ${u.name}: ${u.availableVouchers} vouchers`);
+      });
+      console.log('=========================================');
+
+      setUsers(usersWithVouchers);
 
       if (response?.counts) {
         setTotalCounts({

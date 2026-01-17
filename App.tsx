@@ -15,7 +15,11 @@ import { BatchManagementLandingScreen } from './src/modules/kitchens/screens';
 import { UsersManagementScreen } from './src/modules/users/screens/UsersManagementScreen';
 import { UserDetailAdminScreen } from './src/modules/users/screens/UserDetailAdminScreen';
 import { CreateUserModal } from './src/modules/users/components/CreateUserModal';
-import { DriversManagementScreen } from './src/modules/drivers/screens/DriversManagementScreen';
+import { DriversManagementScreen, DriverProfileManagementScreen, DriverOrdersBatchesScreen } from './src/modules/drivers/screens';
+import { KitchenApprovalsScreen } from './src/modules/kitchens/screens/KitchenApprovalsScreen';
+import { KitchenPendingScreen } from './src/modules/kitchens/screens/KitchenPendingScreen';
+import { KitchenRejectionScreen } from './src/modules/kitchens/screens/KitchenRejectionScreen';
+import { KitchenDashboardScreen } from './src/modules/kitchens/screens/KitchenDashboardScreen';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -154,6 +158,24 @@ const MainContent: React.FC<{
 
     case 'DriverApprovals':
       return <DriversManagementScreen onMenuPress={onMenuPress} />;
+
+    case 'DriverProfileManagement':
+      return <DriverProfileManagementScreen onMenuPress={onMenuPress} />;
+
+    case 'DriverOrdersBatches':
+      return <DriverOrdersBatchesScreen onMenuPress={onMenuPress} />;
+
+    case 'KitchenApprovals':
+      return <KitchenApprovalsScreen onMenuPress={onMenuPress} />;
+
+    case 'KitchenPending':
+      return <KitchenPendingScreen onMenuPress={onMenuPress} />;
+
+    case 'KitchenRejected':
+      return <KitchenRejectionScreen onMenuPress={onMenuPress} />;
+
+    case 'KitchenDashboard':
+      return <KitchenDashboardScreen onMenuPress={onMenuPress} />;
 
     case 'BatchManagement':
       return <BatchManagementLandingScreen onMenuPress={onMenuPress} />;

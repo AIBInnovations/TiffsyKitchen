@@ -12,7 +12,11 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
-import { User, Kitchen, UserDetailsResponse } from '../../../types/api.types';
+import { User, Kitchen, UserDetailsResponse, Order } from '../../../types/api.types';
+import { Subscription } from '../../../types/subscription.types';
+import { subscriptionsService } from '../../../services/subscriptions.service';
+import { ordersService } from '../../../services/orders.service';
+import { addressService, Address } from '../../../services/address.service';
 import { RoleBadge } from '../components/RoleBadge';
 import { StatusBadge } from '../components/StatusBadge';
 import { SuspendUserModal } from '../components/SuspendUserModal';
@@ -49,6 +53,12 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
   onBack,
 }) => {
   const [userData, setUserData] = useState<UserDetailsResponse | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,12 +78,55 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
 
       const data = await adminUsersService.getUserById(userId);
       setUserData(data);
+
+      // For customers, fetch subscriptions, orders, and addresses
+      if (data.user.role === 'CUSTOMER') {
+        fetchSubscriptions();
+        fetchOrders();
+        fetchAddresses();
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load user details');
       Alert.alert('Error', err.message || 'Failed to load user details');
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const fetchSubscriptions = async () => {
+    try {
+      setLoadingSubscriptions(true);
+      const response = await subscriptionsService.getAllSubscriptions({ userId, limit: 10 });
+      setSubscriptions(response.subscriptions || []);
+    } catch (err: any) {
+      console.log('Failed to fetch subscriptions:', err);
+    } finally {
+      setLoadingSubscriptions(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const response = await ordersService.getOrdersByUser(userId, { limit: 10 });
+      setOrders(response.orders || []);
+    } catch (err: any) {
+      console.log('Failed to fetch orders:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      setLoadingAddresses(true);
+      const response = await addressService.getAllUserAddresses(userId);
+      setAddresses(response.addresses || []);
+    } catch (err: any) {
+      console.log('Failed to fetch addresses:', err);
+    } finally {
+      setLoadingAddresses(false);
     }
   };
 
@@ -207,7 +260,7 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
     );
   }
 
-  const { user, kitchen, stats, addresses } = userData;
+  const { user, kitchen, stats } = userData;
 
   return (
     <View style={styles.container}>
@@ -267,6 +320,15 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
             <RoleBadge role={user.role} size="medium" />
             <StatusBadge status={user.status} size="medium" />
           </View>
+
+          {/* Voucher Count for Customers */}
+          {user.role === 'CUSTOMER' && stats && (
+            <View style={styles.voucherInfoCard}>
+              <MaterialIcons name="confirmation-number" size={20} color="#4ECDC4" />
+              <Text style={styles.voucherInfoLabel}>Available Vouchers:</Text>
+              <Text style={styles.voucherInfoValue}>{stats.availableVouchers || 0}</Text>
+            </View>
+          )}
 
           {user.status === 'SUSPENDED' && user.suspensionReason && (
             <View style={styles.suspensionBanner}>
@@ -354,31 +416,181 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
           </View>
         )}
 
+        {/* Subscription Plans (for Customers) */}
+        {user.role === 'CUSTOMER' && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="card-membership" size={20} color={colors.primary} />
+              <Text style={styles.sectionTitle}>Subscriptions</Text>
+            </View>
+            {loadingSubscriptions ? (
+              <View style={styles.loadingSection}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.loadingText}>Loading subscriptions...</Text>
+              </View>
+            ) : subscriptions.length > 0 ? (
+              subscriptions.map(subscription => (
+                <View key={subscription._id} style={styles.subscriptionCard}>
+                  <View style={styles.subscriptionHeader}>
+                    <Text style={styles.subscriptionPlanName}>{subscription.planId.name}</Text>
+                    <View
+                      style={[
+                        styles.subscriptionStatusBadge,
+                        subscription.status === 'ACTIVE' && styles.subscriptionStatusActive,
+                        subscription.status === 'EXPIRED' && styles.subscriptionStatusExpired,
+                        subscription.status === 'CANCELLED' && styles.subscriptionStatusCancelled,
+                      ]}
+                    >
+                      <Text style={styles.subscriptionStatusText}>{subscription.status}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.subscriptionMeta}>
+                    <View style={styles.subscriptionMetaRow}>
+                      <MaterialIcons name="calendar-today" size={14} color={colors.gray} />
+                      <Text style={styles.subscriptionMetaText}>
+                        {subscription.planId.durationDays} days
+                      </Text>
+                    </View>
+                    <View style={styles.subscriptionMetaRow}>
+                      <MaterialIcons name="confirmation-number" size={14} color={colors.gray} />
+                      <Text style={styles.subscriptionMetaText}>
+                        {subscription.vouchersRemaining}/{subscription.vouchersIssued} vouchers
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.subscriptionDates}>
+                    <Text style={styles.subscriptionDateText}>
+                      Purchased: {new Date(subscription.purchasedAt).toLocaleDateString('en-IN')}
+                    </Text>
+                    <Text style={styles.subscriptionDateText}>
+                      Expires: {new Date(subscription.expiresAt).toLocaleDateString('en-IN')}
+                    </Text>
+                  </View>
+                  <View style={styles.subscriptionAmount}>
+                    <Text style={styles.subscriptionAmountLabel}>Amount Paid:</Text>
+                    <Text style={styles.subscriptionAmountValue}>₹{subscription.amountPaid}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noDataText}>No subscriptions found</Text>
+            )}
+          </View>
+        )}
+
         {/* Addresses (for Customers) */}
-        {user.role === 'CUSTOMER' && addresses && addresses.length > 0 && (
+        {user.role === 'CUSTOMER' && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons name="location-on" size={20} color={colors.primary} />
               <Text style={styles.sectionTitle}>Saved Addresses</Text>
             </View>
-            {addresses.map(address => (
-              <View key={address._id} style={styles.addressCard}>
-                <View style={styles.addressHeader}>
-                  <Text style={styles.addressLabel}>{address.label}</Text>
-                  {address.isDefault && (
-                    <View style={styles.defaultBadge}>
-                      <Text style={styles.defaultText}>Default</Text>
+            {loadingAddresses ? (
+              <View style={styles.loadingSection}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.loadingText}>Loading addresses...</Text>
+              </View>
+            ) : addresses.length > 0 ? (
+              addresses.map(address => (
+                <View key={address._id} style={styles.addressCard}>
+                  <View style={styles.addressHeader}>
+                    <Text style={styles.addressLabel}>{address.label}</Text>
+                    {address.isDefault && (
+                      <View style={styles.defaultBadge}>
+                        <Text style={styles.defaultText}>Default</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.addressText}>
+                    {address.addressLine1}
+                    {address.addressLine2 && `, ${address.addressLine2}`}
+                  </Text>
+                  <Text style={styles.addressText}>
+                    {address.locality}, {address.city}
+                  </Text>
+                  <Text style={styles.addressText}>
+                    {address.state} - {address.pincode}
+                  </Text>
+                  {address.landmark && (
+                    <View style={styles.addressLandmark}>
+                      <MaterialIcons name="place" size={14} color={colors.gray} />
+                      <Text style={styles.addressLandmarkText}>{address.landmark}</Text>
+                    </View>
+                  )}
+                  {address.zoneId && (
+                    <View style={styles.addressZone}>
+                      <MaterialIcons name="location-city" size={14} color={colors.primary} />
+                      <Text style={styles.addressZoneText}>{address.zoneId.name}</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.addressText}>
-                  {address.addressLine1}, {address.locality}
-                </Text>
-                <Text style={styles.addressText}>
-                  {address.city}, {address.pincode}
-                </Text>
+              ))
+            ) : (
+              <Text style={styles.noDataText}>No addresses found</Text>
+            )}
+          </View>
+        )}
+
+        {/* Orders (for Customers) */}
+        {user.role === 'CUSTOMER' && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons name="shopping-bag" size={20} color={colors.primary} />
+              <Text style={styles.sectionTitle}>Recent Orders</Text>
+            </View>
+            {loadingOrders ? (
+              <View style={styles.loadingSection}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.loadingText}>Loading orders...</Text>
               </View>
-            ))}
+            ) : orders.length > 0 ? (
+              orders.map(order => (
+                <View key={order._id} style={styles.orderCard}>
+                  <View style={styles.orderHeader}>
+                    <Text style={styles.orderNumber}>#{order.orderNumber}</Text>
+                    <View
+                      style={[
+                        styles.orderStatusBadge,
+                        order.status === 'DELIVERED' && styles.orderStatusDelivered,
+                        order.status === 'CANCELLED' && styles.orderStatusCancelled,
+                        order.status === 'REJECTED' && styles.orderStatusRejected,
+                        order.status === 'FAILED' && styles.orderStatusFailed,
+                      ]}
+                    >
+                      <Text style={styles.orderStatusText}>{order.status}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.orderMeta}>
+                    <MaterialIcons name="restaurant" size={14} color={colors.gray} />
+                    <Text style={styles.orderMetaText} numberOfLines={1}>
+                      {order.kitchenId.name}
+                    </Text>
+                  </View>
+                  {order.mealWindow && (
+                    <View style={styles.orderMeta}>
+                      <MaterialIcons
+                        name={order.mealWindow === 'LUNCH' ? 'wb-sunny' : 'nights-stay'}
+                        size={14}
+                        color={colors.gray}
+                      />
+                      <Text style={styles.orderMetaText}>{order.mealWindow}</Text>
+                    </View>
+                  )}
+                  <View style={styles.orderFooter}>
+                    <Text style={styles.orderDate}>
+                      {new Date(order.placedAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </Text>
+                    <Text style={styles.orderAmount}>₹{order.grandTotal}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noDataText}>No orders found</Text>
+            )}
           </View>
         )}
 
@@ -644,6 +856,30 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
+  voucherInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    backgroundColor: '#f0fdfa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#99f6e4',
+    width: '100%',
+  },
+  voucherInfoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.gray,
+    flex: 1,
+  },
+  voucherInfoValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#4ECDC4',
+  },
   suspensionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -775,6 +1011,31 @@ const styles = StyleSheet.create({
     color: colors.gray,
     lineHeight: 18,
   },
+  addressLandmark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingTop: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  addressLandmarkText: {
+    fontSize: 12,
+    color: colors.gray,
+    fontStyle: 'italic',
+  },
+  addressZone: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs / 2,
+  },
+  addressZoneText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
+  },
   actionsSection: {
     backgroundColor: colors.white,
     borderRadius: 12,
@@ -829,5 +1090,165 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: '#991b1b',
+  },
+  loadingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.sm,
+  },
+  noDataText: {
+    fontSize: 14,
+    color: colors.gray,
+    textAlign: 'center',
+    paddingVertical: spacing.md,
+  },
+  subscriptionCard: {
+    padding: spacing.md,
+    backgroundColor: colors.lightGray,
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+  },
+  subscriptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  subscriptionPlanName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.black,
+    flex: 1,
+  },
+  subscriptionStatusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: 4,
+  },
+  subscriptionStatusActive: {
+    backgroundColor: '#dcfce7',
+  },
+  subscriptionStatusExpired: {
+    backgroundColor: '#fecaca',
+  },
+  subscriptionStatusCancelled: {
+    backgroundColor: '#e5e7eb',
+  },
+  subscriptionStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  subscriptionMeta: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  subscriptionMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  subscriptionMetaText: {
+    fontSize: 13,
+    color: colors.gray,
+  },
+  subscriptionDates: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  subscriptionDateText: {
+    fontSize: 12,
+    color: colors.gray,
+  },
+  subscriptionAmount: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  subscriptionAmountLabel: {
+    fontSize: 13,
+    color: colors.gray,
+  },
+  subscriptionAmountValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.black,
+  },
+  orderCard: {
+    padding: spacing.md,
+    backgroundColor: colors.lightGray,
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  orderNumber: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.black,
+  },
+  orderStatusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: 4,
+    backgroundColor: '#e5e7eb',
+  },
+  orderStatusDelivered: {
+    backgroundColor: '#dcfce7',
+  },
+  orderStatusCancelled: {
+    backgroundColor: '#fecaca',
+  },
+  orderStatusRejected: {
+    backgroundColor: '#fed7aa',
+  },
+  orderStatusFailed: {
+    backgroundColor: '#fecaca',
+  },
+  orderStatusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    color: colors.black,
+  },
+  orderMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  orderMetaText: {
+    fontSize: 13,
+    color: colors.gray,
+    flex: 1,
+  },
+  orderFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  orderDate: {
+    fontSize: 12,
+    color: colors.gray,
+  },
+  orderAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.black,
   },
 });

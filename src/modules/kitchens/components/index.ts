@@ -1,4 +1,8 @@
 export { KitchenCard } from './KitchenCard';
+export { PendingKitchenCard } from './PendingKitchenCard';
+export { KitchenDetailModal } from './KitchenDetailModal';
+export { ApproveKitchenDialog } from './ApproveKitchenDialog';
+export { RejectKitchenDialog } from './RejectKitchenDialog';
 export { KitchenFiltersComponent } from './KitchenFilters';
 export { ZonePickerModal } from './ZonePickerModal';
 export { KitchenFormModal } from './KitchenFormModal';

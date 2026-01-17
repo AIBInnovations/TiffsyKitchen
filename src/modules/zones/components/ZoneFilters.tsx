@@ -226,12 +226,26 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
         transparent
         animationType="slide"
         onRequestClose={() => setCityModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCityModalVisible(false)}>
+          <TouchableOpacity
+            style={styles.modalContent}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}>
+            {/* Drag Handle */}
+            <View style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
+            </View>
+
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Select City</Text>
-              <TouchableOpacity onPress={() => setCityModalVisible(false)}>
-                <Icon name="close" size={24} color={colors.textPrimary} />
+              <TouchableOpacity
+                onPress={() => setCityModalVisible(false)}
+                style={styles.closeButton}
+                activeOpacity={0.7}>
+                <Icon name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
@@ -246,14 +260,17 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
                 renderItem={({ item }) => {
                   // Handle both string and object formats
                   const cityName = typeof item === 'string' ? item : (item as any).city || 'Unknown';
+                  const isSelected = (cityName === 'All Cities' && !filters.city) || cityName === filters.city;
                   return (
                     <TouchableOpacity
-                      style={styles.cityItem}
-                      onPress={() => handleCityChange(cityName)}>
-                      <Text style={styles.cityItemText}>{cityName}</Text>
-                      {(cityName === 'All Cities' && !filters.city) ||
-                      cityName === filters.city ? (
-                        <Icon name="check" size={20} color={colors.primary} />
+                      style={[styles.cityItem, isSelected && styles.cityItemSelected]}
+                      onPress={() => handleCityChange(cityName)}
+                      activeOpacity={0.7}>
+                      <Text style={[styles.cityItemText, isSelected && styles.cityItemTextSelected]}>
+                        {cityName}
+                      </Text>
+                      {isSelected ? (
+                        <Icon name="check-circle" size={22} color={colors.primary} />
                       ) : null}
                     </TouchableOpacity>
                   );
@@ -261,8 +278,8 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
               />
             )}
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -403,27 +420,54 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.cardBg,
-    borderTopLeftRadius: spacing.borderRadiusLg,
-    borderTopRightRadius: spacing.borderRadiusLg,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  dragHandleContainer: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#d1d5db',
+    borderRadius: 2,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: colors.textPrimary,
+    fontWeight: '700',
+    color: '#111827',
+    letterSpacing: 0.3,
+  },
+  closeButton: {
+    padding: 4,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
   },
   loadingContainer: {
     padding: spacing.xxl,
@@ -433,14 +477,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#ffffff',
+  },
+  cityItemSelected: {
+    backgroundColor: '#fef3f2',
   },
   cityItemText: {
     fontSize: 16,
-    color: colors.textPrimary,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  cityItemTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   separator: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: '#f3f4f6',
+    marginHorizontal: 20,
   },
 });

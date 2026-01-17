@@ -122,11 +122,19 @@ export const UsersListScreen: React.FC<UsersListScreenProps> = ({
             <Text style={styles.customerEmail}>{item.email}</Text>
           )}
         </View>
-        {item.hasActiveSubscription && (
-          <View style={styles.subscriptionBadge}>
-            <MaterialIcons name="verified" size={20} color={colors.success} />
-          </View>
-        )}
+        <View style={styles.badgesContainer}>
+          {item.hasActiveSubscription && (
+            <View style={styles.subscriptionBadge}>
+              <MaterialIcons name="verified" size={20} color={colors.success} />
+            </View>
+          )}
+          {item.availableVouchers > 0 && (
+            <View style={styles.voucherBadge}>
+              <MaterialIcons name="confirmation-number" size={16} color={colors.white} />
+              <Text style={styles.voucherBadgeText}>{item.availableVouchers}</Text>
+            </View>
+          )}
+        </View>
       </View>
 
       <View style={styles.statsRow}>
@@ -200,7 +208,7 @@ export const UsersListScreen: React.FC<UsersListScreenProps> = ({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-            <MaterialIcons name="menu" size={24} color={colors.black} />
+            <MaterialIcons name="menu" size={24} color={colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Customers</Text>
           <View style={styles.placeholder} />
@@ -218,7 +226,7 @@ export const UsersListScreen: React.FC<UsersListScreenProps> = ({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-          <MaterialIcons name="menu" size={24} color={colors.black} />
+          <MaterialIcons name="menu" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Customers</Text>
         <View style={styles.placeholder} />
@@ -341,7 +349,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: '#F56B4C',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -351,7 +359,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.black,
+    color: colors.white,
   },
   placeholder: {
     width: 40,
@@ -471,6 +479,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.gray,
   },
+  badgesContainer: {
+    flexDirection: 'column',
+    gap: spacing.xs,
+  },
   subscriptionBadge: {
     width: 32,
     height: 32,
@@ -478,6 +490,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0fdf4',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  voucherBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs / 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 12,
+    backgroundColor: colors.secondary,
+    minWidth: 32,
+    justifyContent: 'center',
+  },
+  voucherBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.white,
   },
   statsRow: {
     flexDirection: 'row',

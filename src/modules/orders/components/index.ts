@@ -17,3 +17,4 @@ export { default as OrderCardAdminImproved } from './OrderCardAdminImproved';
 export { default as OrderTracking } from './OrderTracking';
 export { default as OrderStatusProgress } from './OrderStatusProgress';
 export { default as OrderStatusDropdown } from './OrderStatusDropdown';
+export { default as ExpandableKitchenOrderCard } from './ExpandableKitchenOrderCard';
