@@ -9,6 +9,7 @@ export type ScreenName =
   | 'MenuManagement'
   | 'Subscriptions'
   | 'Users'
+  | 'DriverApprovals'
   | 'Reports'
   | 'AuditLogs'
   | 'SystemConfig'

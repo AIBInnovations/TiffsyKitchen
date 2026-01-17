@@ -15,6 +15,7 @@ import { BatchManagementLandingScreen } from './src/modules/kitchens/screens';
 import { UsersManagementScreen } from './src/modules/users/screens/UsersManagementScreen';
 import { UserDetailAdminScreen } from './src/modules/users/screens/UserDetailAdminScreen';
 import { CreateUserModal } from './src/modules/users/components/CreateUserModal';
+import { DriversManagementScreen } from './src/modules/drivers/screens/DriversManagementScreen';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -150,6 +151,9 @@ const MainContent: React.FC<{
 
     case 'Subscriptions':
       return <SubscriptionsScreen onMenuPress={onMenuPress} />;
+
+    case 'DriverApprovals':
+      return <DriversManagementScreen onMenuPress={onMenuPress} />;
 
     case 'BatchManagement':
       return <BatchManagementLandingScreen onMenuPress={onMenuPress} />;

@@ -33,6 +33,7 @@ const menuItems: MenuItem[] = [
   { id: '6', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
   { id: '7', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
   { id: '8', label: 'Users', icon: 'people', screen: 'Users' },
+  { id: '9', label: 'Driver Approvals', icon: 'verified-user', screen: 'DriverApprovals' },
 ];
 
 interface SidebarProps {
