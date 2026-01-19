@@ -23,6 +23,7 @@ import { KitchenApprovalsScreen } from './src/modules/kitchens/screens/KitchenAp
 import { KitchenPendingScreen } from './src/modules/kitchens/screens/KitchenPendingScreen';
 import { KitchenRejectionScreen } from './src/modules/kitchens/screens/KitchenRejectionScreen';
 import { KitchenDashboardScreen } from './src/modules/kitchens/screens/KitchenDashboardScreen';
+import { KitchenProfileScreen } from './src/modules/kitchens/screens/KitchenProfileScreen';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
@@ -210,6 +211,9 @@ const MainContent: React.FC<{
 
     case 'KitchenDashboard':
       return <KitchenDashboardScreen onMenuPress={onMenuPress} />;
+
+    case 'KitchenProfile':
+      return <KitchenProfileScreen onMenuPress={onMenuPress} />;
 
     case 'BatchManagement':
       return <RoleBasedBatchesScreen onMenuPress={onMenuPress} />;

@@ -4,6 +4,7 @@ export { KitchenApprovalsScreen } from './KitchenApprovalsScreen';
 export { KitchenPendingScreen } from './KitchenPendingScreen';
 export { KitchenRejectionScreen } from './KitchenRejectionScreen';
 export { KitchenDashboardScreen } from './KitchenDashboardScreen';
+export { KitchenProfileScreen } from './KitchenProfileScreen';
 export { BatchManagementScreen } from './BatchManagementScreen';
 export { BatchManagementLandingScreen } from './BatchManagementLandingScreen';
 export { BatchHistoryScreen } from './BatchHistoryScreen';

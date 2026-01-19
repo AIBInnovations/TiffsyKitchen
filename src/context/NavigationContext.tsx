@@ -9,6 +9,7 @@ export type ScreenName =
   | 'KitchenPending'
   | 'KitchenRejected'
   | 'KitchenDashboard'
+  | 'KitchenProfile'
   | 'Zones'
   | 'MenuManagement'
   | 'Subscriptions'
