@@ -535,7 +535,7 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
 
         {/* Order Acceptance Status */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+          <View style={[styles.sectionHeader, { marginBottom: spacing.xs }]}>
             <Text style={styles.sectionTitle}>Order Acceptance</Text>
             {savingSection === 'orderAcceptance' ? (
               <ActivityIndicator size="small" color={colors.primary} />
