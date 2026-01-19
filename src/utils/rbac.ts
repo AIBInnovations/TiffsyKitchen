@@ -6,28 +6,7 @@
  */
 
 import { UserRole } from '../types/user';
-
-// Define available screens in the app
-export type ScreenName =
-  | 'Dashboard'
-  | 'Orders'
-  | 'OrdersList'
-  | 'KitchenOrders'
-  | 'Batches'
-  | 'MenuManagement' // Changed from 'Menu' to match NavigationContext
-  | 'Addons'
-  | 'KitchenProfile'
-  | 'Zones'
-  | 'Users'
-  | 'Subscriptions'
-  | 'Kitchens' // Changed from 'KitchenManagement' to match NavigationContext
-  | 'KitchenApprovals'
-  | 'DriverApprovals'
-  | 'DeliveryConfig'
-  | 'SystemConfig'
-  | 'CutoffTimes'
-  | 'Reports'
-  | 'BatchManagement'; // Added to match NavigationContext
+import { ScreenName } from '../context/NavigationContext';
 
 // Define menu items structure
 export interface MenuItem {
@@ -133,13 +112,6 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
   },
   {
     id: '14',
-    label: 'Cutoff Times',
-    icon: 'schedule',
-    screen: 'CutoffTimes',
-    roles: ['ADMIN'], // Admin only
-  },
-  {
-    id: '15',
     label: 'Reports',
     icon: 'assessment',
     screen: 'Reports',

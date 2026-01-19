@@ -17,12 +17,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
 import { Kitchen, Zone } from '../../../types/api.types';
-import { kitchenStaffService } from '../../../services/kitchen-staff.service';
+import kitchenService from '../../../services/kitchen.service';
 
 interface KitchenProfileScreenProps {
   onMenuPress: () => void;
@@ -31,12 +32,34 @@ interface KitchenProfileScreenProps {
 export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   onMenuPress,
 }) => {
+  const [kitchenId, setKitchenId] = React.useState<string | null>(null);
+
+  // Load kitchen ID from AsyncStorage
+  React.useEffect(() => {
+    const loadKitchenId = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsedData = JSON.parse(userData);
+          setKitchenId(parsedData.kitchenId);
+        }
+      } catch (error) {
+        console.error('Error loading kitchen ID:', error);
+      }
+    };
+    loadKitchenId();
+  }, []);
+
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
-    queryKey: ['myKitchenStatus'],
-    queryFn: () => kitchenStaffService.getMyKitchenStatus(),
+    queryKey: ['kitchenProfile', kitchenId],
+    queryFn: async () => {
+      if (!kitchenId) throw new Error('Kitchen ID not found');
+      return await kitchenService.getKitchenById(kitchenId);
+    },
+    enabled: !!kitchenId, // Only run query when kitchenId is available
   });
 
-  const kitchen = data?.data?.kitchen;
+  const kitchen = data?.kitchen;
 
   const getStatusColor = () => {
     if (!kitchen) return colors.textMuted;
