@@ -11,7 +11,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '../types/user';
 import OrdersManagementContainer from '../modules/orders/screens/OrdersManagementContainer';
-import { KitchenOrdersScreen } from '../modules/orders/screens/KitchenOrdersScreen';
+import KitchenOrdersScreen from '../modules/orders/screens/KitchenOrdersScreen';
 import { colors } from '../theme/colors';
 
 interface RoleBasedOrdersScreenProps {
