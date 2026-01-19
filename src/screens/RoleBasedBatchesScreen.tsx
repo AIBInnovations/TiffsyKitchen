@@ -3,14 +3,15 @@
  *
  * Routes users to the appropriate batches screen based on their role:
  * - ADMIN -> BatchManagementLandingScreen (all batches, system-wide)
- * - KITCHEN_STAFF -> Kitchen-specific batches (to be implemented)
+ * - KITCHEN_STAFF -> BatchManagementTab (kitchen-specific batches)
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserRole } from '../types/user';
 import { BatchManagementLandingScreen } from '../modules/kitchens/screens';
+import { BatchManagementTab } from '../modules/kitchen/components/BatchManagementTab';
 import { colors } from '../theme/colors';
 import { SafeAreaScreen } from '../components/common/SafeAreaScreen';
 import { Header } from '../components/common/Header';
@@ -21,27 +22,38 @@ interface RoleBasedBatchesScreenProps {
 
 export const RoleBasedBatchesScreen: React.FC<RoleBasedBatchesScreenProps> = (props) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [kitchenId, setKitchenId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUserRole = async () => {
+    const loadUserData = async () => {
       try {
         const role = await AsyncStorage.getItem('userRole');
+        const userData = await AsyncStorage.getItem('userData');
+
         console.log('========== ROLE-BASED BATCHES SCREEN ==========');
         console.log('User Role:', role);
-        console.log('===============================================');
 
         if (role) {
           setUserRole(role as UserRole);
         }
+
+        // Get kitchenId for Kitchen Staff
+        if (userData) {
+          const parsedUserData = JSON.parse(userData);
+          setKitchenId(parsedUserData.kitchenId);
+          console.log('Kitchen ID:', parsedUserData.kitchenId);
+        }
+
+        console.log('===============================================');
       } catch (error) {
-        console.error('Error loading user role:', error);
+        console.error('Error loading user data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserRole();
+    loadUserData();
   }, []);
 
   if (loading) {
@@ -58,21 +70,13 @@ export const RoleBasedBatchesScreen: React.FC<RoleBasedBatchesScreenProps> = (pr
     return <BatchManagementLandingScreen {...props} />;
   } else if (userRole === 'KITCHEN_STAFF') {
     console.log('Rendering Kitchen Batches Screen...');
-    // For now, show a placeholder - the Batches tab in KitchenDashboard handles this
     return (
       <SafeAreaScreen
         topBackgroundColor={colors.primary}
         bottomBackgroundColor={colors.background}
       >
         <Header title="Batches" onMenuPress={props.onMenuPress} />
-        <View style={styles.container}>
-          <Text style={styles.message}>
-            Kitchen batches are managed from the Kitchen Dashboard.
-          </Text>
-          <Text style={styles.submessage}>
-            Go to Dashboard → Batches tab to view and manage delivery batches for your kitchen.
-          </Text>
-        </View>
+        <BatchManagementTab kitchenId={kitchenId} />
       </SafeAreaScreen>
     );
   }
@@ -88,23 +92,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: colors.background,
-  },
-  message: {
-    fontSize: 16,
-    color: colors.gray700,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  submessage: {
-    fontSize: 14,
-    color: colors.gray500,
-    textAlign: 'center',
   },
 });
