@@ -104,7 +104,7 @@ class KitchenService {
   async getKitchenById(kitchenId: string): Promise<KitchenDetailsResponse> {
     try {
       const response = await apiService.get<ApiResponse<KitchenDetailsResponse>>(
-        `/api/kitchens/${kitchenId}`
+        `/api/kitchens/${kitchenId}?populate=zonesServed`
       );
       return response.data;
     } catch (error) {
