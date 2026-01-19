@@ -14,19 +14,20 @@ export type ScreenName =
   | 'OrdersList'
   | 'KitchenOrders'
   | 'Batches'
-  | 'Menu'
+  | 'MenuManagement' // Changed from 'Menu' to match NavigationContext
   | 'Addons'
   | 'KitchenProfile'
   | 'Zones'
   | 'Users'
   | 'Subscriptions'
-  | 'KitchenManagement'
+  | 'Kitchens' // Changed from 'KitchenManagement' to match NavigationContext
   | 'KitchenApprovals'
   | 'DriverApprovals'
   | 'DeliveryConfig'
   | 'SystemConfig'
   | 'CutoffTimes'
-  | 'Reports';
+  | 'Reports'
+  | 'BatchManagement'; // Added to match NavigationContext
 
 // Define menu items structure
 export interface MenuItem {
@@ -57,14 +58,14 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     id: '3',
     label: 'Batches',
     icon: 'local-shipping',
-    screen: 'Batches',
+    screen: 'BatchManagement',
     roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can view batches
   },
   {
     id: '4',
     label: 'Menu',
     icon: 'restaurant-menu',
-    screen: 'Menu',
+    screen: 'MenuManagement',
     roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can manage menu
   },
   {
@@ -99,7 +100,7 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     id: '9',
     label: 'Kitchen Management',
     icon: 'store',
-    screen: 'KitchenManagement',
+    screen: 'Kitchens',
     roles: ['ADMIN'], // Admin only
   },
   {
