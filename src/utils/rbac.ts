@@ -70,7 +70,7 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
   },
   {
     id: '8',
-    label: 'Subscriptions',
+    label: 'Plans',
     icon: 'credit-card',
     screen: 'Subscriptions',
     roles: ['ADMIN'], // Admin only
@@ -98,23 +98,16 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
   },
   {
     id: '12',
-    label: 'Delivery Config',
-    icon: 'settings',
-    screen: 'DeliveryConfig',
+    label: 'Driver Management',
+    icon: 'account-box',
+    screen: 'DriverProfileManagement',
     roles: ['ADMIN'], // Admin only
   },
   {
     id: '13',
-    label: 'System Config',
-    icon: 'settings-applications',
-    screen: 'SystemConfig',
-    roles: ['ADMIN'], // Admin only
-  },
-  {
-    id: '14',
-    label: 'Reports',
-    icon: 'assessment',
-    screen: 'Reports',
+    label: 'Driver Orders',
+    icon: 'local-shipping',
+    screen: 'DriverOrdersBatches',
     roles: ['ADMIN'], // Admin only
   },
 ];

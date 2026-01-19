@@ -91,7 +91,14 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
       console.log('Fetching plans with filters:', filters);
       const response = await getPlans(filters);
       console.log('Plans fetched:', response.plans.length);
-      setPlans(response.plans);
+
+      // Filter out archived plans when 'ALL' is selected
+      const filteredPlans = planStatusFilter === 'ALL'
+        ? response.plans.filter(plan => plan.status !== 'ARCHIVED')
+        : response.plans;
+
+      console.log('Filtered plans:', filteredPlans.length);
+      setPlans(filteredPlans);
     } catch (error: any) {
       console.error('Error fetching plans:', error);
       Alert.alert('Error', error.message || 'Failed to load plans');
@@ -397,43 +404,11 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
         )}
-        <Text style={styles.headerTitle}>Subscriptions</Text>
+        <Text style={styles.headerTitle}>Subscription Plans</Text>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'plans' && styles.tabActive]}
-          onPress={() => setActiveTab('plans')}
-        >
-          <Icon
-            name="inventory-2"
-            size={20}
-            color={activeTab === 'plans' ? PRIMARY_COLOR : '#9ca3af'}
-          />
-          <Text style={[styles.tabText, activeTab === 'plans' && styles.tabTextActive]}>
-            Plans
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'subscriptions' && styles.tabActive]}
-          onPress={() => setActiveTab('subscriptions')}
-        >
-          <Icon
-            name="card-membership"
-            size={20}
-            color={activeTab === 'subscriptions' ? PRIMARY_COLOR : '#9ca3af'}
-          />
-          <Text
-            style={[styles.tabText, activeTab === 'subscriptions' && styles.tabTextActive]}
-          >
-            Subscriptions
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Content */}
-      {activeTab === 'plans' ? renderPlansTab() : renderSubscriptionsTab()}
+      {/* Content - Plans Only */}
+      {renderPlansTab()}
 
       {/* Plan Form Modal */}
       <PlanFormModal

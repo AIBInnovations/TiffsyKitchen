@@ -25,7 +25,7 @@ export type UserRole = 'CUSTOMER' | 'KITCHEN_STAFF' | 'DRIVER' | 'ADMIN';
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 
 export type KitchenType = 'TIFFSY' | 'PARTNER';
-export type KitchenStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING_APPROVAL' | 'SUSPENDED';
+export type KitchenStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING_APPROVAL' | 'SUSPENDED' | 'DELETED';
 
 export type ZoneStatus = 'ACTIVE' | 'INACTIVE';
 

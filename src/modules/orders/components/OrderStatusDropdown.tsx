@@ -15,12 +15,14 @@ interface OrderStatusDropdownProps {
   currentStatus: OrderStatus;
   onStatusChange?: (newStatus: OrderStatus) => void;
   disabled?: boolean;
+  isKitchenMode?: boolean;
 }
 
 const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
   currentStatus,
   onStatusChange,
   disabled = false,
+  isKitchenMode = false,
 }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -37,6 +39,14 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
     'REJECTED',
     'FAILED',
   ];
+
+  // Filter statuses based on mode
+  const availableStatuses = isKitchenMode
+    ? allStatuses.filter(
+        status =>
+          !['PICKED_UP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'CANCELLED', 'ACCEPTED', 'REJECTED'].includes(status)
+      )
+    : allStatuses;
 
   const getStatusColor = (status: OrderStatus): string => {
     const colors: Record<OrderStatus, string> = {
@@ -190,7 +200,7 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
             </View>
 
             <ScrollView style={styles.statusList}>
-              {allStatuses.map(status => {
+              {availableStatuses.map(status => {
                 const isCurrent = status === currentStatus;
                 const isTerminal = ['CANCELLED', 'REJECTED', 'FAILED'].includes(
                   status,

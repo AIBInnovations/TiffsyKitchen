@@ -30,6 +30,7 @@ interface OrderDetailAdminScreenProps {
     };
   };
   navigation: any;
+  isKitchenMode?: boolean;
 }
 
 const getStatusColor = (status: OrderStatus): string => {
@@ -66,6 +67,7 @@ const safeFormatDate = (dateString: string | undefined | null): string => {
 const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   route,
   navigation,
+  isKitchenMode = false,
 }) => {
   const { orderId } = route.params;
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -335,6 +337,8 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
 
   const canCancelOrder = (order?: Order): boolean => {
     if (!order) return false;
+    // Kitchen staff cannot cancel orders, only admins can
+    if (isKitchenMode) return false;
     const cancellableStatuses: OrderStatus[] = [
       'PLACED',
       'ACCEPTED',
@@ -354,6 +358,17 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
 
   const canUpdateStatus = (order?: Order): boolean => {
     if (!order) return false;
+
+    // Kitchen mode: Only allow ACCEPTED → PREPARING and PREPARING → READY
+    if (isKitchenMode) {
+      const kitchenUpdatableStatuses: OrderStatus[] = [
+        'ACCEPTED',  // Can move to PREPARING
+        'PREPARING', // Can move to READY
+      ];
+      return kitchenUpdatableStatuses.includes(order.status);
+    }
+
+    // Admin mode: Allow more statuses
     const updatableStatuses: OrderStatus[] = [
       'ACCEPTED',
       'PREPARING',
@@ -364,6 +379,8 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
 
   const canUpdateDeliveryStatus = (order?: Order): boolean => {
     if (!order) return false;
+    // Kitchen staff cannot update delivery status
+    if (isKitchenMode) return false;
     const deliveryStatuses: OrderStatus[] = [
       'READY',
       'PICKED_UP',
@@ -712,16 +729,19 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
         )}
 
         {/* Quick Status Changer - Dropdown */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Status Change</Text>
-          <View style={styles.card}>
-            <OrderStatusDropdown
-              currentStatus={order.status}
-              onStatusChange={handleStatusChangeFromProgress}
-              disabled={updateStatusMutation.isPending || updateDeliveryStatusMutation.isPending}
-            />
+        {canUpdateStatus(order) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Quick Status Change</Text>
+            <View style={styles.card}>
+              <OrderStatusDropdown
+                currentStatus={order.status}
+                onStatusChange={handleStatusChangeFromProgress}
+                disabled={updateStatusMutation.isPending || updateDeliveryStatusMutation.isPending}
+                isKitchenMode={isKitchenMode}
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Status Timeline - History */}
         <View style={styles.section}>

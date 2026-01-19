@@ -82,10 +82,15 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
 
       const response = await kitchenService.getKitchens(params);
 
+      // Filter out deleted kitchens when 'ALL' status is selected
+      const filteredKitchens = filters.status === 'ALL'
+        ? response.kitchens.filter(kitchen => kitchen.status !== 'DELETED')
+        : response.kitchens;
+
       if (reset) {
-        setKitchens(response.kitchens);
+        setKitchens(filteredKitchens);
       } else {
-        setKitchens((prev) => [...prev, ...response.kitchens]);
+        setKitchens((prev) => [...prev, ...filteredKitchens]);
       }
 
       setTotalCount(response.pagination.total);

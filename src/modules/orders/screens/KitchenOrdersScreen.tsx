@@ -9,13 +9,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { format } from 'date-fns';
+import OrderCardKitchen from '../components/OrderCardKitchen';
+import OrderDetailAdminScreen from './OrderDetailAdminScreen';
+import { AcceptOrderModal } from '../components/AcceptOrderModal';
+import { RejectOrderModal } from '../components/RejectOrderModal';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
@@ -36,31 +41,20 @@ interface KitchenOrdersScreenProps {
   navigation?: any;
 }
 
-const getStatusColor = (status: OrderStatus): string => {
-  const colors: Record<OrderStatus, string> = {
-    PLACED: '#007AFF',
-    ACCEPTED: '#00C7BE',
-    REJECTED: '#FF3B30',
-    PREPARING: '#FFCC00',
-    READY: '#FF9500',
-    PICKED_UP: '#AF52DE',
-    OUT_FOR_DELIVERY: '#5856D6',
-    DELIVERED: '#34C759',
-    CANCELLED: '#FF3B30',
-    FAILED: '#8B0000',
-  };
-  return colors[status] || '#8E8E93';
-};
-
 const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   onMenuPress,
   navigation,
 }) => {
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [selectedMealWindow, setSelectedMealWindow] = useState<'ALL' | 'LUNCH' | 'DINNER'>('ALL');
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [page, setPage] = useState(1);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [pendingAcceptOrderId, setPendingAcceptOrderId] = useState<string | null>(null);
+  const [pendingRejectOrderId, setPendingRejectOrderId] = useState<string | null>(null);
 
   // Fetch kitchen orders
   const {
@@ -80,6 +74,78 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       }),
   });
 
+  // Update order status mutation (Kitchen-specific endpoint)
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
+      console.log('====================================');
+      console.log('🔄 KITCHEN STATUS UPDATE');
+      console.log('====================================');
+      console.log('Order ID:', orderId);
+      console.log('New Status:', status);
+      console.log('Using Kitchen Endpoint: /api/orders/:id/status');
+      console.log('====================================');
+
+      // Use the kitchen endpoint for status updates
+      return ordersService.updateOrderStatus(orderId, { status });
+    },
+    onMutate: ({ orderId }) => {
+      setUpdatingOrderId(orderId);
+    },
+    onSuccess: (updatedOrder, variables) => {
+      const newStatus = updatedOrder?.status || variables.status;
+      console.log('✅ Status updated successfully to:', newStatus);
+
+      // Invalidate and refetch queries
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+
+      Alert.alert('Success', `Order status updated to ${newStatus}`);
+      setUpdatingOrderId(null);
+    },
+    onError: (error: any, { orderId }) => {
+      console.log('❌ Status update failed:', error);
+
+      setUpdatingOrderId(null);
+      Alert.alert(
+        'Update Failed',
+        error?.response?.data?.error?.message || 'Failed to update order status',
+      );
+    },
+  });
+
+  // Accept order mutation
+  const acceptMutation = useMutation({
+    mutationFn: ({ orderId, estimatedPrepTime }: { orderId: string; estimatedPrepTime: number }) =>
+      ordersService.acceptOrder(orderId, estimatedPrepTime),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+      Alert.alert('Success', 'Order accepted successfully');
+      setPendingAcceptOrderId(null);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message || 'Failed to accept order. Please try again.',
+      );
+    },
+  });
+
+  // Reject order mutation
+  const rejectMutation = useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+      ordersService.rejectOrder(orderId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+      Alert.alert('Success', 'Order rejected successfully');
+      setPendingRejectOrderId(null);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Error',
+        error?.response?.data?.error?.message || 'Failed to reject order. Please try again.',
+      );
+    },
+  });
+
   const handleRefresh = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -95,9 +161,30 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   };
 
   const handleOrderPress = (orderId: string) => {
-    if (navigation) {
-      navigation.navigate('OrderDetail', { orderId });
+    console.log('🔍 ORDER CARD CLICKED - Opening order details for:', orderId);
+    setSelectedOrderId(orderId);
+  };
+
+  const handleBackFromOrderDetail = () => {
+    setSelectedOrderId(null);
+    // Refresh orders list
+    refetch();
+  };
+
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    // Handle ACCEPTED and REJECTED specially - they require modals with additional data
+    if (newStatus === 'ACCEPTED') {
+      setPendingAcceptOrderId(orderId);
+      return;
     }
+
+    if (newStatus === 'REJECTED') {
+      setPendingRejectOrderId(orderId);
+      return;
+    }
+
+    // For other status changes (PREPARING, READY), use regular update
+    updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
   const handleLoadMore = () => {
@@ -126,80 +213,12 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 
   const renderOrderItem = ({ item }: { item: Order }) => {
     return (
-      <TouchableOpacity
-        style={styles.orderCard}
-        onPress={() => handleOrderPress(item._id)}>
-        <View style={styles.orderCardHeader}>
-          <View style={styles.orderCardTop}>
-            <Text style={styles.orderNumber}>{item.orderNumber}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusColor(item.status) },
-              ]}>
-              <Text style={styles.statusText}>{item.status}</Text>
-            </View>
-          </View>
-          {item.mealWindow && (
-            <View style={styles.mealWindowBadge}>
-              <Text style={styles.mealWindowText}>
-                {item.mealWindow === 'LUNCH' ? '🍱 Lunch' : '🍽️ Dinner'}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Order Items */}
-        <View style={styles.itemsSection}>
-          <Text style={styles.itemsSectionTitle}>Items:</Text>
-          {item.items && item.items.length > 0 ? (
-            item.items.map((orderItem, index) => (
-              <View key={index} style={styles.itemRow}>
-                <Text style={styles.itemText}>
-                  {orderItem.quantity}x {orderItem.name}
-                </Text>
-                {orderItem.addons && orderItem.addons.length > 0 && (
-                  <View style={styles.addonsContainer}>
-                    {orderItem.addons.map((addon, addonIndex) => (
-                      <Text key={addonIndex} style={styles.addonText}>
-                        + {addon.quantity}x {addon.name}
-                      </Text>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noItemsText}>No items</Text>
-          )}
-        </View>
-
-        {/* Special Instructions */}
-        {item.specialInstructions && (
-          <View style={styles.instructionsSection}>
-            <Text style={styles.instructionLabel}>Special Instructions:</Text>
-            <Text style={styles.instructionText}>{item.specialInstructions}</Text>
-          </View>
-        )}
-
-        {/* Delivery Info */}
-        {item.deliveryAddress && (
-          <View style={styles.deliverySection}>
-            <Icon name="location-on" size={14} color="#8E8E93" />
-            <Text style={styles.deliveryText}>
-              {item.deliveryAddress.locality}, {item.deliveryAddress.pincode}
-            </Text>
-          </View>
-        )}
-
-        {/* Placed Time */}
-        <View style={styles.timeSection}>
-          <Icon name="access-time" size={14} color="#8E8E93" />
-          <Text style={styles.timeText}>
-            Placed: {item.placedAt ? format(new Date(item.placedAt), 'hh:mm a') : 'N/A'}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      <OrderCardKitchen
+        order={item}
+        onPress={() => handleOrderPress(item._id)}
+        onStatusChange={handleStatusChange}
+        isUpdating={updatingOrderId === item._id}
+      />
     );
   };
 
@@ -227,6 +246,17 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   };
 
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
+
+  // If an order is selected, show the order detail screen
+  if (selectedOrderId) {
+    return (
+      <OrderDetailAdminScreen
+        route={{ params: { orderId: selectedOrderId } }}
+        navigation={{ goBack: handleBackFromOrderDetail }}
+        isKitchenMode={true}
+      />
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -345,6 +375,40 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           ]}
         />
       </View>
+
+      {/* Accept Order Modal */}
+      {pendingAcceptOrderId && (
+        <AcceptOrderModal
+          visible={!!pendingAcceptOrderId}
+          orderNumber={
+            ordersData?.orders.find((o) => o._id === pendingAcceptOrderId)?.orderNumber || ''
+          }
+          onClose={() => setPendingAcceptOrderId(null)}
+          onAccept={async (prepTime) => {
+            await acceptMutation.mutateAsync({
+              orderId: pendingAcceptOrderId,
+              estimatedPrepTime: prepTime,
+            });
+          }}
+        />
+      )}
+
+      {/* Reject Order Modal */}
+      {pendingRejectOrderId && (
+        <RejectOrderModal
+          visible={!!pendingRejectOrderId}
+          orderNumber={
+            ordersData?.orders.find((o) => o._id === pendingRejectOrderId)?.orderNumber || ''
+          }
+          onClose={() => setPendingRejectOrderId(null)}
+          onReject={async (reason) => {
+            await rejectMutation.mutateAsync({
+              orderId: pendingRejectOrderId,
+              reason,
+            });
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -457,116 +521,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  orderCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  orderCardHeader: {
-    marginBottom: 12,
-  },
-  orderCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  orderNumber: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  mealWindowBadge: {
-    alignSelf: 'flex-start',
-  },
-  mealWindowText: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
-  itemsSection: {
-    marginBottom: 12,
-  },
-  itemsSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 6,
-  },
-  itemRow: {
-    marginBottom: 6,
-  },
-  itemText: {
-    fontSize: 14,
-    color: '#3C3C43',
-    fontWeight: '500',
-  },
-  addonsContainer: {
-    marginLeft: 12,
-    marginTop: 2,
-  },
-  addonText: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  noItemsText: {
-    fontSize: 13,
-    color: '#8E8E93',
-    fontStyle: 'italic',
-  },
-  instructionsSection: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#FFF9E6',
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FFCC00',
-  },
-  instructionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#CC9900',
-    marginBottom: 4,
-  },
-  instructionText: {
-    fontSize: 13,
-    color: '#3C3C43',
-    lineHeight: 18,
-  },
-  deliverySection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  deliveryText: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
-  timeSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  timeText: {
-    fontSize: 13,
-    color: '#6b7280',
   },
   emptyState: {
     alignItems: 'center',

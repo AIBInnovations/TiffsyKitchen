@@ -1,4 +1,5 @@
 import { apiService } from './api.enhanced.service';
+import { authService } from './auth.service';
 
 /**
  * Order & Batch Management Service
@@ -68,10 +69,8 @@ const handleApiError = (error: any, defaultMessage: string) => {
 
   // Check if session expired
   if (error?.requiresReauth) {
-    // Import and clear admin data
-    import('./auth.service').then(({ authService }) => {
-      authService.clearAdminData();
-    });
+    // Clear admin data on session expiration
+    authService.clearAdminData();
     throw new Error('Your session has expired. Please log in again.');
   }
 

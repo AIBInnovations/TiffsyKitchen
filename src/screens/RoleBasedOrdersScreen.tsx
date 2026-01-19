@@ -16,6 +16,7 @@ import { colors } from '../theme/colors';
 
 interface RoleBasedOrdersScreenProps {
   onMenuPress: () => void;
+  navigation?: any;
 }
 
 export const RoleBasedOrdersScreen: React.FC<RoleBasedOrdersScreenProps> = (props) => {

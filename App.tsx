@@ -153,7 +153,7 @@ const MainContent: React.FC<{
 
     case 'Kitchens':
       return (
-        <PermissionGuard requiredRoles={['ADMIN']} screenName="KitchenManagement" onMenuPress={onMenuPress}>
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="Kitchens" onMenuPress={onMenuPress}>
           <KitchensManagementScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );

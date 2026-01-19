@@ -4,19 +4,23 @@
  * Side menu navigation for main app sections
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerParamList } from './types';
 import DashboardScreen from '../screens/admin/DashboardScreen.enhanced';
 import OrdersNavigator from './OrdersNavigator';
+import KitchenNavigator from './KitchenNavigator';
 import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen } from '../modules/kitchens/screens';
 import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
 import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
 import { DriversManagementScreen } from '../modules/drivers/screens/DriversManagementScreen';
 import { DriverDeliveriesScreen, DriverOrdersBatchesScreen } from '../modules/drivers/screens';
+import { UserRole } from '../types/user';
+import { getMenuItemsForRole, MenuItem } from '../utils/rbac';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const Stack = createStackNavigator();
@@ -39,32 +43,76 @@ function KitchensNavigator() {
 
 /**
  * Custom Drawer Content
- * Displays menu items with icons
+ * Displays menu items with icons - filtered by user role
  */
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { navigation, state } = props;
   const currentRoute = state.routeNames[state.index];
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [menuItems, setMenuItems] = useState<Array<{name: string; icon: string; route: string}>>([]);
 
-  const menuItems = [
-    { name: 'Dashboard', icon: 'dashboard', route: 'Dashboard' },
-    { name: 'Orders', icon: 'receipt-long', route: 'Orders' },
-    { name: 'Batch Management (Admin)', icon: 'inventory', route: 'BatchManagement' },
-    { name: 'My Deliveries (Driver)', icon: 'local-shipping', route: 'DriverDeliveries' },
-    { name: 'Users', icon: 'people', route: 'Users' },
-    { name: 'Driver Profile Management', icon: 'delivery-dining', route: 'Drivers' },
-    { name: 'Kitchens', icon: 'restaurant', route: 'Kitchens' },
-    { name: 'Zones', icon: 'location-on', route: 'Zones' },
-    { name: 'Subscriptions', icon: 'card-membership', route: 'Subscriptions' },
-    { name: 'Coupons', icon: 'local-offer', route: 'Coupons' },
-    { name: 'Settings', icon: 'settings', route: 'Settings' },
-  ];
+  // Load user role and filter menu items
+  useEffect(() => {
+    const loadUserRole = async () => {
+      try {
+        const role = await AsyncStorage.getItem('userRole');
+        console.log('🔍 [DrawerNavigator] Loaded user role:', role);
+        setUserRole(role as UserRole);
+
+        // Get menu items for this role from RBAC
+        const allowedMenuItems = getMenuItemsForRole(role as UserRole);
+        console.log('🔍 [DrawerNavigator] Allowed menu items:', allowedMenuItems);
+
+        // Map RBAC menu items to drawer menu items format
+        const drawerItems = allowedMenuItems.map((item: MenuItem) => ({
+          name: item.label,
+          icon: item.icon,
+          route: item.screen,
+        }));
+
+        setMenuItems(drawerItems);
+      } catch (error) {
+        console.error('❌ [DrawerNavigator] Error loading user role:', error);
+      }
+    };
+
+    loadUserRole();
+  }, []);
+
+  // Determine header based on role
+  const getHeaderConfig = () => {
+    switch (userRole) {
+      case 'ADMIN':
+        return {
+          icon: 'admin-panel-settings',
+          title: 'Admin Panel',
+        };
+      case 'KITCHEN_STAFF':
+        return {
+          icon: 'restaurant',
+          title: 'Kitchen Panel',
+        };
+      case 'DRIVER':
+        return {
+          icon: 'local-shipping',
+          title: 'Driver Panel',
+        };
+      default:
+        return {
+          icon: 'dashboard',
+          title: 'TiffsyKitchen',
+        };
+    }
+  };
+
+  const headerConfig = getHeaderConfig();
 
   return (
     <View style={styles.drawerContainer}>
       {/* Drawer Header */}
       <View style={styles.drawerHeader}>
-        <Icon name="admin-panel-settings" size={48} color="#ffffff" />
-        <Text style={styles.drawerTitle}>Admin Panel</Text>
+        <Icon name={headerConfig.icon} size={48} color="#ffffff" />
+        <Text style={styles.drawerTitle}>{headerConfig.title}</Text>
         <Text style={styles.drawerSubtitle}>TiffsyKitchen</Text>
       </View>
 
@@ -122,6 +170,8 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
       </Drawer.Screen>
 
       <Drawer.Screen name="Orders" component={OrdersNavigator} />
+
+      <Drawer.Screen name="KitchenOrders" component={KitchenNavigator} />
 
       {/* Placeholder screens - we'll implement these next */}
       <Drawer.Screen name="Users">

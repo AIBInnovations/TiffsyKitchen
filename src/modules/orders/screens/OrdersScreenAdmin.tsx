@@ -192,6 +192,11 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     }>();
 
     filteredOrders.forEach((order) => {
+      // Handle null or undefined kitchenId
+      if (!order.kitchenId) {
+        return; // Skip orders with no kitchen data
+      }
+
       const kitchenId = typeof order.kitchenId === 'string'
         ? order.kitchenId
         : order.kitchenId._id;

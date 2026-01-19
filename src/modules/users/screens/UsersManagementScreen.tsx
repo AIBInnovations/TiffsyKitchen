@@ -282,10 +282,10 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   if (loading && !refreshing) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
         <View style={[styles.header, {paddingTop: insets.top + 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-            <MaterialIcons name="menu" size={24} color={colors.black} />
+            <MaterialIcons name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Users</Text>
           <View style={styles.placeholder} />
@@ -302,11 +302,11 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       {/* Header */}
       <View style={[styles.header, {paddingTop: insets.top + 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-          <MaterialIcons name="menu" size={24} color={colors.black} />
+          <MaterialIcons name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Users</Text>
         {canAddUser && (
@@ -420,9 +420,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingBottom: 12,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: '#F56B4C',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   menuButton: {
     padding: spacing.sm,
@@ -430,7 +433,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.black,
+    color: '#ffffff',
   },
   addButton: {
     width: 40,
