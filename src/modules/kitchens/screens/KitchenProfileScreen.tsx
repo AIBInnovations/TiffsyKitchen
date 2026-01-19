@@ -14,6 +14,10 @@ import {
   TouchableOpacity,
   Image,
   RefreshControl,
+  TextInput,
+  Platform,
+  ToastAndroid,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
@@ -22,8 +26,30 @@ import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
-import { Kitchen, Zone } from '../../../types/api.types';
+import { Kitchen, Zone, OperatingHours } from '../../../types/api.types';
 import kitchenService from '../../../services/kitchen.service';
+
+// Form interfaces
+interface BasicInfoForm {
+  name: string;
+  description: string;
+  cuisineTypes: string; // Comma-separated
+}
+
+interface ContactForm {
+  contactPhone: string;
+  contactEmail: string;
+}
+
+interface OperatingHoursForm {
+  lunchStart: string;
+  lunchEnd: string;
+  dinnerStart: string;
+  dinnerEnd: string;
+  onDemandStart: string;
+  onDemandEnd: string;
+  onDemandAlwaysOpen: boolean;
+}
 
 interface KitchenProfileScreenProps {
   onMenuPress: () => void;
@@ -33,6 +59,16 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   onMenuPress,
 }) => {
   const [kitchenId, setKitchenId] = React.useState<string | null>(null);
+
+  // Edit state management
+  const [editingSection, setEditingSection] = React.useState<string | null>(null);
+  const [savingSection, setSavingSection] = React.useState<string | null>(null);
+
+  // Form state for each section
+  const [basicInfoForm, setBasicInfoForm] = React.useState<BasicInfoForm | null>(null);
+  const [contactForm, setContactForm] = React.useState<ContactForm | null>(null);
+  const [hoursForm, setHoursForm] = React.useState<OperatingHoursForm | null>(null);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   // Load kitchen ID from AsyncStorage
   React.useEffect(() => {
@@ -114,6 +150,261 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
       return words[0].substring(0, 2).toUpperCase();
     }
     return (words[0][0] + words[1][0]).toUpperCase();
+  };
+
+  // Validation functions
+  const validateBasicInfo = (data: BasicInfoForm): Record<string, string> => {
+    const validationErrors: Record<string, string> = {};
+
+    if (!data.name || data.name.trim().length < 3) {
+      validationErrors.name = 'Name must be at least 3 characters';
+    } else if (data.name.length > 100) {
+      validationErrors.name = 'Name must not exceed 100 characters';
+    }
+
+    if (data.description && data.description.length > 500) {
+      validationErrors.description = 'Description must not exceed 500 characters';
+    }
+
+    if (!data.cuisineTypes || data.cuisineTypes.trim().length === 0) {
+      validationErrors.cuisineTypes = 'At least one cuisine type is required';
+    }
+
+    return validationErrors;
+  };
+
+  const validateContact = (data: ContactForm): Record<string, string> => {
+    const validationErrors: Record<string, string> = {};
+
+    if (data.contactPhone) {
+      const phoneRegex = /^\d{10,15}$/;
+      const cleanPhone = data.contactPhone.replace(/\s/g, '');
+      if (!phoneRegex.test(cleanPhone)) {
+        validationErrors.contactPhone = 'Phone must be 10-15 digits';
+      }
+    }
+
+    if (data.contactEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.contactEmail)) {
+        validationErrors.contactEmail = 'Invalid email format';
+      } else if (data.contactEmail.length > 100) {
+        validationErrors.contactEmail = 'Email must not exceed 100 characters';
+      }
+    }
+
+    return validationErrors;
+  };
+
+  const validateOperatingHours = (data: OperatingHoursForm): Record<string, string> => {
+    const validationErrors: Record<string, string> = {};
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+    // Validate lunch times if provided
+    if (data.lunchStart || data.lunchEnd) {
+      if (!data.lunchStart) {
+        validationErrors.lunchStart = 'Lunch start time is required';
+      } else if (!timeRegex.test(data.lunchStart)) {
+        validationErrors.lunchStart = 'Invalid time format (HH:MM)';
+      }
+
+      if (!data.lunchEnd) {
+        validationErrors.lunchEnd = 'Lunch end time is required';
+      } else if (!timeRegex.test(data.lunchEnd)) {
+        validationErrors.lunchEnd = 'Invalid time format (HH:MM)';
+      }
+
+      if (data.lunchStart && data.lunchEnd && data.lunchStart >= data.lunchEnd) {
+        validationErrors.lunchEnd = 'End time must be after start time';
+      }
+    }
+
+    // Validate dinner times if provided
+    if (data.dinnerStart || data.dinnerEnd) {
+      if (!data.dinnerStart) {
+        validationErrors.dinnerStart = 'Dinner start time is required';
+      } else if (!timeRegex.test(data.dinnerStart)) {
+        validationErrors.dinnerStart = 'Invalid time format (HH:MM)';
+      }
+
+      if (!data.dinnerEnd) {
+        validationErrors.dinnerEnd = 'Dinner end time is required';
+      } else if (!timeRegex.test(data.dinnerEnd)) {
+        validationErrors.dinnerEnd = 'Invalid time format (HH:MM)';
+      }
+
+      if (data.dinnerStart && data.dinnerEnd && data.dinnerStart >= data.dinnerEnd) {
+        validationErrors.dinnerEnd = 'End time must be after start time';
+      }
+    }
+
+    // Validate on-demand times if not always open
+    if (!data.onDemandAlwaysOpen && (data.onDemandStart || data.onDemandEnd)) {
+      if (!data.onDemandStart) {
+        validationErrors.onDemandStart = 'On-demand start time is required';
+      } else if (!timeRegex.test(data.onDemandStart)) {
+        validationErrors.onDemandStart = 'Invalid time format (HH:MM)';
+      }
+
+      if (!data.onDemandEnd) {
+        validationErrors.onDemandEnd = 'On-demand end time is required';
+      } else if (!timeRegex.test(data.onDemandEnd)) {
+        validationErrors.onDemandEnd = 'Invalid time format (HH:MM)';
+      }
+
+      if (data.onDemandStart && data.onDemandEnd && data.onDemandStart >= data.onDemandEnd) {
+        validationErrors.onDemandEnd = 'End time must be after start time';
+      }
+    }
+
+    return validationErrors;
+  };
+
+  // Edit handlers
+  const handleEditSection = (sectionId: string) => {
+    if (!kitchen) return;
+
+    // Initialize form data based on section
+    switch (sectionId) {
+      case 'basicInfo':
+        setBasicInfoForm({
+          name: kitchen.name,
+          description: kitchen.description || '',
+          cuisineTypes: kitchen.cuisineTypes.join(', '),
+        });
+        break;
+      case 'contact':
+        setContactForm({
+          contactPhone: kitchen.contactPhone || '',
+          contactEmail: kitchen.contactEmail || '',
+        });
+        break;
+      case 'hours':
+        setHoursForm({
+          lunchStart: kitchen.operatingHours.lunch?.startTime || '',
+          lunchEnd: kitchen.operatingHours.lunch?.endTime || '',
+          dinnerStart: kitchen.operatingHours.dinner?.startTime || '',
+          dinnerEnd: kitchen.operatingHours.dinner?.endTime || '',
+          onDemandStart: kitchen.operatingHours.onDemand?.startTime || '',
+          onDemandEnd: kitchen.operatingHours.onDemand?.endTime || '',
+          onDemandAlwaysOpen: kitchen.operatingHours.onDemand?.isAlwaysOpen || false,
+        });
+        break;
+    }
+
+    setEditingSection(sectionId);
+    setErrors({});
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSection(null);
+    setBasicInfoForm(null);
+    setContactForm(null);
+    setHoursForm(null);
+    setErrors({});
+  };
+
+  const handleSaveSection = async (sectionId: string) => {
+    if (!kitchenId) return;
+
+    try {
+      setSavingSection(sectionId);
+
+      switch (sectionId) {
+        case 'basicInfo':
+          if (!basicInfoForm) return;
+          const basicErrors = validateBasicInfo(basicInfoForm);
+          if (Object.keys(basicErrors).length > 0) {
+            setErrors(basicErrors);
+            Alert.alert('Validation Error', 'Please fix the errors before saving');
+            setSavingSection(null);
+            return;
+          }
+
+          await kitchenService.updateKitchen(kitchenId, {
+            name: basicInfoForm.name.trim(),
+            description: basicInfoForm.description.trim(),
+            cuisineTypes: basicInfoForm.cuisineTypes.split(',').map(c => c.trim()).filter(c => c),
+          });
+          break;
+
+        case 'contact':
+          if (!contactForm) return;
+          const contactErrors = validateContact(contactForm);
+          if (Object.keys(contactErrors).length > 0) {
+            setErrors(contactErrors);
+            Alert.alert('Validation Error', 'Please fix the errors before saving');
+            setSavingSection(null);
+            return;
+          }
+
+          await kitchenService.updateKitchen(kitchenId, {
+            contactPhone: contactForm.contactPhone.trim(),
+            contactEmail: contactForm.contactEmail.trim(),
+          });
+          break;
+
+        case 'hours':
+          if (!hoursForm) return;
+          const hoursErrors = validateOperatingHours(hoursForm);
+          if (Object.keys(hoursErrors).length > 0) {
+            setErrors(hoursErrors);
+            Alert.alert('Validation Error', 'Please fix the errors before saving');
+            setSavingSection(null);
+            return;
+          }
+
+          const operatingHours: OperatingHours = {};
+          if (hoursForm.lunchStart && hoursForm.lunchEnd) {
+            operatingHours.lunch = {
+              startTime: hoursForm.lunchStart,
+              endTime: hoursForm.lunchEnd,
+            };
+          }
+          if (hoursForm.dinnerStart && hoursForm.dinnerEnd) {
+            operatingHours.dinner = {
+              startTime: hoursForm.dinnerStart,
+              endTime: hoursForm.dinnerEnd,
+            };
+          }
+          if (hoursForm.onDemandAlwaysOpen || (hoursForm.onDemandStart && hoursForm.onDemandEnd)) {
+            operatingHours.onDemand = {
+              startTime: hoursForm.onDemandStart,
+              endTime: hoursForm.onDemandEnd,
+              isAlwaysOpen: hoursForm.onDemandAlwaysOpen,
+            };
+          }
+
+          await kitchenService.updateKitchen(kitchenId, { operatingHours });
+          break;
+
+        case 'orderAcceptance':
+          await kitchenService.toggleAcceptingOrders(
+            kitchenId,
+            !kitchen?.isAcceptingOrders
+          );
+          break;
+      }
+
+      // Refresh data
+      await refetch();
+
+      // Exit edit mode
+      handleCancelEdit();
+
+      // Show success message
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Updated successfully', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Success', 'Updated successfully');
+      }
+
+    } catch (error) {
+      console.error('❌ [KitchenProfile] Error saving section:', error);
+      Alert.alert('Error', 'Failed to update. Please try again.');
+    } finally {
+      setSavingSection(null);
+    }
   };
 
   if (isLoading) {
@@ -236,7 +527,20 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
 
         {/* Order Acceptance Status */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Acceptance</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Order Acceptance</Text>
+            <TouchableOpacity
+              onPress={() => handleSaveSection('orderAcceptance')}
+              disabled={savingSection === 'orderAcceptance'}
+              style={styles.toggleButton}
+            >
+              {savingSection === 'orderAcceptance' ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Icon name="swap-horizontal" size={20} color={colors.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
           <View style={styles.statusRow}>
             <Icon
               name={kitchen.isAcceptingOrders ? 'check-circle' : 'close-circle'}
@@ -258,21 +562,93 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
 
         {/* Basic Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
-          {kitchen.description && (
-            <View style={styles.infoRow}>
-              <Icon name="information" size={18} color={colors.textSecondary} />
-              <Text style={styles.infoText}>{kitchen.description}</Text>
-            </View>
-          )}
-          <View style={styles.infoRow}>
-            <Icon name="silverware-variant" size={18} color={colors.textSecondary} />
-            <Text style={styles.infoText}>
-              {kitchen.cuisineTypes.length > 0
-                ? kitchen.cuisineTypes.join(', ')
-                : 'No cuisine types specified'}
-            </Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Basic Information</Text>
+            {editingSection !== 'basicInfo' && (
+              <TouchableOpacity onPress={() => handleEditSection('basicInfo')}>
+                <Icon name="pencil" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            )}
           </View>
+
+          {editingSection === 'basicInfo' ? (
+            <>
+              <View style={styles.form}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Kitchen Name *</Text>
+                  <TextInput
+                    style={[styles.input, errors.name && styles.inputError]}
+                    value={basicInfoForm?.name}
+                    onChangeText={(text) => setBasicInfoForm(prev => prev ? {...prev, name: text} : null)}
+                    placeholder="Enter kitchen name"
+                  />
+                  {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Description</Text>
+                  <TextInput
+                    style={[styles.input, styles.multilineInput, errors.description && styles.inputError]}
+                    value={basicInfoForm?.description}
+                    onChangeText={(text) => setBasicInfoForm(prev => prev ? {...prev, description: text} : null)}
+                    placeholder="Enter description"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                  {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Cuisine Types (comma-separated) *</Text>
+                  <TextInput
+                    style={[styles.input, errors.cuisineTypes && styles.inputError]}
+                    value={basicInfoForm?.cuisineTypes}
+                    onChangeText={(text) => setBasicInfoForm(prev => prev ? {...prev, cuisineTypes: text} : null)}
+                    placeholder="e.g. Italian, Chinese, Indian"
+                  />
+                  {errors.cuisineTypes && <Text style={styles.errorText}>{errors.cuisineTypes}</Text>}
+                </View>
+              </View>
+
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  onPress={handleCancelEdit}
+                  style={[styles.button, styles.cancelButton]}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSaveSection('basicInfo')}
+                  style={[styles.button, styles.saveButton]}
+                  disabled={savingSection === 'basicInfo'}
+                >
+                  {savingSection === 'basicInfo' ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {kitchen.description && (
+                <View style={styles.infoRow}>
+                  <Icon name="information" size={18} color={colors.textSecondary} />
+                  <Text style={styles.infoText}>{kitchen.description}</Text>
+                </View>
+              )}
+              <View style={styles.infoRow}>
+                <Icon name="silverware-variant" size={18} color={colors.textSecondary} />
+                <Text style={styles.infoText}>
+                  {kitchen.cuisineTypes.length > 0
+                    ? kitchen.cuisineTypes.join(', ')
+                    : 'No cuisine types specified'}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Address */}
@@ -327,65 +703,269 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
 
         {/* Operating Hours */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Operating Hours</Text>
-          {kitchen.operatingHours.lunch && (
-            <View style={styles.hoursRow}>
-              <Icon name="food" size={18} color={colors.textSecondary} />
-              <Text style={styles.hoursLabel}>Lunch:</Text>
-              <Text style={styles.hoursValue}>
-                {kitchen.operatingHours.lunch.startTime} -{' '}
-                {kitchen.operatingHours.lunch.endTime}
-              </Text>
-            </View>
-          )}
-          {kitchen.operatingHours.dinner && (
-            <View style={styles.hoursRow}>
-              <Icon name="food-variant" size={18} color={colors.textSecondary} />
-              <Text style={styles.hoursLabel}>Dinner:</Text>
-              <Text style={styles.hoursValue}>
-                {kitchen.operatingHours.dinner.startTime} -{' '}
-                {kitchen.operatingHours.dinner.endTime}
-              </Text>
-            </View>
-          )}
-          {kitchen.operatingHours.onDemand && (
-            <View style={styles.hoursRow}>
-              <Icon name="clock-fast" size={18} color={colors.textSecondary} />
-              <Text style={styles.hoursLabel}>On-Demand:</Text>
-              {kitchen.operatingHours.onDemand.isAlwaysOpen ? (
-                <Text style={styles.hoursValue}>Always Open</Text>
-              ) : (
-                <Text style={styles.hoursValue}>
-                  {kitchen.operatingHours.onDemand.startTime} -{' '}
-                  {kitchen.operatingHours.onDemand.endTime}
-                </Text>
-              )}
-            </View>
-          )}
-          {!kitchen.operatingHours.lunch &&
-            !kitchen.operatingHours.dinner &&
-            !kitchen.operatingHours.onDemand && (
-              <Text style={styles.emptyText}>No operating hours configured</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Operating Hours</Text>
+            {editingSection !== 'hours' && (
+              <TouchableOpacity onPress={() => handleEditSection('hours')}>
+                <Icon name="pencil" size={20} color={colors.primary} />
+              </TouchableOpacity>
             )}
+          </View>
+
+          {editingSection === 'hours' ? (
+            <>
+              <View style={styles.form}>
+                {/* Lunch Hours */}
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionTitle}>Lunch Hours</Text>
+                  <View style={styles.timeRow}>
+                    <View style={styles.timeInputContainer}>
+                      <Text style={styles.inputLabel}>Start Time</Text>
+                      <TextInput
+                        style={[styles.input, errors.lunchStart && styles.inputError]}
+                        value={hoursForm?.lunchStart}
+                        onChangeText={(text) => setHoursForm(prev => prev ? {...prev, lunchStart: text} : null)}
+                        placeholder="HH:MM"
+                        keyboardType="numeric"
+                        maxLength={5}
+                      />
+                      {errors.lunchStart && <Text style={styles.errorText}>{errors.lunchStart}</Text>}
+                    </View>
+                    <View style={styles.timeInputContainer}>
+                      <Text style={styles.inputLabel}>End Time</Text>
+                      <TextInput
+                        style={[styles.input, errors.lunchEnd && styles.inputError]}
+                        value={hoursForm?.lunchEnd}
+                        onChangeText={(text) => setHoursForm(prev => prev ? {...prev, lunchEnd: text} : null)}
+                        placeholder="HH:MM"
+                        keyboardType="numeric"
+                        maxLength={5}
+                      />
+                      {errors.lunchEnd && <Text style={styles.errorText}>{errors.lunchEnd}</Text>}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Dinner Hours */}
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionTitle}>Dinner Hours</Text>
+                  <View style={styles.timeRow}>
+                    <View style={styles.timeInputContainer}>
+                      <Text style={styles.inputLabel}>Start Time</Text>
+                      <TextInput
+                        style={[styles.input, errors.dinnerStart && styles.inputError]}
+                        value={hoursForm?.dinnerStart}
+                        onChangeText={(text) => setHoursForm(prev => prev ? {...prev, dinnerStart: text} : null)}
+                        placeholder="HH:MM"
+                        keyboardType="numeric"
+                        maxLength={5}
+                      />
+                      {errors.dinnerStart && <Text style={styles.errorText}>{errors.dinnerStart}</Text>}
+                    </View>
+                    <View style={styles.timeInputContainer}>
+                      <Text style={styles.inputLabel}>End Time</Text>
+                      <TextInput
+                        style={[styles.input, errors.dinnerEnd && styles.inputError]}
+                        value={hoursForm?.dinnerEnd}
+                        onChangeText={(text) => setHoursForm(prev => prev ? {...prev, dinnerEnd: text} : null)}
+                        placeholder="HH:MM"
+                        keyboardType="numeric"
+                        maxLength={5}
+                      />
+                      {errors.dinnerEnd && <Text style={styles.errorText}>{errors.dinnerEnd}</Text>}
+                    </View>
+                  </View>
+                </View>
+
+                {/* On-Demand Hours */}
+                <View style={styles.timeSection}>
+                  <Text style={styles.timeSectionTitle}>On-Demand Hours</Text>
+                  <TouchableOpacity
+                    style={styles.checkboxRow}
+                    onPress={() => setHoursForm(prev => prev ? {...prev, onDemandAlwaysOpen: !prev.onDemandAlwaysOpen} : null)}
+                  >
+                    <View style={[styles.checkbox, hoursForm?.onDemandAlwaysOpen && styles.checkboxChecked]}>
+                      {hoursForm?.onDemandAlwaysOpen && (
+                        <Icon name="check" size={16} color="#fff" />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxLabel}>Always Open</Text>
+                  </TouchableOpacity>
+
+                  {!hoursForm?.onDemandAlwaysOpen && (
+                    <View style={styles.timeRow}>
+                      <View style={styles.timeInputContainer}>
+                        <Text style={styles.inputLabel}>Start Time</Text>
+                        <TextInput
+                          style={[styles.input, errors.onDemandStart && styles.inputError]}
+                          value={hoursForm?.onDemandStart}
+                          onChangeText={(text) => setHoursForm(prev => prev ? {...prev, onDemandStart: text} : null)}
+                          placeholder="HH:MM"
+                          keyboardType="numeric"
+                          maxLength={5}
+                        />
+                        {errors.onDemandStart && <Text style={styles.errorText}>{errors.onDemandStart}</Text>}
+                      </View>
+                      <View style={styles.timeInputContainer}>
+                        <Text style={styles.inputLabel}>End Time</Text>
+                        <TextInput
+                          style={[styles.input, errors.onDemandEnd && styles.inputError]}
+                          value={hoursForm?.onDemandEnd}
+                          onChangeText={(text) => setHoursForm(prev => prev ? {...prev, onDemandEnd: text} : null)}
+                          placeholder="HH:MM"
+                          keyboardType="numeric"
+                          maxLength={5}
+                        />
+                        {errors.onDemandEnd && <Text style={styles.errorText}>{errors.onDemandEnd}</Text>}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  onPress={handleCancelEdit}
+                  style={[styles.button, styles.cancelButton]}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSaveSection('hours')}
+                  style={[styles.button, styles.saveButton]}
+                  disabled={savingSection === 'hours'}
+                >
+                  {savingSection === 'hours' ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {kitchen.operatingHours.lunch && (
+                <View style={styles.hoursRow}>
+                  <Icon name="food" size={18} color={colors.textSecondary} />
+                  <Text style={styles.hoursLabel}>Lunch:</Text>
+                  <Text style={styles.hoursValue}>
+                    {kitchen.operatingHours.lunch.startTime} -{' '}
+                    {kitchen.operatingHours.lunch.endTime}
+                  </Text>
+                </View>
+              )}
+              {kitchen.operatingHours.dinner && (
+                <View style={styles.hoursRow}>
+                  <Icon name="food-variant" size={18} color={colors.textSecondary} />
+                  <Text style={styles.hoursLabel}>Dinner:</Text>
+                  <Text style={styles.hoursValue}>
+                    {kitchen.operatingHours.dinner.startTime} -{' '}
+                    {kitchen.operatingHours.dinner.endTime}
+                  </Text>
+                </View>
+              )}
+              {kitchen.operatingHours.onDemand && (
+                <View style={styles.hoursRow}>
+                  <Icon name="clock-fast" size={18} color={colors.textSecondary} />
+                  <Text style={styles.hoursLabel}>On-Demand:</Text>
+                  {kitchen.operatingHours.onDemand.isAlwaysOpen ? (
+                    <Text style={styles.hoursValue}>Always Open</Text>
+                  ) : (
+                    <Text style={styles.hoursValue}>
+                      {kitchen.operatingHours.onDemand.startTime} -{' '}
+                      {kitchen.operatingHours.onDemand.endTime}
+                    </Text>
+                  )}
+                </View>
+              )}
+              {!kitchen.operatingHours.lunch &&
+                !kitchen.operatingHours.dinner &&
+                !kitchen.operatingHours.onDemand && (
+                  <Text style={styles.emptyText}>No operating hours configured</Text>
+                )}
+            </>
+          )}
         </View>
 
         {/* Contact Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
-          {kitchen.contactPhone ? (
-            <View style={styles.infoRow}>
-              <Icon name="phone" size={18} color={colors.textSecondary} />
-              <Text style={styles.infoText}>{kitchen.contactPhone}</Text>
-            </View>
-          ) : null}
-          {kitchen.contactEmail ? (
-            <View style={styles.infoRow}>
-              <Icon name="email" size={18} color={colors.textSecondary} />
-              <Text style={styles.infoText}>{kitchen.contactEmail}</Text>
-            </View>
-          ) : null}
-          {!kitchen.contactPhone && !kitchen.contactEmail && (
-            <Text style={styles.emptyText}>No contact information provided</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Contact Information</Text>
+            {editingSection !== 'contact' && (
+              <TouchableOpacity onPress={() => handleEditSection('contact')}>
+                <Icon name="pencil" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {editingSection === 'contact' ? (
+            <>
+              <View style={styles.form}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Contact Phone</Text>
+                  <TextInput
+                    style={[styles.input, errors.contactPhone && styles.inputError]}
+                    value={contactForm?.contactPhone}
+                    onChangeText={(text) => setContactForm(prev => prev ? {...prev, contactPhone: text} : null)}
+                    placeholder="Enter contact phone"
+                    keyboardType="phone-pad"
+                  />
+                  {errors.contactPhone && <Text style={styles.errorText}>{errors.contactPhone}</Text>}
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Contact Email</Text>
+                  <TextInput
+                    style={[styles.input, errors.contactEmail && styles.inputError]}
+                    value={contactForm?.contactEmail}
+                    onChangeText={(text) => setContactForm(prev => prev ? {...prev, contactEmail: text} : null)}
+                    placeholder="Enter contact email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  {errors.contactEmail && <Text style={styles.errorText}>{errors.contactEmail}</Text>}
+                </View>
+              </View>
+
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  onPress={handleCancelEdit}
+                  style={[styles.button, styles.cancelButton]}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleSaveSection('contact')}
+                  style={[styles.button, styles.saveButton]}
+                  disabled={savingSection === 'contact'}
+                >
+                  {savingSection === 'contact' ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {kitchen.contactPhone ? (
+                <View style={styles.infoRow}>
+                  <Icon name="phone" size={18} color={colors.textSecondary} />
+                  <Text style={styles.infoText}>{kitchen.contactPhone}</Text>
+                </View>
+              ) : null}
+              {kitchen.contactEmail ? (
+                <View style={styles.infoRow}>
+                  <Icon name="email" size={18} color={colors.textSecondary} />
+                  <Text style={styles.infoText}>{kitchen.contactEmail}</Text>
+                </View>
+              ) : null}
+              {!kitchen.contactPhone && !kitchen.contactEmail && (
+                <Text style={styles.emptyText}>No contact information provided</Text>
+              )}
+            </>
           )}
         </View>
 
@@ -654,5 +1234,121 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     fontStyle: 'italic',
+  },
+  // Edit mode styles
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  form: {
+    gap: spacing.md,
+  },
+  inputContainer: {
+    marginBottom: spacing.sm,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: spacing.borderRadiusMd,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: 14,
+    color: colors.textPrimary,
+    backgroundColor: colors.background,
+  },
+  multilineInput: {
+    minHeight: 80,
+    paddingTop: spacing.sm,
+  },
+  inputError: {
+    borderColor: colors.error,
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  button: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.borderRadiusMd,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  toggleButton: {
+    padding: spacing.xs,
+  },
+  // Operating hours edit styles
+  timeSection: {
+    marginBottom: spacing.md,
+  },
+  timeSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  timeInputContainer: {
+    flex: 1,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: colors.textPrimary,
   },
 });
