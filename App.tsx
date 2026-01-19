@@ -321,6 +321,7 @@ function App() {
         status: backendUser.status,
         isActive: backendUser.isActive,
         isVerified: backendUser.isVerified,
+        kitchenId: backendUser.kitchenId, // Include kitchenId for Kitchen Staff
         createdAt: backendUser.createdAt,
         updatedAt: backendUser.updatedAt,
       };
@@ -329,6 +330,7 @@ function App() {
       console.log('User ID:', userProfile.id);
       console.log('User Name:', userProfile.fullName);
       console.log('User Role (Backend):', userProfile.role);
+      console.log('Kitchen ID:', userProfile.kitchenId || 'N/A');
       console.log('=========================================');
 
       // Map backend role to app role
