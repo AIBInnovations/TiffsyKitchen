@@ -144,6 +144,13 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
       : []
     : [];
 
+  // Debug: Log zones to check pincode data
+  React.useEffect(() => {
+    if (zones.length > 0) {
+      console.log('🔍 [KitchenProfile] Zones data:', JSON.stringify(zones, null, 2));
+    }
+  }, [zones]);
+
   // Get initials from kitchen name
   const getInitials = (name: string) => {
     const words = name.trim().split(' ');
@@ -693,7 +700,9 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             zones.map((zone) => (
               <View key={zone._id} style={styles.zoneItem}>
                 <View style={styles.zoneInfo}>
-                  <Text style={styles.zonePincode}>Pincode: {zone.pincode}</Text>
+                  <Text style={styles.zonePincode}>
+                    Pincode: {zone.pincode || 'N/A'}
+                  </Text>
                   <Text style={styles.zoneName}>
                     {zone.name}, {zone.city}
                   </Text>
