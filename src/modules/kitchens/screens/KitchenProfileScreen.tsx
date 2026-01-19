@@ -693,7 +693,7 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             zones.map((zone) => (
               <View key={zone._id} style={styles.zoneItem}>
                 <View style={styles.zoneInfo}>
-                  <Text style={styles.zonePincode}>{zone.pincode}</Text>
+                  <Text style={styles.zonePincode}>Pincode: {zone.pincode}</Text>
                   <Text style={styles.zoneName}>
                     {zone.name}, {zone.city}
                   </Text>
