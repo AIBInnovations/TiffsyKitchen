@@ -179,14 +179,6 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
       >
         {/* Kitchen Header */}
         <View style={styles.kitchenHeader}>
-          {kitchen.logo ? (
-            <Image source={{ uri: kitchen.logo }} style={styles.logo} />
-          ) : (
-            <View style={[styles.logo, styles.placeholderLogo]}>
-              <Icon name="silverware-fork-knife" size={40} color={colors.textMuted} />
-            </View>
-          )}
-
           {/* Kitchen Name Letters Avatar */}
           <View style={styles.nameAvatar}>
             <Text style={styles.nameAvatarText}>{getInitials(kitchen.name)}</Text>
@@ -506,20 +498,11 @@ const styles = StyleSheet.create({
   kitchenHeader: {
     backgroundColor: colors.card,
     alignItems: 'center',
-    padding: spacing.xl,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: spacing.borderRadiusLg,
-    marginBottom: spacing.md,
-  },
-  placeholderLogo: {
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   nameAvatar: {
     width: 96,
