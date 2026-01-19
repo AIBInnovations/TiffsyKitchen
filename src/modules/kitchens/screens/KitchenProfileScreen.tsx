@@ -146,10 +146,15 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
 
   // Debug: Log zones to check pincode data
   React.useEffect(() => {
-    if (zones.length > 0) {
-      console.log('🔍 [KitchenProfile] Zones data:', JSON.stringify(zones, null, 2));
+    if (kitchen) {
+      console.log('🔍 [KitchenProfile] Raw kitchen.zonesServed:', kitchen.zonesServed);
+      console.log('🔍 [KitchenProfile] Type of first zone:', typeof kitchen.zonesServed?.[0]);
+      console.log('🔍 [KitchenProfile] Filtered zones count:', zones.length);
+      if (zones.length > 0) {
+        console.log('🔍 [KitchenProfile] First zone data:', JSON.stringify(zones[0], null, 2));
+      }
     }
-  }, [zones]);
+  }, [kitchen, zones]);
 
   // Get initials from kitchen name
   const getInitials = (name: string) => {
