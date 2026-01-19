@@ -18,6 +18,7 @@ import {
   Platform,
   ToastAndroid,
   Alert,
+  Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useQuery } from '@tanstack/react-query';
@@ -529,17 +530,18 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Order Acceptance</Text>
-            <TouchableOpacity
-              onPress={() => handleSaveSection('orderAcceptance')}
-              disabled={savingSection === 'orderAcceptance'}
-              style={styles.toggleButton}
-            >
-              {savingSection === 'orderAcceptance' ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Icon name="swap-horizontal" size={20} color={colors.primary} />
-              )}
-            </TouchableOpacity>
+            {savingSection === 'orderAcceptance' ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Switch
+                value={kitchen.isAcceptingOrders}
+                onValueChange={() => handleSaveSection('orderAcceptance')}
+                trackColor={{ false: '#d1d5db', true: colors.success }}
+                thumbColor={kitchen.isAcceptingOrders ? '#fff' : '#f3f4f6'}
+                ios_backgroundColor="#d1d5db"
+                disabled={savingSection === 'orderAcceptance'}
+              />
+            )}
           </View>
           <View style={styles.statusRow}>
             <Icon
