@@ -476,7 +476,14 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             <Text style={styles.nameAvatarText}>{getInitials(kitchen.name)}</Text>
           </View>
 
-          <Text style={styles.kitchenName}>{kitchen.name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.kitchenName}>{kitchen.name}</Text>
+            {editingSection !== 'basicInfo' && (
+              <TouchableOpacity onPress={() => handleEditSection('basicInfo')} style={styles.nameEditButton}>
+                <Icon name="pencil" size={18} color={colors.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
           <Text style={styles.kitchenCode}>{kitchen.code}</Text>
 
           <View style={styles.badges}>
@@ -1101,11 +1108,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   kitchenName: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.textPrimary,
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  nameEditButton: {
+    padding: spacing.xs,
     marginBottom: 4,
   },
   kitchenCode: {
