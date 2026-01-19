@@ -266,7 +266,6 @@ function App() {
     console.log('========== APP.TSX: OTP VERIFIED ==========');
     console.log('Firebase Token Received:', token ? 'YES' : 'NO');
     console.log('Token Length:', token?.length);
-    console.log('Fetching user profile from backend...');
     console.log('===========================================');
 
     try {
@@ -276,15 +275,57 @@ function App() {
       // Update API service with the token
       await apiService.login(token);
 
-      // Fetch user profile from backend to get the real role
-      console.log('Fetching user profile to get role...');
-      const userProfile = await authService.getProfile();
+      // ⚠️ CRITICAL: Call /api/auth/sync IMMEDIATELY after Firebase authentication
+      // This links the Firebase UID to the database user record
+      console.log('⚠️  CRITICAL: Calling /api/auth/sync to link Firebase UID...');
+      const syncResponse = await authService.syncWithBackend();
 
-      console.log('========== USER PROFILE RECEIVED ==========');
+      console.log('========== SYNC RESPONSE RECEIVED ==========');
+      console.log('Is New User:', syncResponse.data?.isNewUser);
+      console.log('User Role:', syncResponse.data?.user?.role);
+      console.log('Kitchen Approval Status:', syncResponse.data?.kitchenApprovalStatus);
+      console.log('===========================================');
+
+      // Check if new user (needs registration)
+      if (syncResponse.data?.isNewUser) {
+        console.log('⚠️  New user detected - registration required');
+        // TODO: Navigate to registration screen
+        // For now, clear data and show login again
+        await authService.clearAdminData();
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // Get user from sync response
+      const backendUser = syncResponse.data?.user;
+      if (!backendUser) {
+        console.error('⚠️  No user data in sync response');
+        await authService.clearAdminData();
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // Map backend user to app user format
+      const userProfile = {
+        id: backendUser._id,
+        phone: backendUser.phone,
+        email: backendUser.email || '',
+        firstName: backendUser.name?.split(' ')[0] || 'User',
+        lastName: backendUser.name?.split(' ').slice(1).join(' ') || '',
+        fullName: backendUser.name || 'User',
+        role: backendUser.role,
+        status: backendUser.status,
+        isActive: backendUser.isActive,
+        isVerified: backendUser.isVerified,
+        createdAt: backendUser.createdAt,
+        updatedAt: backendUser.updatedAt,
+      };
+
+      console.log('========== USER PROFILE MAPPED ==========');
       console.log('User ID:', userProfile.id);
       console.log('User Name:', userProfile.fullName);
       console.log('User Role (Backend):', userProfile.role);
-      console.log('==========================================');
+      console.log('=========================================');
 
       // Map backend role to app role
       const appRole = mapBackendRoleToAppRole(userProfile.role);
@@ -308,11 +349,12 @@ function App() {
         await AsyncStorage.setItem('adminPhone', phoneNumber);
       }
 
-      console.log('User authenticated successfully with role:', appRole);
+      console.log('✅ User authenticated successfully with role:', appRole);
+      console.log('✅ Firebase UID linked to database user');
       console.log('Navigating to appropriate dashboard...');
       setIsAuthenticated(true);
     } catch (error) {
-      console.error('Error during authentication:', error);
+      console.error('❌ Error during authentication:', error);
       await authService.clearAdminData();
       setIsAuthenticated(false);
     }
