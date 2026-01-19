@@ -1,4 +1,4 @@
-import { apiService } from './api.service';
+import { apiService } from './api.enhanced.service';
 import { User, UserRole } from '../types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
