@@ -12,7 +12,7 @@ const USE_MOCK_LOGIN = false;
 
 // Mock user data for testing
 const mockUsers: Record<string, LoginResponse> = {
-  'kitchen_staff': {
+  'KITCHEN_STAFF': {
     token: 'mock-token-kitchen-staff-123',
     user: {
       id: '1',
@@ -21,14 +21,15 @@ const mockUsers: Record<string, LoginResponse> = {
       firstName: 'Kitchen',
       lastName: 'Staff',
       fullName: 'Kitchen Staff',
-      role: 'kitchen_staff',
+      role: 'KITCHEN_STAFF',
+      status: 'ACTIVE',
       isActive: true,
       isVerified: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
   },
-  'driver': {
+  'DRIVER': {
     token: 'mock-token-driver-456',
     user: {
       id: '2',
@@ -37,7 +38,8 @@ const mockUsers: Record<string, LoginResponse> = {
       firstName: 'Delivery',
       lastName: 'Driver',
       fullName: 'Delivery Driver',
-      role: 'driver',
+      role: 'DRIVER',
+      status: 'ACTIVE',
       isActive: true,
       isVerified: true,
       createdAt: new Date().toISOString(),
@@ -53,7 +55,7 @@ class AuthService {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           // Accept any username/password for testing, just check role
-          if (role === 'kitchen_staff' || role === 'driver') {
+          if (role === 'KITCHEN_STAFF' || role === 'DRIVER') {
             const mockResponse = mockUsers[role];
             // Update name based on username
             mockResponse.user.firstName = username;
@@ -80,9 +82,65 @@ class AuthService {
   async getProfile(): Promise<User> {
     if (USE_MOCK_LOGIN) {
       // Return mock profile
-      return mockUsers['kitchen_staff'].user;
+      return mockUsers['KITCHEN_STAFF'].user;
     }
-    return apiService.get<User>('/auth/profile');
+
+    try {
+      // Call backend profile endpoint
+      // Backend returns: { status, message, data: { user: {...} } }
+      // Backend has two endpoints: /api/auth/profile and /api/auth/me
+      let response;
+      try {
+        console.log('Trying /api/auth/profile...');
+        response = await apiService.get<any>('/api/auth/profile');
+      } catch (profileError) {
+        console.log('⚠️  /api/auth/profile failed, trying /api/auth/me...');
+        response = await apiService.get<any>('/api/auth/me');
+      }
+
+      console.log('========== GET PROFILE RESPONSE ==========');
+      console.log('Response:', JSON.stringify(response, null, 2));
+      console.log('==========================================');
+
+      // Backend response structure: { data: { user: {...} } }
+      if (response && response.data && response.data.user) {
+        const user = response.data.user;
+
+        // Map backend user fields to frontend User type
+        return {
+          id: user._id,
+          phone: user.phone,
+          email: user.email || '',
+          firstName: user.name?.split(' ')[0] || 'User',
+          lastName: user.name?.split(' ').slice(1).join(' ') || '',
+          fullName: user.name || 'User',
+          role: user.role, // ADMIN, KITCHEN_STAFF, DRIVER, CUSTOMER
+          status: user.status,
+          isActive: user.isActive,
+          isVerified: user.isVerified,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        };
+      }
+
+      // Fallback: If response has data property directly
+      if (response && response.data) {
+        return response.data;
+      }
+
+      // Fallback: If response has user property
+      if (response && response.user) {
+        return response.user;
+      }
+
+      // Last fallback: Assume response is the user object directly
+      return response;
+    } catch (error) {
+      console.error('========== GET PROFILE ERROR ==========');
+      console.error('Error fetching profile:', error);
+      console.error('=======================================');
+      throw error;
+    }
   }
 
   async updateProfile(data: Partial<User>): Promise<User> {
@@ -116,18 +174,24 @@ class AuthService {
     }
   }
 
-  async getAdminRole(): Promise<string | null> {
+  async getUserRole(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem('adminRole');
+      return await AsyncStorage.getItem('userRole');
     } catch (error) {
-      console.error('Error getting admin role:', error);
+      console.error('Error getting user role:', error);
       return null;
     }
   }
 
+  async getAdminRole(): Promise<string | null> {
+    // Deprecated: Use getUserRole() instead
+    // Kept for backward compatibility
+    return this.getUserRole();
+  }
+
   async isAdmin(): Promise<boolean> {
     try {
-      const role = await AsyncStorage.getItem('adminRole');
+      const role = await AsyncStorage.getItem('userRole');
       return role === 'ADMIN';
     } catch (error) {
       console.error('Error checking admin role:', error);
@@ -144,16 +208,19 @@ class AuthService {
         'adminUsername',
         'adminEmail',
         'adminName',
-        'adminRole',
+        'adminRole', // Legacy key
+        'userRole', // New key
+        'userData', // User profile data
         'adminPhone',
+        'userPhoneNumber',
         'tokenExpiresIn',
         '@admin_session_indicator',
         '@admin_remember_me',
       ];
       await AsyncStorage.multiRemove(keysToRemove);
-      console.log('Admin data cleared successfully');
+      console.log('User data cleared successfully');
     } catch (error) {
-      console.error('Error clearing admin data:', error);
+      console.error('Error clearing user data:', error);
     }
   }
 }

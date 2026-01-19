@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,33 +11,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation, ScreenName } from '../../context/NavigationContext';
+import { getMenuItemsForRole, MenuItem as RBACMenuItem } from '../../utils/rbac';
+import { UserRole } from '../../types/user';
 
 const { width } = Dimensions.get('window');
 const SIDEBAR_WIDTH = width * 0.75;
-
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: string;
-  screen: ScreenName;
-}
-
-const menuItems: MenuItem[] = [
-  { id: '1', label: 'Dashboard', icon: 'dashboard', screen: 'Dashboard' },
-  { id: '2', label: 'Orders', icon: 'inventory-2', screen: 'Orders' },
-  { id: '3', label: 'Zones', icon: 'location-on', screen: 'Zones' },
-  { id: '4', label: 'Users', icon: 'people', screen: 'Users' },
-  { id: '5', label: 'Subscriptions', icon: 'credit-card', screen: 'Subscriptions' },
-  { id: '6', label: 'Kitchen Approvals', icon: 'check-circle', screen: 'KitchenApprovals' },
-  { id: '7', label: 'Kitchens', icon: 'restaurant', screen: 'Kitchens' },
-  { id: '8', label: 'Menu Management', icon: 'restaurant-menu', screen: 'MenuManagement' },
-  { id: '9', label: 'Batch Management', icon: 'local-shipping', screen: 'BatchManagement' },
-  { id: '10', label: 'Driver Approvals', icon: 'verified-user', screen: 'DriverApprovals' },
-  { id: '11', label: 'Driver Profile Management', icon: 'local-shipping', screen: 'DriverProfileManagement' },
-  { id: '12', label: 'Drivers Order Management', icon: 'assignment', screen: 'DriverOrdersBatches' },
-];
 
 interface SidebarProps {
   visible: boolean;
@@ -54,6 +35,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { user, logout: authLogout } = useAuth();
   const { currentScreen, navigate } = useNavigation();
   const slideAnim = React.useRef(new Animated.Value(-SIDEBAR_WIDTH)).current;
+
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [menuItems, setMenuItems] = useState<RBACMenuItem[]>([]);
+
+  // Load user role from AsyncStorage and get menu items
+  useEffect(() => {
+    const loadUserRole = async () => {
+      try {
+        const role = await AsyncStorage.getItem('userRole');
+        console.log('========== SIDEBAR: Loading User Role ==========');
+        console.log('Role from storage:', role);
+
+        if (role) {
+          setUserRole(role as UserRole);
+          const items = getMenuItemsForRole(role as UserRole);
+          console.log('Menu items for role:', items.length);
+          setMenuItems(items);
+        }
+        console.log('===============================================');
+      } catch (error) {
+        console.error('Error loading user role:', error);
+      }
+    };
+
+    loadUserRole();
+  }, [visible]); // Reload when sidebar becomes visible
 
   React.useEffect(() => {
     if (visible) {
@@ -112,10 +119,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* User Profile Section */}
           <View className="bg-[#F56B4C] px-4 py-5">
             <Text className="text-white font-bold text-lg">
-              {user?.fullName || 'Admin'}
+              {user?.fullName || 'User'}
             </Text>
             <Text className="text-orange-50 text-sm opacity-90">
-              {user?.role === 'ADMIN' || user?.role === 'admin' ? 'Admin' : user?.role || 'Admin'}
+              {userRole === 'ADMIN'
+                ? 'Administrator'
+                : userRole === 'KITCHEN_STAFF'
+                ? 'Kitchen Staff'
+                : userRole === 'DRIVER'
+                ? 'Driver'
+                : 'User'}
             </Text>
           </View>
 

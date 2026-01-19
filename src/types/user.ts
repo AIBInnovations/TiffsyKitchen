@@ -27,7 +27,8 @@ export interface User {
   feedback?: FeedbackSummary[];
 }
 
-export type UserRole = 'kitchen_admin' | 'kitchen_staff' | 'driver' | 'customer';
+// Note: Backend uses UPPERCASE for roles (ADMIN, KITCHEN_STAFF, DRIVER, CUSTOMER)
+export type UserRole = 'ADMIN' | 'KITCHEN_STAFF' | 'DRIVER' | 'CUSTOMER';
 
 export type UserStatus = 'ACTIVE' | 'BLOCKED' | 'PENDING' | 'UNVERIFIED';
 
@@ -46,7 +47,7 @@ export interface UserAddress {
 }
 
 export interface Driver extends User {
-  role: 'driver';
+  role: 'DRIVER';
   vehicleType?: string;
   vehiclePlate?: string;
   licenseNumber?: string;
@@ -66,7 +67,7 @@ export interface Driver extends User {
 }
 
 export interface Customer extends User {
-  role: 'customer';
+  role: 'CUSTOMER';
   totalOrders: number;
   totalSpent: number;
   lastOrderDate?: string;

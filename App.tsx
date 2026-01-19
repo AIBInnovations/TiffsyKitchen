@@ -6,6 +6,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PhoneAuthScreen } from './src/screens/admin/PhoneAuthScreen';
 import { DashboardScreen } from './src/screens/admin/DashboardScreen';
+import { RoleBasedDashboard } from './src/screens/RoleBasedDashboard';
+import { RoleBasedOrdersScreen } from './src/screens/RoleBasedOrdersScreen';
+import { RoleBasedBatchesScreen } from './src/screens/RoleBasedBatchesScreen';
 import OrdersManagementContainer from './src/modules/orders/screens/OrdersManagementContainer';
 import { MenuManagementMain } from './src/modules/menu/screens/MenuManagementMain';
 import { ZonesManagementScreen } from './src/modules/zones';
@@ -28,6 +31,9 @@ import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { User } from './src/types/api.types';
+import { UserRole } from './src/types/user';
+import { mapBackendRoleToAppRole } from './src/utils/rbac';
+import { PermissionGuard } from './src/components/common/PermissionGuard';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -123,14 +129,14 @@ const MainContent: React.FC<{
 
   switch (currentScreen) {
     case 'Dashboard':
-      return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+      return <RoleBasedDashboard onMenuPress={onMenuPress} onLogout={onLogout} />;
 
     case 'Orders':
-      return <OrdersManagementContainer onMenuPress={onMenuPress} />;
+      return <RoleBasedOrdersScreen onMenuPress={onMenuPress} />;
 
     case 'Users':
       return (
-        <>
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="Users" onMenuPress={onMenuPress}>
           <UsersManagementScreen
             onMenuPress={onMenuPress}
             onUserPress={handleUserPress}
@@ -141,32 +147,60 @@ const MainContent: React.FC<{
             onClose={() => setShowCreateUserModal(false)}
             onSuccess={handleCreateUserSuccess}
           />
-        </>
+        </PermissionGuard>
       );
 
     case 'Kitchens':
-      return <KitchensManagementScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="KitchenManagement" onMenuPress={onMenuPress}>
+          <KitchensManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'Zones':
-      return <ZonesManagementScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="Zones" onMenuPress={onMenuPress}>
+          <ZonesManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'MenuManagement':
       return <MenuManagementMain onMenuPress={onMenuPress} />;
 
     case 'Subscriptions':
-      return <SubscriptionsScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="Subscriptions" onMenuPress={onMenuPress}>
+          <SubscriptionsScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'DriverApprovals':
-      return <DriversManagementScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="DriverApprovals" onMenuPress={onMenuPress}>
+          <DriversManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'DriverProfileManagement':
-      return <DriverProfileManagementScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DriverProfileManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'DriverOrdersBatches':
-      return <DriverOrdersBatchesScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DriverOrdersBatchesScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'KitchenApprovals':
-      return <KitchenApprovalsScreen onMenuPress={onMenuPress} />;
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="KitchenApprovals" onMenuPress={onMenuPress}>
+          <KitchenApprovalsScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
 
     case 'KitchenPending':
       return <KitchenPendingScreen onMenuPress={onMenuPress} />;
@@ -178,10 +212,10 @@ const MainContent: React.FC<{
       return <KitchenDashboardScreen onMenuPress={onMenuPress} />;
 
     case 'BatchManagement':
-      return <BatchManagementLandingScreen onMenuPress={onMenuPress} />;
+      return <RoleBasedBatchesScreen onMenuPress={onMenuPress} />;
 
     default:
-      return <DashboardScreen onMenuPress={onMenuPress} onLogout={onLogout} />;
+      return <RoleBasedDashboard onMenuPress={onMenuPress} onLogout={onLogout} />;
   }
 };
 
@@ -202,19 +236,21 @@ function App() {
       const token = await AsyncStorage.getItem('authToken');
       console.log('Auth Token exists:', token ? 'YES' : 'NO');
 
-      const adminRole = await AsyncStorage.getItem('adminRole');
-      console.log('Admin Role:', adminRole);
+      const userRole = await AsyncStorage.getItem('userRole');
+      console.log('User Role:', userRole);
 
-      // Only authenticate if both token exists AND role is ADMIN
-      const isValidAdmin = !!token && adminRole === 'ADMIN';
-      console.log('Is Valid Admin:', isValidAdmin);
+      // Authenticate if token exists and user has a valid role (ADMIN or KITCHEN_STAFF)
+      const hasValidRole = userRole === 'ADMIN' || userRole === 'KITCHEN_STAFF';
+      const isValidUser = !!token && hasValidRole;
+      console.log('Is Valid User:', isValidUser);
+      console.log('Has Valid Role:', hasValidRole);
 
-      if (token && adminRole !== 'ADMIN') {
-        console.log('⚠️  Token exists but role is not ADMIN. Clearing data...');
+      if (token && !hasValidRole) {
+        console.log('⚠️  Token exists but role is invalid. Clearing data...');
         await authService.clearAdminData();
         setIsAuthenticated(false);
       } else {
-        setIsAuthenticated(isValidAdmin);
+        setIsAuthenticated(isValidUser);
       }
 
       console.log('============================================');
@@ -230,13 +266,41 @@ function App() {
     console.log('========== APP.TSX: OTP VERIFIED ==========');
     console.log('Firebase Token Received:', token ? 'YES' : 'NO');
     console.log('Token Length:', token?.length);
-    console.log('Authenticating user directly...');
+    console.log('Fetching user profile from backend...');
     console.log('===========================================');
 
     try {
-      // Store auth token and admin role
+      // Store auth token first
       await AsyncStorage.setItem('authToken', token);
-      await AsyncStorage.setItem('adminRole', 'ADMIN');
+
+      // Update API service with the token
+      await apiService.login(token);
+
+      // Fetch user profile from backend to get the real role
+      console.log('Fetching user profile to get role...');
+      const userProfile = await authService.getProfile();
+
+      console.log('========== USER PROFILE RECEIVED ==========');
+      console.log('User ID:', userProfile.id);
+      console.log('User Name:', userProfile.fullName);
+      console.log('User Role (Backend):', userProfile.role);
+      console.log('==========================================');
+
+      // Map backend role to app role
+      const appRole = mapBackendRoleToAppRole(userProfile.role);
+      console.log('Mapped App Role:', appRole);
+
+      if (!appRole) {
+        console.error('⚠️  Invalid role received from backend:', userProfile.role);
+        await authService.clearAdminData();
+        throw new Error('Invalid user role');
+      }
+
+      // Store user role
+      await AsyncStorage.setItem('userRole', appRole);
+
+      // Store user data
+      await AsyncStorage.setItem('userData', JSON.stringify(userProfile));
 
       // Get phone number that was stored during OTP verification
       const phoneNumber = await AsyncStorage.getItem('userPhoneNumber');
@@ -244,13 +308,13 @@ function App() {
         await AsyncStorage.setItem('adminPhone', phoneNumber);
       }
 
-      // Update API service with the token
-      await apiService.login(token);
-
-      console.log('User authenticated successfully, navigating to dashboard...');
+      console.log('User authenticated successfully with role:', appRole);
+      console.log('Navigating to appropriate dashboard...');
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error during authentication:', error);
+      await authService.clearAdminData();
+      setIsAuthenticated(false);
     }
   };
 

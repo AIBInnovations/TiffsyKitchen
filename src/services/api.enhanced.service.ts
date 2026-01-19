@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import auth from '@react-native-firebase/auth';
 
 const BASE_URL = 'https://tiffsy-backend.onrender.com';
 
@@ -86,6 +87,7 @@ class EnhancedApiService {
 
   /**
    * Refresh authentication token
+   * Gets a fresh Firebase ID token from the currently signed-in user
    * Handles concurrent refresh requests (prevents multiple refresh calls)
    */
   private async refreshToken(): Promise<string | null> {
@@ -96,30 +98,35 @@ class EnhancedApiService {
 
     this.refreshingToken = (async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/auth/admin/refresh`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${await this.getAuthToken()}`,
-          },
-        });
+        console.log('========== TOKEN REFRESH STARTED ==========');
 
-        if (!response.ok) {
-          // Refresh failed, clear token and logout
+        // Get current Firebase user
+        const currentUser = auth().currentUser;
+
+        if (!currentUser) {
+          console.log('No Firebase user found, cannot refresh token');
           await this.setAuthToken(null);
           return null;
         }
 
-        const result: ApiResponse<{ token: string; expiresIn: number }> = await response.json();
+        console.log('Firebase user found, getting fresh ID token...');
 
-        if (result.success && result.data.token) {
-          await this.setAuthToken(result.data.token);
-          return result.data.token;
-        }
+        // Get a fresh Firebase ID token
+        // forceRefresh: true ensures we get a new token even if cached one hasn't expired
+        const freshToken = await currentUser.getIdToken(true);
 
-        return null;
+        console.log('Fresh Firebase token obtained');
+        console.log('Token length:', freshToken.length);
+        console.log('========================================');
+
+        // Store the new token
+        await this.setAuthToken(freshToken);
+
+        return freshToken;
       } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error('========== TOKEN REFRESH FAILED ==========');
+        console.error('Error:', error);
+        console.error('==========================================');
         await this.setAuthToken(null);
         return null;
       } finally {
