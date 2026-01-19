@@ -199,14 +199,6 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
           )}
         </View>
 
-        {/* Cover Image */}
-        {kitchen.coverImage && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Cover Image</Text>
-            <Image source={{ uri: kitchen.coverImage }} style={styles.coverImage} />
-          </View>
-        )}
-
         {/* Quality Badges */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quality Badges</Text>
@@ -562,12 +554,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: spacing.md,
-  },
-  coverImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: spacing.borderRadiusMd,
-    resizeMode: 'cover',
   },
   badgeGrid: {
     flexDirection: 'row',
