@@ -38,13 +38,20 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   React.useEffect(() => {
     const loadKitchenId = async () => {
       try {
+        console.log('🔍 [KitchenProfile] Loading kitchen ID from AsyncStorage...');
         const userData = await AsyncStorage.getItem('userData');
+        console.log('🔍 [KitchenProfile] userData:', userData);
+
         if (userData) {
           const parsedData = JSON.parse(userData);
+          console.log('🔍 [KitchenProfile] Parsed userData:', parsedData);
+          console.log('🔍 [KitchenProfile] Kitchen ID:', parsedData.kitchenId);
           setKitchenId(parsedData.kitchenId);
+        } else {
+          console.warn('⚠️ [KitchenProfile] No userData found in AsyncStorage');
         }
       } catch (error) {
-        console.error('Error loading kitchen ID:', error);
+        console.error('❌ [KitchenProfile] Error loading kitchen ID:', error);
       }
     };
     loadKitchenId();
@@ -53,8 +60,20 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['kitchenProfile', kitchenId],
     queryFn: async () => {
-      if (!kitchenId) throw new Error('Kitchen ID not found');
-      return await kitchenService.getKitchenById(kitchenId);
+      console.log('🔍 [KitchenProfile] Fetching kitchen details for ID:', kitchenId);
+      if (!kitchenId) {
+        console.error('❌ [KitchenProfile] No kitchen ID available');
+        throw new Error('Kitchen ID not found');
+      }
+
+      try {
+        const response = await kitchenService.getKitchenById(kitchenId);
+        console.log('✅ [KitchenProfile] Kitchen details fetched successfully:', response);
+        return response;
+      } catch (err) {
+        console.error('❌ [KitchenProfile] Error fetching kitchen details:', err);
+        throw err;
+      }
     },
     enabled: !!kitchenId, // Only run query when kitchenId is available
   });
@@ -103,7 +122,9 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
     );
   }
 
-  if (error || !kitchen) {
+  if (error || (!isLoading && !kitchen)) {
+    console.log('❌ [KitchenProfile] Error state:', { error, kitchen, kitchenId, isLoading });
+
     return (
       <SafeAreaScreen
         topBackgroundColor={colors.primary}
@@ -114,8 +135,17 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
           <Icon name="alert-circle" size={64} color={colors.error} />
           <Text style={styles.errorTitle}>Failed to load profile</Text>
           <Text style={styles.errorMessage}>
-            {error instanceof Error ? error.message : 'An error occurred'}
+            {error instanceof Error
+              ? error.message
+              : !kitchenId
+              ? 'Kitchen ID not found in user data'
+              : 'An error occurred while fetching kitchen details'}
           </Text>
+          {error && (
+            <Text style={styles.errorDetails}>
+              {JSON.stringify(error, null, 2)}
+            </Text>
+          )}
           <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
             <Icon name="refresh" size={20} color="#fff" />
             <Text style={styles.retryButtonText}>Retry</Text>
@@ -439,6 +469,17 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     marginTop: spacing.sm,
+  },
+  errorDetails: {
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: 'left',
+    marginTop: spacing.sm,
+    fontFamily: 'monospace',
+    padding: spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusSm,
+    maxWidth: '90%',
   },
   retryButton: {
     flexDirection: 'row',
