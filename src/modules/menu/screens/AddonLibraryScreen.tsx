@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     fontSize: 14,
-    color: '#111827',
+    color: '#6b7280',
   },
   listContent: {
     padding: 16,
