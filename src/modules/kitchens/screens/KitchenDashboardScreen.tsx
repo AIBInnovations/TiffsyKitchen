@@ -40,25 +40,6 @@ const TABS: Tab[] = [
 export const KitchenDashboardScreen: React.FC<KitchenDashboardScreenProps> = ({
   onMenuPress,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'overview':
-        return <OverviewTab />;
-      case 'orders':
-        return <OrdersTab />;
-      case 'menu':
-        return <MenuTab onMenuPress={onMenuPress} />;
-      case 'batches':
-        return <BatchesTab />;
-      case 'profile':
-        return <ProfileTab />;
-      default:
-        return <OverviewTab />;
-    }
-  };
-
   return (
     <SafeAreaScreen
       topBackgroundColor={colors.primary}
@@ -67,41 +48,8 @@ export const KitchenDashboardScreen: React.FC<KitchenDashboardScreenProps> = ({
       <Header title="Kitchen Dashboard" onMenuPress={onMenuPress} />
 
       <View style={styles.container}>
-        {/* Tab Navigation */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabBar}
-          contentContainerStyle={styles.tabBarContent}
-        >
-          {TABS.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[
-                styles.tab,
-                activeTab === tab.id && styles.activeTab,
-              ]}
-              onPress={() => setActiveTab(tab.id)}
-            >
-              <MaterialIcons
-                name={tab.icon}
-                size={20}
-                color={activeTab === tab.id ? colors.primary : colors.gray500}
-              />
-              <Text
-                style={[
-                  styles.tabLabel,
-                  activeTab === tab.id && styles.activeTabLabel,
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Tab Content */}
-        <View style={styles.tabContent}>{renderTabContent()}</View>
+        {/* Dashboard Content */}
+        <OverviewTab />
       </View>
     </SafeAreaScreen>
   );
@@ -501,39 +449,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: colors.gray600,
-  },
-  tabBar: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
-    backgroundColor: '#ffffff',
-  },
-  tabBarContent: {
-    paddingHorizontal: 16,
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: colors.primary,
-  },
-  tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray600,
-    marginLeft: 6,
-  },
-  activeTabLabel: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  tabContent: {
-    flex: 1,
   },
   tabScrollView: {
     flex: 1,
