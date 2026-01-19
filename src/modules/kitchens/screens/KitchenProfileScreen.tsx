@@ -107,6 +107,15 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
       : []
     : [];
 
+  // Get initials from kitchen name
+  const getInitials = (name: string) => {
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].substring(0, 2).toUpperCase();
+    }
+    return (words[0][0] + words[1][0]).toUpperCase();
+  };
+
   if (isLoading) {
     return (
       <SafeAreaScreen
@@ -177,6 +186,12 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
               <Icon name="silverware-fork-knife" size={40} color={colors.textMuted} />
             </View>
           )}
+
+          {/* Kitchen Name Letters Avatar */}
+          <View style={styles.nameAvatar}>
+            <Text style={styles.nameAvatarText}>{getInitials(kitchen.name)}</Text>
+          </View>
+
           <Text style={styles.kitchenName}>{kitchen.name}</Text>
           <Text style={styles.kitchenCode}>{kitchen.code}</Text>
 
@@ -505,6 +520,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  nameAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  nameAvatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 1,
   },
   kitchenName: {
     fontSize: 22,
