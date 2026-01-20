@@ -60,6 +60,7 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   onMenuPress,
 }) => {
   const [kitchenId, setKitchenId] = React.useState<string | null>(null);
+  const [userRole, setUserRole] = React.useState<'ADMIN' | 'KITCHEN_STAFF'>('KITCHEN_STAFF');
 
   // Edit state management
   const [editingSection, setEditingSection] = React.useState<string | null>(null);
@@ -71,13 +72,15 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
   const [hoursForm, setHoursForm] = React.useState<OperatingHoursForm | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
-  // Load kitchen ID from AsyncStorage
+  // Load kitchen ID and user role from AsyncStorage
   React.useEffect(() => {
-    const loadKitchenId = async () => {
+    const loadKitchenData = async () => {
       try {
-        console.log('🔍 [KitchenProfile] Loading kitchen ID from AsyncStorage...');
+        console.log('🔍 [KitchenProfile] Loading kitchen data from AsyncStorage...');
         const userData = await AsyncStorage.getItem('userData');
+        const role = await AsyncStorage.getItem('adminRole');
         console.log('🔍 [KitchenProfile] userData:', userData);
+        console.log('🔍 [KitchenProfile] adminRole:', role);
 
         if (userData) {
           const parsedData = JSON.parse(userData);
@@ -87,11 +90,16 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
         } else {
           console.warn('⚠️ [KitchenProfile] No userData found in AsyncStorage');
         }
+
+        if (role === 'ADMIN' || role === 'KITCHEN_STAFF') {
+          setUserRole(role);
+          console.log('🔍 [KitchenProfile] User role:', role);
+        }
       } catch (error) {
-        console.error('❌ [KitchenProfile] Error loading kitchen ID:', error);
+        console.error('❌ [KitchenProfile] Error loading kitchen data:', error);
       }
     };
-    loadKitchenId();
+    loadKitchenData();
   }, []);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
@@ -334,11 +342,20 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             return;
           }
 
-          await kitchenService.updateKitchen(kitchenId, {
-            name: basicInfoForm.name.trim(),
-            description: basicInfoForm.description.trim(),
-            cuisineTypes: basicInfoForm.cuisineTypes.split(',').map(c => c.trim()).filter(c => c),
-          });
+          // Use appropriate endpoint based on user role
+          if (userRole === 'KITCHEN_STAFF') {
+            await kitchenService.updateMyKitchen({
+              name: basicInfoForm.name.trim(),
+              description: basicInfoForm.description.trim(),
+              cuisineTypes: basicInfoForm.cuisineTypes.split(',').map(c => c.trim()).filter(c => c),
+            });
+          } else {
+            await kitchenService.updateKitchen(kitchenId, {
+              name: basicInfoForm.name.trim(),
+              description: basicInfoForm.description.trim(),
+              cuisineTypes: basicInfoForm.cuisineTypes.split(',').map(c => c.trim()).filter(c => c),
+            });
+          }
           break;
 
         case 'contact':
@@ -351,10 +368,18 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             return;
           }
 
-          await kitchenService.updateKitchen(kitchenId, {
-            contactPhone: contactForm.contactPhone.trim(),
-            contactEmail: contactForm.contactEmail.trim(),
-          });
+          // Use appropriate endpoint based on user role
+          if (userRole === 'KITCHEN_STAFF') {
+            await kitchenService.updateMyKitchen({
+              contactPhone: contactForm.contactPhone.trim(),
+              contactEmail: contactForm.contactEmail.trim(),
+            });
+          } else {
+            await kitchenService.updateKitchen(kitchenId, {
+              contactPhone: contactForm.contactPhone.trim(),
+              contactEmail: contactForm.contactEmail.trim(),
+            });
+          }
           break;
 
         case 'hours':
@@ -388,7 +413,12 @@ export const KitchenProfileScreen: React.FC<KitchenProfileScreenProps> = ({
             };
           }
 
-          await kitchenService.updateKitchen(kitchenId, { operatingHours });
+          // Use appropriate endpoint based on user role
+          if (userRole === 'KITCHEN_STAFF') {
+            await kitchenService.updateMyKitchen({ operatingHours });
+          } else {
+            await kitchenService.updateKitchen(kitchenId, { operatingHours });
+          }
           break;
 
         case 'orderAcceptance':

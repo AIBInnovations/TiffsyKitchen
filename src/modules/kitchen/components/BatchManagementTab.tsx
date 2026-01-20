@@ -94,11 +94,6 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
   };
 
   const handleAutoBatch = async () => {
-    if (!kitchenId) {
-      Alert.alert('Error', 'Kitchen ID is required for batching');
-      return;
-    }
-
     Alert.alert(
       'Auto-Batch Orders',
       `Create batches for ${selectedMealWindow} orders?`,
@@ -109,14 +104,19 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
           onPress: async () => {
             setIsBatching(true);
             try {
-              const result = await deliveryService.autoBatchOrders({
+              // Use kitchen staff endpoint - no kitchenId required
+              const result = await deliveryService.autoBatchMyKitchenOrders({
                 mealWindow: selectedMealWindow,
-                kitchenId,
               });
+
+              // Backend quirk: actual data is in result.error (same as orders endpoint)
+              const responseData = result.error || result.data || result;
+              const batchesCreated = responseData?.batchesCreated ?? 0;
+              const ordersProcessed = responseData?.ordersProcessed ?? 0;
 
               Alert.alert(
                 'Success',
-                `Created ${result.data.batchesCreated} batch(es) with ${result.data.ordersProcessed} order(s)`
+                `Created ${batchesCreated} batch(es) with ${ordersProcessed} order(s)`
               );
 
               await loadBatches();
@@ -150,13 +150,18 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
           onPress: async () => {
             setIsDispatching(true);
             try {
-              const result = await deliveryService.dispatchBatches({
+              // Use kitchen staff endpoint - no kitchenId required
+              const result = await deliveryService.dispatchMyKitchenBatches({
                 mealWindow: selectedMealWindow,
               });
 
+              // Backend quirk: actual data is in result.error (same as orders endpoint)
+              const responseData = result.error || result.data || result;
+              const batchesDispatched = responseData?.batchesDispatched ?? 0;
+
               Alert.alert(
                 'Success',
-                `Dispatched ${result.data.batchesDispatched} batch(es) to drivers`
+                `Dispatched ${batchesDispatched} batch(es) to drivers`
               );
 
               await loadBatches();

@@ -221,6 +221,7 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
             try {
               const result = await deliveryService.dispatchBatches({
                 mealWindow: selectedMealWindow,
+                kitchenId,
               });
 
               // Backend quirk: actual data is in result.error (same as orders endpoint)

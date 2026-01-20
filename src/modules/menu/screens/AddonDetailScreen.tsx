@@ -174,14 +174,14 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color="#F56B4C" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#ffffff" />
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingHorizontal: 16,
     paddingBottom: 12,
     flexDirection: 'row',
@@ -427,8 +427,8 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   radioButtonActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
   },
   radioButtonText: {
     fontSize: 14,
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   infoWarning: {
     fontSize: 12,
-    color: '#dc2626',
+    color: '#F56B4C',
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flex: 1,
-    backgroundColor: '#dc2626',
+    backgroundColor: '#F56B4C',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 2,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#F56B4C',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',

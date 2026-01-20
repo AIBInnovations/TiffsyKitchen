@@ -235,8 +235,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: spacing.borderRadiusMd,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: 2,
     marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   searchInput: {
     flex: 1,

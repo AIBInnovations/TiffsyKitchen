@@ -31,7 +31,6 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
   const [cities, setCities] = useState<string[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [searchText, setSearchText] = useState(filters.search || '');
-  const [searchFocused, setSearchFocused] = useState(false);
 
   useEffect(() => {
     loadCities();
@@ -98,26 +97,15 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Premium Search Bar */}
-      <View style={[
-        styles.searchContainer,
-        searchFocused && styles.searchContainerFocused
-      ]}>
-        <View style={styles.searchIconContainer}>
-          <Icon
-            name="magnify"
-            size={24}
-            color={searchFocused ? colors.primary : '#94a3b8'}
-          />
-        </View>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Icon name="magnify" size={20} color={colors.textMuted} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search pincode, zone, or city..."
           value={searchText}
           onChangeText={handleSearchChange}
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="search"
@@ -128,7 +116,7 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
             style={styles.clearSearchButton}
             activeOpacity={0.7}
           >
-            <Icon name="close-circle" size={22} color="#64748b" />
+            <Icon name="close-circle" size={20} color={colors.textMuted} />
           </TouchableOpacity>
         ) : null}
         {searchText && searchText !== filters.search && (
@@ -198,18 +186,16 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
             color={filters.city ? colors.primary : colors.textMuted}
           />
         </TouchableOpacity>
-      </View>
 
-      {/* Action Buttons Row */}
-      <View style={styles.actionsRow}>
         {/* Refresh Button */}
         <TouchableOpacity style={styles.refreshButton} onPress={onRefresh} activeOpacity={0.7}>
           <Icon name="refresh" size={20} color={colors.primary} />
-          <Text style={styles.refreshText}>Refresh</Text>
         </TouchableOpacity>
+      </View>
 
-        {/* Clear Filters */}
-        {hasActiveFilters && (
+      {/* Clear Filters */}
+      {hasActiveFilters && (
+        <View style={styles.actionsRow}>
           <TouchableOpacity
             style={styles.clearFiltersButton}
             onPress={clearFilters}
@@ -217,8 +203,8 @@ export const ZoneFiltersComponent: React.FC<ZoneFiltersProps> = ({
             <Icon name="filter-remove" size={18} color={colors.error} />
             <Text style={styles.clearFiltersText}>Clear Filters</Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* City Selection Modal */}
       <Modal
@@ -294,41 +280,30 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f1f5f9',
   },
 
-  // Premium Search Bar Design
+  // Search Bar Design (matching Kitchen Management)
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#e2e8f0',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    minHeight: 56,
-    paddingHorizontal: 16,
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusMd,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   searchContainerFocused: {
-    borderColor: colors.primary,
-    backgroundColor: '#ffffff',
-    elevation: 4,
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    // No special focus styling for simpler design
   },
   searchIconContainer: {
-    marginRight: 12,
+    marginRight: 0,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#0f172a',
-    fontWeight: '500',
-    padding: 0,
-    paddingVertical: 16,
+    marginLeft: spacing.sm,
+    fontSize: 14,
+    color: colors.textPrimary,
   },
   clearSearchButton: {
     padding: 8,
@@ -382,20 +357,20 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
-    gap: spacing.sm,
   },
   refreshButton: {
-    flexDirection: 'row',
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: spacing.borderRadiusMd,
+    borderRadius: spacing.borderRadiusFull,
     backgroundColor: colors.primaryLight,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.primary,
-    gap: 6,
+    marginBottom: spacing.sm,
   },
   refreshText: {
     fontSize: 13,

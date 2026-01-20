@@ -318,17 +318,17 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={20} color="#9ca3af" />
+        <MaterialIcons name="search" size={20} color={colors.gray600} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search menu items..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.gray700}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <MaterialIcons name="close" size={20} color="#9ca3af" />
+            <MaterialIcons name="close" size={20} color={colors.gray600} />
           </TouchableOpacity>
         )}
       </View>
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: spacing.sm,
     fontSize: 14,
-    color: '#1f2937',
+    color: colors.gray900,
   },
   filterContainer: {
     flexDirection: 'row',

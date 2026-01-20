@@ -10,17 +10,19 @@ import {
   ActivityIndicator,
   StatusBar,
   Alert,
+  Modal,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { format } from 'date-fns';
 import OrderCardKitchen from '../components/OrderCardKitchen';
 import OrderDetailAdminScreen from './OrderDetailAdminScreen';
 import { AcceptOrderModal } from '../components/AcceptOrderModal';
 import { RejectOrderModal } from '../components/RejectOrderModal';
+import { Calendar } from 'react-native-calendars';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
@@ -49,12 +51,13 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [selectedMealWindow, setSelectedMealWindow] = useState<'ALL' | 'LUNCH' | 'DINNER'>('ALL');
-  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [page, setPage] = useState(1);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [pendingAcceptOrderId, setPendingAcceptOrderId] = useState<string | null>(null);
   const [pendingRejectOrderId, setPendingRejectOrderId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Fetch kitchen orders
   const {
@@ -68,7 +71,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       ordersService.getKitchenOrders({
         status: selectedStatus === 'ALL' ? undefined : selectedStatus,
         mealWindow: selectedMealWindow === 'ALL' ? undefined : selectedMealWindow,
-        date: selectedDate,
+        date: selectedDate || undefined,
         page,
         limit: 50,
       }),
@@ -160,6 +163,37 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     setPage(1);
   };
 
+  const handleDateSelect = (dateString: string) => {
+    setSelectedDate(dateString);
+    setShowDatePicker(false);
+    setPage(1);
+  };
+
+  const handleClearDate = () => {
+    setSelectedDate(null);
+    setPage(1);
+  };
+
+  const formatDisplayDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset time part for comparison
+    today.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+
+    if (date.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (date.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+  };
+
   const handleOrderPress = (orderId: string) => {
     console.log('🔍 ORDER CARD CLICKED - Opening order details for:', orderId);
     setSelectedOrderId(orderId);
@@ -197,20 +231,6 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     }
   };
 
-  const handleDateChange = (direction: 'prev' | 'next' | 'today') => {
-    const currentDate = new Date(selectedDate);
-    if (direction === 'prev') {
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else if (direction === 'next') {
-      currentDate.setDate(currentDate.getDate() + 1);
-    } else {
-      setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
-      return;
-    }
-    setSelectedDate(format(currentDate, 'yyyy-MM-dd'));
-    setPage(1);
-  };
-
   const renderOrderItem = ({ item }: { item: Order }) => {
     return (
       <OrderCardKitchen
@@ -229,7 +249,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
         <Text style={styles.emptyStateText}>No orders found</Text>
         <Text style={styles.emptyStateSubtext}>
           {selectedStatus === 'ALL'
-            ? 'No orders for this date'
+            ? 'No orders available'
             : `No orders with status "${selectedStatus}"`}
         </Text>
       </View>
@@ -244,8 +264,6 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       </View>
     );
   };
-
-  const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
 
   // If an order is selected, show the order detail screen
   if (selectedOrderId) {
@@ -269,34 +287,26 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Kitchen Orders</Text>
+          <View style={styles.headerActions}>
+            {selectedDate && (
+              <TouchableOpacity onPress={handleClearDate} style={styles.clearDateButton}>
+                <Icon name="close" size={20} color="#ffffff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+              <Icon name="calendar-today" size={22} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
-      {/* Date Selector */}
-      <View style={styles.dateSelectorContainer}>
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => handleDateChange('prev')}>
-          <Icon name="chevron-left" size={24} color="#F56B4C" />
-        </TouchableOpacity>
-
-        <View style={styles.dateDisplay}>
-          <Text style={styles.dateText}>
-            {format(new Date(selectedDate), 'MMM dd, yyyy')}
-          </Text>
-          {!isToday && (
-            <TouchableOpacity onPress={() => handleDateChange('today')}>
-              <Text style={styles.todayButton}>Today</Text>
-            </TouchableOpacity>
-          )}
+      {/* Selected Date Display */}
+      {selectedDate && (
+        <View style={styles.selectedDateContainer}>
+          <Icon name="event" size={18} color="#F56B4C" />
+          <Text style={styles.selectedDateText}>{formatDisplayDate(selectedDate)}</Text>
         </View>
-
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => handleDateChange('next')}>
-          <Icon name="chevron-right" size={24} color="#F56B4C" />
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Meal Window Filters */}
       <View style={styles.filterSection}>
@@ -409,6 +419,49 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           }}
         />
       )}
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.datePickerContainer}>
+            <View style={styles.datePickerHeader}>
+              <Text style={styles.datePickerTitle}>Select Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Icon name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={(day) => handleDateSelect(day.dateString)}
+              markedDates={
+                selectedDate
+                  ? {
+                      [selectedDate]: {
+                        selected: true,
+                        selectedColor: '#F56B4C',
+                      },
+                    }
+                  : {}
+              }
+              theme={{
+                todayTextColor: '#F56B4C',
+                selectedDayBackgroundColor: '#F56B4C',
+                selectedDayTextColor: '#ffffff',
+                arrowColor: '#F56B4C',
+                monthTextColor: '#111827',
+                textMonthFontWeight: '600',
+                textDayFontSize: 14,
+                textMonthFontSize: 16,
+              }}
+              maxDate={new Date().toISOString().split('T')[0]}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -424,6 +477,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -439,37 +493,37 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
     letterSpacing: 0.3,
+    flex: 1,
   },
-  dateSelectorContainer: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    gap: 8,
+  },
+  datePickerButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  clearDateButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  selectedDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F3',
     paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
-  dateButton: {
-    padding: 8,
-  },
-  dateDisplay: {
-    flex: 1,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  todayButton: {
+  selectedDateText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#F56B4C',
-    textDecorationLine: 'underline',
   },
   filterSection: {
     backgroundColor: '#FFFFFF',
@@ -544,6 +598,38 @@ const styles = StyleSheet.create({
   loadingFooter: {
     paddingVertical: 24,
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  datePickerContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  datePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
   },
 });
 

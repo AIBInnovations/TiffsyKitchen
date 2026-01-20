@@ -84,6 +84,45 @@ class DeliveryService {
     return apiService.post('/api/delivery/dispatch', data);
   }
 
+  /**
+   * Auto-batch orders for kitchen staff's own kitchen
+   * Kitchen staff endpoint - no kitchenId required
+   */
+  async autoBatchMyKitchenOrders(data?: {
+    mealWindow?: 'LUNCH' | 'DINNER';
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batchesCreated: number;
+      batchesUpdated?: number;
+      ordersProcessed: number;
+      batches?: any[];
+    };
+    error: null;
+  }> {
+    return apiService.post('/api/delivery/my-kitchen/auto-batch', data || {});
+  }
+
+  /**
+   * Dispatch batches for kitchen staff's own kitchen
+   * Kitchen staff endpoint - no kitchenId required
+   */
+  async dispatchMyKitchenBatches(data: {
+    mealWindow: 'LUNCH' | 'DINNER';
+    forceDispatch?: boolean;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batchesDispatched: number;
+      batches?: any[];
+    };
+    error: null;
+  }> {
+    return apiService.post('/api/delivery/my-kitchen/dispatch', data);
+  }
+
   async getBatches(params?: {
     kitchenId?: string;
     zoneId?: string;

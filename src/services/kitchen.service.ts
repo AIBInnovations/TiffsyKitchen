@@ -130,7 +130,7 @@ class KitchenService {
   }
 
   /**
-   * Update kitchen details
+   * Update kitchen details (Admin only)
    */
   async updateKitchen(kitchenId: string, data: UpdateKitchenRequest): Promise<Kitchen> {
     try {
@@ -141,6 +141,23 @@ class KitchenService {
       return response.data.kitchen;
     } catch (error) {
       console.error('Error updating kitchen:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update own kitchen details (Kitchen Staff)
+   * Kitchen staff can update their own kitchen's details
+   */
+  async updateMyKitchen(data: UpdateKitchenRequest & { address?: Address }): Promise<Kitchen> {
+    try {
+      const response = await apiService.put<ApiResponse<{ kitchen: Kitchen }>>(
+        '/api/kitchens/my-kitchen',
+        data
+      );
+      return response.data.kitchen;
+    } catch (error) {
+      console.error('Error updating my kitchen:', error);
       throw error;
     }
   }

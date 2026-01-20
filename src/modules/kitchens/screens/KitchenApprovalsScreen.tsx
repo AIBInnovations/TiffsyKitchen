@@ -263,14 +263,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray50,
   },
   statsContainer: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    backgroundColor: colors.gray50,
     maxHeight: 110,
+    marginTop: 0,
   },
   statsContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     gap: 10,
     paddingRight: 24,
   },
@@ -319,9 +318,8 @@ const styles = StyleSheet.create({
   subtitleContainer: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
+    backgroundColor: colors.gray50,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 12,
@@ -329,7 +327,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   listContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 0,
+    paddingBottom: 16,
     flexGrow: 1,
   },
   loadingContainer: {

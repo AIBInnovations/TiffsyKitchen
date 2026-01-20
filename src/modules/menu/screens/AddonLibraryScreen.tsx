@@ -133,10 +133,6 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </TouchableOpacity>
-      <Text style={styles.title}>Add-ons Library</Text>
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{stats.totalCount}</Text>
@@ -161,6 +157,7 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
       <TextInput
         style={styles.searchInput}
         placeholder="Search add-ons..."
+        placeholderTextColor="#6b7280"
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -239,14 +236,14 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color="#F56B4C" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       {/* Top Header with Back Button */}
       <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -282,7 +279,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   topHeader: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingHorizontal: 16,
     paddingBottom: 12,
     flexDirection: 'row',
@@ -310,6 +307,11 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 40,
   },
+  backButtonText: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -320,12 +322,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
   },
   statsRow: {
     flexDirection: 'row',
@@ -338,6 +334,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   statValue: {
     fontSize: 24,
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   createButton: {
-    backgroundColor: '#6366f1',
+    backgroundColor: '#F56B4C',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -375,7 +376,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     fontSize: 14,
-    color: '#6b7280',
+    color: '#000000',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   listContent: {
     padding: 16,
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
   },
   usageText: {
     fontSize: 12,
-    color: '#6366f1',
+    color: '#F56B4C',
   },
   actions: {
     flexDirection: 'row',

@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { colors } from '../../../theme/colors';
 import { SubscriptionPlanCard } from '../components/SubscriptionPlanCard';
 import { SubscriptionCard } from '../components/SubscriptionCard';
 import { PlanFormModal } from '../components/PlanFormModal';
@@ -515,8 +516,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffff',
+    borderColor: colors.border,
+    backgroundColor: colors.background,
   },
   filterChipActive: {
     backgroundColor: '#fff7ed',

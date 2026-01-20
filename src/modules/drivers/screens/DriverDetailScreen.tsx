@@ -48,6 +48,23 @@ const isExpired = (dateString?: string): boolean => {
   return expiryDate < today;
 };
 
+const getInitials = (name: string): string => {
+  const names = name.trim().split(' ');
+  if (names.length >= 2) {
+    return `${names[0][0]}${names[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+const getAvatarColor = (name: string): string => {
+  const colors = [
+    '#F56B4C', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b',
+    '#ef4444', '#06b6d4', '#ec4899', '#14b8a6', '#f97316'
+  ];
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
+
 export const DriverDetailScreen: React.FC<DriverDetailScreenProps> = ({
   driver,
   onBack,
@@ -103,6 +120,12 @@ export const DriverDetailScreen: React.FC<DriverDetailScreenProps> = ({
   };
 
   const isPending = driver.approvalStatus === 'PENDING';
+  const initials = getInitials(driver.name);
+  const avatarColor = getAvatarColor(driver.name);
+
+  // Check if it's a valid image (not empty, not placeholder)
+  const isPlaceholder = driver.profileImage?.includes('placeholder') || driver.profileImage?.includes('example.com');
+  const hasValidImage = !!(driver.profileImage && driver.profileImage.trim() !== '' && !isPlaceholder);
 
   return (
     <View style={styles.container}>
@@ -121,14 +144,18 @@ export const DriverDetailScreen: React.FC<DriverDetailScreenProps> = ({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           <View style={styles.card}>
-            {driver.profileImage && (
-              <View style={styles.profileImageContainer}>
+            <View style={styles.profileImageContainer}>
+              {hasValidImage ? (
                 <Image
                   source={{ uri: driver.profileImage }}
                   style={styles.profileImage}
                 />
-              </View>
-            )}
+              ) : (
+                <View style={[styles.profileImage, styles.profileImagePlaceholder, { backgroundColor: avatarColor }]}>
+                  <Text style={styles.profileImageText}>{initials}</Text>
+                </View>
+              )}
+            </View>
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Name</Text>
@@ -389,6 +416,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
+  },
+  profileImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileImageText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: colors.white,
   },
   infoRow: {
     flexDirection: 'row',

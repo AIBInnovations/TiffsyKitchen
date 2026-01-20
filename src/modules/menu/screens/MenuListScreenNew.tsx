@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { colors } from '../../../theme/colors';
 import { menuManagementService } from '../../../services/menu-management.service';
 import { MenuItem, MenuType, MealWindow, MenuItemStatus } from '../../../types/api.types';
 import { MenuItemCard } from '../components/MenuItemCard';
@@ -134,6 +135,7 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
           placeholder="Search menu items..."
           value={searchQuery}
           onChangeText={setSearchQuery}
+          placeholderTextColor="#9ca3af"
         />
       </View>
 
@@ -267,14 +269,14 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color="#F56B4C" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" animated={true} />
       {/* Top Header with Back Button */}
       <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
         {onBack && (
@@ -309,10 +311,10 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.background,
   },
   topHeader: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingHorizontal: 16,
     paddingBottom: 12,
     flexDirection: 'row',
@@ -376,7 +378,7 @@ const styles = StyleSheet.create({
   },
   createButton: {
     flex: 1,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#F56B4C',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -402,7 +404,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     fontSize: 14,
-    color: '#6b7280',
+    color: '#111827',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   filterRow: {
     flexDirection: 'row',
@@ -418,8 +422,8 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   filterChipActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
   },
   filterChipText: {
     fontSize: 14,

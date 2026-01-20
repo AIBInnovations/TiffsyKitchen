@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.gray800,
     marginLeft: spacing.xs,
     paddingVertical: spacing.xs,
   },

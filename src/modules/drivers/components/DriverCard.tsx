@@ -40,8 +40,31 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getInitials = (name: string): string => {
+  const names = name.trim().split(' ');
+  if (names.length >= 2) {
+    return `${names[0][0]}${names[1][0]}`.toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+const getAvatarColor = (name: string): string => {
+  const colors = [
+    '#F56B4C', '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b',
+    '#ef4444', '#06b6d4', '#ec4899', '#14b8a6', '#f97316'
+  ];
+  const index = name.charCodeAt(0) % colors.length;
+  return colors[index];
+};
+
 export const DriverCard: React.FC<DriverCardProps> = ({ driver, onPress }) => {
   const statusColor = getStatusColor(driver.approvalStatus);
+  const initials = getInitials(driver.name);
+  const avatarColor = getAvatarColor(driver.name);
+
+  // Check if it's a valid image (not empty, not placeholder)
+  const isPlaceholder = driver.profileImage?.includes('placeholder') || driver.profileImage?.includes('example.com');
+  const hasValidImage = !!(driver.profileImage && driver.profileImage.trim() !== '' && !isPlaceholder);
 
   return (
     <TouchableOpacity
@@ -52,11 +75,11 @@ export const DriverCard: React.FC<DriverCardProps> = ({ driver, onPress }) => {
       <View style={styles.leftSection}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          {driver.profileImage ? (
+          {hasValidImage ? (
             <Image source={{ uri: driver.profileImage }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <MaterialIcons name="person" size={24} color={colors.gray500} />
+            <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: avatarColor }]}>
+              <Text style={styles.avatarText}>{initials}</Text>
             </View>
           )}
         </View>
@@ -74,7 +97,7 @@ export const DriverCard: React.FC<DriverCardProps> = ({ driver, onPress }) => {
                 size={16}
                 color={colors.gray600}
               />
-              <Text style={styles.vehicleText}>
+              <Text style={styles.vehicleText} numberOfLines={1}>
                 {driver.driverDetails.vehicleName}
                 {driver.driverDetails.vehicleNumber &&
                   ` • ${driver.driverDetails.vehicleNumber}`}
@@ -106,7 +129,7 @@ export const DriverCard: React.FC<DriverCardProps> = ({ driver, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     backgroundColor: colors.white,
     borderRadius: 12,
@@ -122,23 +145,28 @@ const styles = StyleSheet.create({
   },
   leftSection: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
     gap: 12,
   },
   avatarContainer: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
+    marginTop: 4,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   avatarPlaceholder: {
-    backgroundColor: colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.white,
   },
   infoContainer: {
     flex: 1,
@@ -162,10 +190,12 @@ const styles = StyleSheet.create({
   vehicleText: {
     fontSize: 13,
     color: colors.gray600,
+    flex: 1,
   },
   rightSection: {
     alignItems: 'flex-end',
     gap: 8,
+    marginTop: 4,
   },
   statusBadge: {
     flexDirection: 'row',

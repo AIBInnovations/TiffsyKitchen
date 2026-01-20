@@ -6,12 +6,14 @@
  */
 
 import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { MenuListScreenNew } from './screens/MenuListScreenNew';
 import { MenuDetailScreen } from './screens/MenuDetailScreen';
 import { AddonLibraryScreen } from './screens/AddonLibraryScreen';
 import { AddonDetailScreen } from './screens/AddonDetailScreen';
 import { DisabledItemsScreen } from './screens/DisabledItemsScreen';
 import { AddonManagementModal } from './components/AddonManagementModal';
+import { colors } from '../../theme/colors';
 
 interface MenuManagementExampleProps {
   kitchenId: string;
@@ -85,69 +87,79 @@ export const MenuManagementExample: React.FC<MenuManagementExampleProps> = ({
   // Render Menu List Screen
   if (currentScreen === 'menuList') {
     return (
-      <MenuListScreenNew
-        key={refreshKey}
-        kitchenId={kitchenId}
-        userRole={userRole}
-        onNavigateToDetail={handleNavigateToMenuDetail}
-        onNavigateToCreate={() => handleNavigateToMenuDetail(undefined)}
-        onNavigateToAddons={handleNavigateToAddonLibrary}
-        onBack={onExit}
-      />
+      <View style={styles.container}>
+        <MenuListScreenNew
+          key={refreshKey}
+          kitchenId={kitchenId}
+          userRole={userRole}
+          onNavigateToDetail={handleNavigateToMenuDetail}
+          onNavigateToCreate={() => handleNavigateToMenuDetail(undefined)}
+          onNavigateToAddons={handleNavigateToAddonLibrary}
+          onBack={onExit}
+        />
+      </View>
     );
   }
 
   // Render Menu Detail Screen
   if (currentScreen === 'menuDetail') {
     return (
-      <MenuDetailScreen
-        itemId={selectedItemId}
-        kitchenId={kitchenId}
-        userRole={userRole}
-        onBack={handleNavigateToMenuList}
-        onSaved={handleSaved}
-        onNavigateToAddonManagement={handleNavigateToAddonManagement}
-      />
+      <View style={styles.container}>
+        <MenuDetailScreen
+          itemId={selectedItemId}
+          kitchenId={kitchenId}
+          userRole={userRole}
+          onBack={handleNavigateToMenuList}
+          onSaved={handleSaved}
+          onNavigateToAddonManagement={handleNavigateToAddonManagement}
+        />
+      </View>
     );
   }
 
   // Render Addon Library Screen
   if (currentScreen === 'addonLibrary') {
     return (
-      <AddonLibraryScreen
-        kitchenId={kitchenId}
-        onNavigateToDetail={handleNavigateToAddonDetail}
-        onBack={handleNavigateToMenuList}
-      />
+      <View style={styles.container}>
+        <AddonLibraryScreen
+          kitchenId={kitchenId}
+          onNavigateToDetail={handleNavigateToAddonDetail}
+          onBack={handleNavigateToMenuList}
+        />
+      </View>
     );
   }
 
   // Render Addon Detail Screen
   if (currentScreen === 'addonDetail') {
     return (
-      <AddonDetailScreen
-        addonId={selectedAddonId}
-        kitchenId={kitchenId}
-        onBack={handleNavigateToAddonLibrary}
-        onSaved={handleSaved}
-      />
+      <View style={styles.container}>
+        <AddonDetailScreen
+          addonId={selectedAddonId}
+          kitchenId={kitchenId}
+          onBack={handleNavigateToAddonLibrary}
+          onSaved={handleSaved}
+        />
+      </View>
     );
   }
 
   // Render Disabled Items Screen (Admin only)
   if (currentScreen === 'disabledItems' && userRole === 'ADMIN') {
     return (
-      <DisabledItemsScreen
-        kitchenId={kitchenId}
-        onBack={handleNavigateToMenuList}
-        onNavigateToDetail={handleNavigateToMenuDetail}
-      />
+      <View style={styles.container}>
+        <DisabledItemsScreen
+          kitchenId={kitchenId}
+          onBack={handleNavigateToMenuList}
+          onNavigateToDetail={handleNavigateToMenuDetail}
+        />
+      </View>
     );
   }
 
   // Render with Addon Management Modal
   return (
-    <>
+    <View style={styles.container}>
       <MenuListScreenNew
         key={refreshKey}
         kitchenId={kitchenId}
@@ -164,9 +176,16 @@ export const MenuManagementExample: React.FC<MenuManagementExampleProps> = ({
         onSaved={handleSaved}
         onCreateNewAddon={() => handleNavigateToAddonDetail(undefined)}
       />
-    </>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+});
 
 /**
  * USAGE EXAMPLE:

@@ -240,7 +240,7 @@ export const DriversManagementScreen: React.FC<DriversManagementScreenProps> = (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: colors.background,
   },
   tabsContainer: {
     flexDirection: 'row',

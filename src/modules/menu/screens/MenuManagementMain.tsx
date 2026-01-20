@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { colors } from '../../../theme/colors';
 import { Kitchen } from '../../../types/api.types';
 import { MenuManagementExample } from '../MenuManagementExample';
 import kitchenService from '../../../services/kitchen.service';
@@ -180,7 +181,7 @@ export const MenuManagementMain: React.FC<MenuManagementMainProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.background,
   },
   header: {
     backgroundColor: '#F56B4C',

@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigation, ScreenName } from '../../context/NavigationContext';
 import { getMenuItemsForRole, MenuItem as RBACMenuItem } from '../../utils/rbac';
 import { UserRole } from '../../types/user';
+import { kitchenStaffService } from '../../services/kitchen-staff.service';
 
 const { width } = Dimensions.get('window');
 const SIDEBAR_WIDTH = width * 0.75;
@@ -38,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [menuItems, setMenuItems] = useState<RBACMenuItem[]>([]);
+  const [kitchenName, setKitchenName] = useState<string | null>(null);
 
   // Load user role from AsyncStorage and get menu items
   useEffect(() => {
@@ -52,6 +54,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const items = getMenuItemsForRole(role as UserRole);
           console.log('Menu items for role:', items.length);
           setMenuItems(items);
+
+          // Fetch kitchen name for kitchen staff
+          if (role === 'KITCHEN_STAFF') {
+            try {
+              const response = await kitchenStaffService.getMyKitchenStatus();
+              if (response?.data?.kitchen?.name) {
+                setKitchenName(response.data.kitchen.name);
+              }
+            } catch (error) {
+              console.error('Error fetching kitchen name:', error);
+            }
+          }
         }
         console.log('===============================================');
       } catch (error) {
@@ -125,7 +139,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {userRole === 'ADMIN'
                 ? 'Administrator'
                 : userRole === 'KITCHEN_STAFF'
-                ? 'Kitchen Staff'
+                ? kitchenName || 'Kitchen Staff'
                 : userRole === 'DRIVER'
                 ? 'Driver'
                 : 'User'}

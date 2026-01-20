@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { spacing } from '../../../theme/spacing';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
 import type { Driver } from '../../../types/driver.types';
@@ -323,30 +324,33 @@ export const DriverProfileManagementScreen: React.FC<DriverProfileManagementScre
       <Header title="Driver Profile Management" onMenuPress={onMenuPress} />
 
       <View style={styles.container}>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name or phone..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor={colors.textMuted}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialIcons name="clear" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Search Bar and Filters Container */}
+        <View style={styles.filtersWrapper}>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <MaterialIcons name="search" size={20} color={colors.textMuted} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name or phone..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor={colors.textMuted}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <MaterialIcons name="close" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
 
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          {renderTabButton('ALL', 'All', stats.all)}
-          {renderTabButton('ACTIVE', 'Active', stats.active)}
-          {renderTabButton('INACTIVE', 'Inactive', stats.inactive)}
-          {renderTabButton('SUSPENDED', 'Suspended', stats.suspended)}
-          {renderTabButton('PENDING', 'Pending', stats.pending)}
+          {/* Tabs */}
+          <View style={styles.tabsContainer}>
+            {renderTabButton('ALL', 'All', stats.all)}
+            {renderTabButton('ACTIVE', 'Active', stats.active)}
+            {renderTabButton('INACTIVE', 'Inactive', stats.inactive)}
+            {renderTabButton('SUSPENDED', 'Suspended', stats.suspended)}
+            {renderTabButton('PENDING', 'Pending', stats.pending)}
+          </View>
         </View>
 
         {/* Driver List */}
@@ -394,35 +398,36 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  filtersWrapper: {
+    backgroundColor: colors.white,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    margin: 16,
-    marginBottom: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    backgroundColor: colors.background,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadiusMd,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
   searchInput: {
     flex: 1,
-    paddingVertical: 12,
+    marginLeft: spacing.sm,
     fontSize: 14,
     color: colors.textPrimary,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
     gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     flexWrap: 'wrap',
   },
   tabButton: {
