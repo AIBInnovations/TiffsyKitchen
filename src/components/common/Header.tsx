@@ -6,10 +6,18 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 interface HeaderProps {
   title: string;
   onMenuPress?: () => void;
+  showBack?: boolean;
+  onBackPress?: () => void;
   rightComponent?: React.ReactNode;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, onMenuPress, rightComponent }) => {
+export const Header: React.FC<HeaderProps> = ({
+  title,
+  onMenuPress,
+  showBack = false,
+  onBackPress,
+  rightComponent
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -20,12 +28,12 @@ export const Header: React.FC<HeaderProps> = ({ title, onMenuPress, rightCompone
         style={{ paddingTop: insets.top + 8 }}
       >
         <View className="flex-row items-center justify-between">
-          {/* Hamburger Menu */}
+          {/* Back Arrow or Hamburger Menu */}
           <TouchableOpacity
-            onPress={onMenuPress}
+            onPress={showBack ? onBackPress : onMenuPress}
             className="w-10 h-10 items-center justify-center"
           >
-            <Icon name="menu" size={28} color="#ffffff" />
+            <Icon name={showBack ? "arrow-back" : "menu"} size={28} color="#ffffff" />
           </TouchableOpacity>
 
           {/* Title */}

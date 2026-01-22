@@ -26,6 +26,7 @@ import {
 import { useApi } from '../../hooks/useApi';
 import { DashboardData } from '../../types/api.types';
 import { OrderStatus as DashboardOrderStatus } from '../../types/dashboard';
+import { useInAppNotifications } from '../../context/InAppNotificationContext';
 
 interface DashboardScreenProps {
   onMenuPress: () => void;
@@ -47,6 +48,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
     '/api/admin/dashboard',
     { cache: 30000, autoFetch: true } // Cache for 30 seconds, auto-fetch on mount
   );
+
+  // Get unread notification count
+  const { unreadCount } = useInAppNotifications();
 
   const handleDatePress = () => {
     setDatePickerVisible(true);
@@ -278,9 +282,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             style={styles.notificationButton}
           >
             <MaterialIcons name="notifications-none" size={24} color="#ffffff" />
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>3</Text>
-            </View>
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>A</Text>

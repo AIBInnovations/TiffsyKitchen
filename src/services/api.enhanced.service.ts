@@ -162,6 +162,7 @@ class EnhancedApiService {
     // If same request is already in flight, return existing promise
     // Performance: Prevents duplicate API calls (e.g., user double-tapping button)
     if (this.pendingRequests.has(requestKey)) {
+      console.log(`[API] Request deduplicated: ${config.method} ${endpoint}`);
       return this.pendingRequests.get(requestKey)!;
     }
 
@@ -175,42 +176,90 @@ class EnhancedApiService {
         };
 
         if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+          headers['Authorization'] = `Bearer ${token.substring(0, 20)}...`; // Truncate for logging
         }
 
         const requestBody = config.body ? JSON.stringify(config.body) : undefined;
 
-        console.log('Request:', {
-          method: config.method,
-          url: `${BASE_URL}${endpoint}`,
-          headers: headers,
-          body: requestBody
-        });
+        // ===== REQUEST LOGGING =====
+        console.log('╔═══════════════════════════════════════════════════════════');
+        console.log('║ [API REQUEST]');
+        console.log('╠═══════════════════════════════════════════════════════════');
+        console.log('║ Method:', config.method);
+        console.log('║ URL:', `${BASE_URL}${endpoint}`);
+        console.log('║ Headers:', JSON.stringify(headers, null, 2));
+        if (requestBody) {
+          console.log('║ Body:', requestBody);
+        } else {
+          console.log('║ Body: (none)');
+        }
+        console.log('╚═══════════════════════════════════════════════════════════');
 
         const response = await fetch(`${BASE_URL}${endpoint}`, {
           method: config.method,
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+            ...config.headers,
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
           body: requestBody,
         });
 
-        const responseData = await response.json();
-        console.log('Response:', responseData);
+        // Get response text first
+        const responseText = await response.text();
+
+        // ===== RESPONSE LOGGING =====
+        console.log('╔═══════════════════════════════════════════════════════════');
+        console.log('║ [API RESPONSE]');
+        console.log('╠═══════════════════════════════════════════════════════════');
+        console.log('║ Status:', response.status, response.statusText);
+        console.log('║ URL:', `${BASE_URL}${endpoint}`);
+        console.log('║ Response Headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+        console.log('║ Response Body (Raw):', responseText.substring(0, 500)); // First 500 chars
+
+        let responseData: any;
+        try {
+          responseData = JSON.parse(responseText);
+          console.log('║ Response Body (Parsed):', JSON.stringify(responseData, null, 2));
+        } catch (parseError) {
+          console.log('║ ⚠️  Response is not valid JSON!');
+          console.log('║ Parse Error:', parseError);
+          console.log('║ Full Response:', responseText);
+          console.log('╚═══════════════════════════════════════════════════════════');
+
+          throw {
+            success: false,
+            message: 'Invalid response from server',
+            data: null,
+            rawResponse: responseText,
+          };
+        }
+        console.log('╚═══════════════════════════════════════════════════════════');
 
         // Handle 401 Unauthorized - Try token refresh
         if (response.status === 401 && !config.skipRetry) {
+          console.log('[API] 401 Unauthorized - attempting token refresh...');
+
           const newToken = await this.refreshToken();
 
           if (newToken) {
-            // Retry request with new token
-            headers['Authorization'] = `Bearer ${newToken}`;
+            console.log('[API] Token refreshed, retrying request...');
 
+            // Retry request with new token
             const retryResponse = await fetch(`${BASE_URL}${endpoint}`, {
               method: config.method,
-              headers,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${newToken}`,
+                ...config.headers,
+              },
               body: config.body ? JSON.stringify(config.body) : undefined,
             });
 
-            const retryData = await retryResponse.json();
+            const retryText = await retryResponse.text();
+            const retryData = JSON.parse(retryText);
+
+            console.log('[API] Retry response:', retryData);
 
             if (!retryResponse.ok) {
               throw retryData;
@@ -229,6 +278,8 @@ class EnhancedApiService {
 
         // Handle other error responses
         if (!response.ok) {
+          console.log(`[API] Error response: ${response.status} ${response.statusText}`);
+
           // Retry on retryable status codes
           if (
             this.retryConfig.retryableStatuses.includes(response.status) &&
@@ -237,6 +288,8 @@ class EnhancedApiService {
           ) {
             // Exponential backoff: 1s, 2s, 4s...
             const delay = this.retryConfig.retryDelay * Math.pow(2, retryCount);
+            console.log(`[API] Retrying in ${delay}ms (attempt ${retryCount + 1}/${this.retryConfig.maxRetries})...`);
+
             await new Promise(resolve => setTimeout(resolve, delay));
 
             // Recursive retry
@@ -248,10 +301,23 @@ class EnhancedApiService {
 
         return responseData;
       } catch (error: any) {
+        // ===== ERROR LOGGING =====
+        console.log('╔═══════════════════════════════════════════════════════════');
+        console.log('║ [API ERROR]');
+        console.log('╠═══════════════════════════════════════════════════════════');
+        console.log('║ Endpoint:', endpoint);
+        console.log('║ Method:', config.method);
+        console.log('║ Error:', error);
+        console.log('║ Error Message:', error?.message);
+        console.log('║ Error Stack:', error?.stack);
+        console.log('╚═══════════════════════════════════════════════════════════');
+
         // Handle network errors (no response from server)
         if (error.message === 'Network request failed' || error.name === 'TypeError') {
           if (retryCount < this.retryConfig.maxRetries && !config.skipRetry) {
             const delay = this.retryConfig.retryDelay * Math.pow(2, retryCount);
+            console.log(`[API] Network error, retrying in ${delay}ms...`);
+
             await new Promise(resolve => setTimeout(resolve, delay));
             return this.request<T>(endpoint, config, retryCount + 1);
           }

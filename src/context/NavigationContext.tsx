@@ -21,7 +21,11 @@ export type ScreenName =
   | 'AuditLogs'
   | 'SystemConfig'
   | 'DeliveryConfig'
-  | 'BatchManagement';
+  | 'BatchManagement'
+  | 'Notifications'
+  | 'SendMenuAnnouncement'
+  | 'SendBatchReminder'
+  | 'SendPushNotification';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

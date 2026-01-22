@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,8 @@ import { colors } from '../../../theme/colors';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
 import { kitchenStaffService } from '../../../services/kitchen-staff.service';
-import { KitchenOrdersScreen } from '../../orders/screens/KitchenOrdersScreen';
-import { MenuManagementMain } from '../../menu/screens/MenuManagementMain';
+import { useInAppNotifications } from '../../../context/InAppNotificationContext';
+import { useNavigation } from '../../../context/NavigationContext';
 
 interface KitchenDashboardScreenProps {
   onMenuPress: () => void;
@@ -40,12 +40,32 @@ const TABS: Tab[] = [
 export const KitchenDashboardScreen: React.FC<KitchenDashboardScreenProps> = ({
   onMenuPress,
 }) => {
+  const { unreadCount } = useInAppNotifications();
+  const { navigate } = useNavigation();
+
+  const handleNotificationPress = () => {
+    navigate('Notifications');
+  };
+
   return (
     <SafeAreaScreen
       topBackgroundColor={colors.primary}
       bottomBackgroundColor={colors.background}
     >
-      <Header title="Kitchen Dashboard" onMenuPress={onMenuPress} />
+      <Header
+        title="Kitchen Dashboard"
+        onMenuPress={onMenuPress}
+        rightComponent={
+          <TouchableOpacity onPress={handleNotificationPress} style={styles.notificationButton}>
+            <MaterialIcons name="notifications-none" size={24} color="#ffffff" />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        }
+      />
 
       <View style={styles.container}>
         {/* Dashboard Content */}
@@ -438,6 +458,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  notificationButton: {
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
   },
   loadingContainer: {
     flex: 1,

@@ -24,17 +24,25 @@ import { KitchenPendingScreen } from './src/modules/kitchens/screens/KitchenPend
 import { KitchenRejectionScreen } from './src/modules/kitchens/screens/KitchenRejectionScreen';
 import { KitchenDashboardScreen } from './src/modules/kitchens/screens/KitchenDashboardScreen';
 import { KitchenProfileScreen } from './src/modules/kitchens/screens/KitchenProfileScreen';
+import { NotificationsScreen } from './src/screens/notifications/NotificationsScreen';
+import { SendMenuAnnouncementScreen } from './src/screens/kitchen/SendMenuAnnouncementScreen';
+import { SendBatchReminderScreen } from './src/screens/admin/SendBatchReminderScreen';
+import { SendPushNotificationScreen } from './src/screens/admin/SendPushNotificationScreen';
 import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
+import { InAppNotificationProvider } from './src/context/InAppNotificationContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
+import { fcmService } from './src/services/fcm.service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { User } from './src/types/api.types';
 import { UserRole } from './src/types/user';
 import { mapBackendRoleToAppRole } from './src/utils/rbac';
 import { PermissionGuard } from './src/components/common/PermissionGuard';
+import { NotificationPopup } from './src/components/notifications';
+import { useInAppNotifications } from './src/context/InAppNotificationContext';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -75,14 +83,71 @@ const PlaceholderScreen: React.FC<{
   </View>
 );
 
+// Authenticated Content Wrapper with Notifications
+const AuthenticatedContent: React.FC<{
+  onMenuPress: () => void;
+  onLogout: () => void;
+  sidebarVisible: boolean;
+  onCloseSidebar: () => void;
+}> = ({ onMenuPress, onLogout, sidebarVisible, onCloseSidebar }) => {
+  return (
+    <InAppNotificationProvider>
+      <MainContent onMenuPress={onMenuPress} onLogout={onLogout} />
+      <Sidebar visible={sidebarVisible} onClose={onCloseSidebar} onLogout={onLogout} />
+      <NotificationPopupWrapper />
+    </InAppNotificationProvider>
+  );
+};
+
+// Notification Popup Wrapper Component
+const NotificationPopupWrapper: React.FC = () => {
+  const { navigate } = useNavigation();
+  const { popupNotification, hidePopup, markAsRead } = useInAppNotifications();
+
+  const handleNotificationPopupDismiss = async () => {
+    if (popupNotification && !popupNotification.isRead) {
+      await markAsRead(popupNotification._id);
+    }
+    hidePopup();
+  };
+
+  const handleNotificationPopupView = async () => {
+    if (popupNotification && !popupNotification.isRead) {
+      await markAsRead(popupNotification._id);
+    }
+    hidePopup();
+    navigate('Notifications');
+  };
+
+  return (
+    <NotificationPopup
+      notification={popupNotification}
+      visible={!!popupNotification}
+      onDismiss={handleNotificationPopupDismiss}
+      onView={handleNotificationPopupView}
+    />
+  );
+};
+
 // Main Content Router Component
 const MainContent: React.FC<{
   onMenuPress: () => void;
   onLogout: () => void;
 }> = ({ onMenuPress, onLogout }) => {
-  const { currentScreen, goBack } = useNavigation();
+  const { currentScreen, goBack, navigate } = useNavigation();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const { checkLatestNotification } = useInAppNotifications();
+
+  // Handle notification icon press
+  const onNotificationPress = () => {
+    navigate('Notifications');
+  };
+
+  // Check for latest notification on app open
+  useEffect(() => {
+    checkLatestNotification();
+  }, []);
 
   useEffect(() => {
     const backAction = () => {
@@ -130,7 +195,7 @@ const MainContent: React.FC<{
 
   switch (currentScreen) {
     case 'Dashboard':
-      return <RoleBasedDashboard onMenuPress={onMenuPress} onLogout={onLogout} />;
+      return <RoleBasedDashboard onMenuPress={onMenuPress} onNotificationPress={onNotificationPress} onLogout={onLogout} />;
 
     case 'Orders':
       return <RoleBasedOrdersScreen onMenuPress={onMenuPress} />;
@@ -218,8 +283,32 @@ const MainContent: React.FC<{
     case 'BatchManagement':
       return <RoleBasedBatchesScreen onMenuPress={onMenuPress} />;
 
+    case 'Notifications':
+      return <NotificationsScreen />;
+
+    case 'SendMenuAnnouncement':
+      return (
+        <PermissionGuard requiredRoles={['KITCHEN_STAFF']} screenName="SendMenuAnnouncement" onMenuPress={onMenuPress}>
+          <SendMenuAnnouncementScreen />
+        </PermissionGuard>
+      );
+
+    case 'SendBatchReminder':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="SendBatchReminder" onMenuPress={onMenuPress}>
+          <SendBatchReminderScreen />
+        </PermissionGuard>
+      );
+
+    case 'SendPushNotification':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="SendPushNotification" onMenuPress={onMenuPress}>
+          <SendPushNotificationScreen />
+        </PermissionGuard>
+      );
+
     default:
-      return <RoleBasedDashboard onMenuPress={onMenuPress} onLogout={onLogout} />;
+      return <RoleBasedDashboard onMenuPress={onMenuPress} onNotificationPress={onNotificationPress} onLogout={onLogout} />;
   }
 };
 
@@ -255,6 +344,12 @@ function App() {
         setIsAuthenticated(false);
       } else {
         setIsAuthenticated(isValidUser);
+
+        // Initialize FCM if authenticated
+        if (isValidUser) {
+          console.log('Initializing FCM service...');
+          await fcmService.initialize();
+        }
       }
 
       console.log('============================================');
@@ -358,6 +453,11 @@ function App() {
       console.log('✅ User authenticated successfully with role:', appRole);
       console.log('✅ Firebase UID linked to database user');
       console.log('Navigating to appropriate dashboard...');
+
+      // Initialize FCM and register token
+      console.log('Initializing FCM service...');
+      await fcmService.initialize();
+
       setIsAuthenticated(true);
     } catch (error) {
       console.error('❌ Error during authentication:', error);
@@ -369,6 +469,11 @@ function App() {
   const handleLogout = async () => {
     console.log('========== APP.TSX: LOGOUT ==========');
     console.log('Clearing all admin data...');
+
+    // Remove FCM token before logout
+    console.log('Removing FCM token...');
+    await fcmService.removeToken();
+    fcmService.cleanup();
 
     // Clear all admin data using auth service
     await authService.clearAdminData();
@@ -405,10 +510,12 @@ function App() {
           <NavigationProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             {isAuthenticated ? (
-              <>
-                <MainContent onMenuPress={handleMenuPress} onLogout={handleLogout} />
-                <Sidebar visible={sidebarVisible} onClose={handleCloseSidebar} onLogout={handleLogout} />
-              </>
+              <AuthenticatedContent
+                onMenuPress={handleMenuPress}
+                onLogout={handleLogout}
+                sidebarVisible={sidebarVisible}
+                onCloseSidebar={handleCloseSidebar}
+              />
             ) : (
               <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
             )}

@@ -161,16 +161,16 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
       const query = searchQuery.toLowerCase().trim();
       filteredOrders = ordersData.orders.filter((order) => {
         const orderNumber = order.orderNumber?.toLowerCase() || '';
-        const customerName = typeof order.userId === 'string'
+        const customerName = (typeof order.userId === 'string' || !order.userId)
           ? ''
           : order.userId.name?.toLowerCase() || '';
-        const customerPhone = typeof order.userId === 'string'
+        const customerPhone = (typeof order.userId === 'string' || !order.userId)
           ? ''
           : order.userId.phone?.toLowerCase() || '';
-        const kitchenName = typeof order.kitchenId === 'string'
+        const kitchenName = (typeof order.kitchenId === 'string' || !order.kitchenId)
           ? ''
           : order.kitchenId.name?.toLowerCase() || '';
-        const kitchenCode = typeof order.kitchenId === 'string'
+        const kitchenCode = (typeof order.kitchenId === 'string' || !order.kitchenId)
           ? ''
           : order.kitchenId.code?.toLowerCase() || '';
 
