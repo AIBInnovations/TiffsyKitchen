@@ -12,6 +12,7 @@ import {
 import {Order, OrderStatus, MenuType} from '../../../types/api.types';
 import {formatDistanceToNow} from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AutoAcceptBadge from './AutoAcceptBadge';
 
 interface OrderCardAdminImprovedProps {
   order: Order;
@@ -192,6 +193,9 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
             </View>
           </TouchableOpacity>
         </View>
+
+        {/* Auto-Accept Badge */}
+        <AutoAcceptBadge order={order} size="small" showLabel={true} />
 
         {/* Customer Info - Compact */}
         <View style={styles.compactInfoRow}>

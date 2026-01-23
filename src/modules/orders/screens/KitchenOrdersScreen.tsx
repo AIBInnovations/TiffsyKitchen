@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,13 @@ import OrderDetailAdminScreen from './OrderDetailAdminScreen';
 import { AcceptOrderModal } from '../components/AcceptOrderModal';
 import { RejectOrderModal } from '../components/RejectOrderModal';
 import { Calendar } from 'react-native-calendars';
+import { isAutoOrder, isAutoAccepted } from '../../../utils/autoAccept';
 
-const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
+const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' | 'AUTO_ORDERS' }[] = [
   { label: 'All', value: 'ALL' },
   { label: 'Placed', value: 'PLACED' },
   { label: 'Accepted', value: 'ACCEPTED' },
+  { label: 'Auto-Orders', value: 'AUTO_ORDERS' },
   { label: 'Preparing', value: 'PREPARING' },
   { label: 'Ready', value: 'READY' },
 ];
@@ -49,7 +51,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL' | 'AUTO_ORDERS'>('ALL');
   const [selectedMealWindow, setSelectedMealWindow] = useState<'ALL' | 'LUNCH' | 'DINNER'>('ALL');
   const [page, setPage] = useState(1);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
@@ -58,6 +60,9 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   const [pendingRejectOrderId, setPendingRejectOrderId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [showBulkStatusModal, setShowBulkStatusModal] = useState(false);
 
   // Fetch kitchen orders
   const {
@@ -69,13 +74,23 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     queryKey: ['kitchenOrders', selectedStatus, selectedMealWindow, selectedDate, page],
     queryFn: () =>
       ordersService.getKitchenOrders({
-        status: selectedStatus === 'ALL' ? undefined : selectedStatus,
+        status: selectedStatus === 'ALL' || selectedStatus === 'AUTO_ORDERS' ? undefined : selectedStatus,
         mealWindow: selectedMealWindow === 'ALL' ? undefined : selectedMealWindow,
         date: selectedDate || undefined,
         page,
         limit: 50,
       }),
   });
+
+  // Filter orders for auto-orders view
+  const filteredOrders = useMemo(() => {
+    if (selectedStatus === 'AUTO_ORDERS') {
+      return ordersData?.orders.filter(order =>
+        isAutoOrder(order) || isAutoAccepted(order)
+      ) || [];
+    }
+    return ordersData?.orders || [];
+  }, [ordersData, selectedStatus]);
 
   // Update order status mutation (Kitchen-specific endpoint)
   const updateStatusMutation = useMutation({
@@ -145,6 +160,37 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       Alert.alert(
         'Error',
         error?.response?.data?.error?.message || 'Failed to reject order. Please try again.',
+      );
+    },
+  });
+
+  // Bulk status update mutation
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: async ({ orderIds, status }: { orderIds: string[]; status: OrderStatus }) => {
+      console.log('====================================');
+      console.log('🔄 BULK STATUS UPDATE');
+      console.log('====================================');
+      console.log('Order IDs:', orderIds);
+      console.log('New Status:', status);
+      console.log('====================================');
+
+      // Update all orders in parallel
+      const promises = orderIds.map(orderId =>
+        ordersService.updateOrderStatus(orderId, { status })
+      );
+      return Promise.all(promises);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+      Alert.alert('Success', `${variables.orderIds.length} order(s) updated to ${variables.status}`);
+      setSelectedOrderIds(new Set());
+      setSelectionMode(false);
+      setShowBulkStatusModal(false);
+    },
+    onError: (error: any) => {
+      Alert.alert(
+        'Update Failed',
+        error?.response?.data?.error?.message || 'Failed to update orders. Please try again.',
       );
     },
   });
@@ -221,6 +267,54 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedOrderIds(new Set());
+  };
+
+  const handleOrderSelection = (orderId: string) => {
+    const newSelected = new Set(selectedOrderIds);
+    if (newSelected.has(orderId)) {
+      newSelected.delete(orderId);
+    } else {
+      newSelected.add(orderId);
+    }
+    setSelectedOrderIds(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedOrderIds.size === ordersData?.orders.length) {
+      setSelectedOrderIds(new Set());
+    } else {
+      const allIds = new Set(ordersData?.orders.map(order => order._id) || []);
+      setSelectedOrderIds(allIds);
+    }
+  };
+
+  const handleBulkStatusUpdate = (status: OrderStatus) => {
+    if (selectedOrderIds.size === 0) {
+      Alert.alert('No Selection', 'Please select at least one order');
+      return;
+    }
+
+    Alert.alert(
+      'Confirm Bulk Update',
+      `Update ${selectedOrderIds.size} order(s) to ${status}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Update',
+          onPress: () => {
+            bulkUpdateStatusMutation.mutate({
+              orderIds: Array.from(selectedOrderIds),
+              status,
+            });
+          },
+        },
+      ]
+    );
+  };
+
   const handleLoadMore = () => {
     if (
       ordersData &&
@@ -235,9 +329,12 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     return (
       <OrderCardKitchen
         order={item}
-        onPress={() => handleOrderPress(item._id)}
+        onPress={() => selectionMode ? handleOrderSelection(item._id) : handleOrderPress(item._id)}
         onStatusChange={handleStatusChange}
         isUpdating={updatingOrderId === item._id}
+        selectionMode={selectionMode}
+        isSelected={selectedOrderIds.has(item._id)}
+        onSelect={() => handleOrderSelection(item._id)}
       />
     );
   };
@@ -286,16 +383,38 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Kitchen Orders</Text>
+          <Text style={styles.headerTitle}>
+            {selectionMode ? `${selectedOrderIds.size} Selected` : 'Kitchen Orders'}
+          </Text>
           <View style={styles.headerActions}>
-            {selectedDate && (
-              <TouchableOpacity onPress={handleClearDate} style={styles.clearDateButton}>
-                <Icon name="close" size={20} color="#ffffff" />
-              </TouchableOpacity>
+            {selectionMode ? (
+              <>
+                <TouchableOpacity onPress={handleSelectAll} style={styles.iconButton}>
+                  <Icon
+                    name={selectedOrderIds.size === ordersData?.orders.length ? "check-box" : "check-box-outline-blank"}
+                    size={22}
+                    color="#ffffff"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={toggleSelectionMode} style={styles.iconButton}>
+                  <Icon name="close" size={22} color="#ffffff" />
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity onPress={toggleSelectionMode} style={styles.iconButton}>
+                  <Icon name="checklist" size={22} color="#ffffff" />
+                </TouchableOpacity>
+                {selectedDate && (
+                  <TouchableOpacity onPress={handleClearDate} style={styles.clearDateButton}>
+                    <Icon name="close" size={20} color="#ffffff" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
+                  <Icon name="calendar-today" size={22} color="#ffffff" />
+                </TouchableOpacity>
+              </>
             )}
-            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
-              <Icon name="calendar-today" size={22} color="#ffffff" />
-            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -365,7 +484,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       {/* Orders List */}
       <View style={styles.ordersSection}>
         <FlatList
-          data={ordersData?.orders || []}
+          data={filteredOrders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item._id}
           refreshControl={
@@ -385,6 +504,38 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           ]}
         />
       </View>
+
+      {/* Bulk Action Bar */}
+      {selectionMode && selectedOrderIds.size > 0 && (
+        <View style={styles.bulkActionBar}>
+          <View style={styles.bulkActionHeader}>
+            <Text style={styles.bulkActionTitle}>
+              {selectedOrderIds.size} selected
+            </Text>
+            <TouchableOpacity onPress={() => setSelectedOrderIds(new Set())} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>Clear</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.bulkActionButtons}>
+            <TouchableOpacity
+              style={[styles.bulkButton, styles.preparingButton]}
+              onPress={() => handleBulkStatusUpdate('PREPARING')}
+              disabled={bulkUpdateStatusMutation.isPending}
+            >
+              <Icon name="restaurant" size={18} color="#FFFFFF" />
+              <Text style={styles.bulkButtonText}>Preparing</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bulkButton, styles.readyButton]}
+              onPress={() => handleBulkStatusUpdate('READY')}
+              disabled={bulkUpdateStatusMutation.isPending}
+            >
+              <Icon name="done-all" size={18} color="#FFFFFF" />
+              <Text style={styles.bulkButtonText}>Ready</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {/* Accept Order Modal */}
       {pendingAcceptOrderId && (
@@ -630,6 +781,73 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#111827',
+  },
+  bulkActionBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 2,
+    borderTopColor: '#F56B4C',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  bulkActionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  bulkActionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  clearButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#f3f4f6',
+  },
+  clearButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  bulkActionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  bulkButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  preparingButton: {
+    backgroundColor: '#FFCC00',
+  },
+  readyButton: {
+    backgroundColor: '#FF9500',
+  },
+  bulkButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  iconButton: {
+    padding: 4,
   },
 });
 

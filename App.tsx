@@ -317,6 +317,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -329,11 +330,11 @@ function App() {
       const token = await AsyncStorage.getItem('authToken');
       console.log('Auth Token exists:', token ? 'YES' : 'NO');
 
-      const userRole = await AsyncStorage.getItem('userRole');
-      console.log('User Role:', userRole);
+      const storedRole = await AsyncStorage.getItem('userRole');
+      console.log('User Role:', storedRole);
 
       // Authenticate if token exists and user has a valid role (ADMIN or KITCHEN_STAFF)
-      const hasValidRole = userRole === 'ADMIN' || userRole === 'KITCHEN_STAFF';
+      const hasValidRole = storedRole === 'ADMIN' || storedRole === 'KITCHEN_STAFF';
       const isValidUser = !!token && hasValidRole;
       console.log('Is Valid User:', isValidUser);
       console.log('Has Valid Role:', hasValidRole);
@@ -342,8 +343,10 @@ function App() {
         console.log('⚠️  Token exists but role is invalid. Clearing data...');
         await authService.clearAdminData();
         setIsAuthenticated(false);
+        setUserRole(null);
       } else {
         setIsAuthenticated(isValidUser);
+        setUserRole(storedRole as UserRole | null);
 
         // Initialize FCM if authenticated
         if (isValidUser) {
@@ -356,6 +359,7 @@ function App() {
     } catch (error) {
       console.error('Error checking auth:', error);
       setIsAuthenticated(false);
+      setUserRole(null);
     } finally {
       setLoading(false);
     }
@@ -440,6 +444,7 @@ function App() {
 
       // Store user role
       await AsyncStorage.setItem('userRole', appRole);
+      setUserRole(appRole);
 
       // Store user data
       await AsyncStorage.setItem('userData', JSON.stringify(userProfile));
@@ -463,6 +468,7 @@ function App() {
       console.error('❌ Error during authentication:', error);
       await authService.clearAdminData();
       setIsAuthenticated(false);
+      setUserRole(null);
     }
   };
 
@@ -483,6 +489,7 @@ function App() {
     console.log('=====================================');
 
     setIsAuthenticated(false);
+    setUserRole(null);
     setSidebarVisible(false);
   };
 
@@ -507,7 +514,7 @@ function App() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <NavigationProvider>
+          <NavigationProvider userRole={userRole}>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
             {isAuthenticated ? (
               <AuthenticatedContent

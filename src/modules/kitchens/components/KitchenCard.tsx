@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
   onDelete,
   onActivate,
 }) => {
+  const [imageError, setImageError] = useState(false);
   const getStatusColor = () => {
     switch (kitchen.status) {
       case 'ACTIVE':
@@ -78,11 +79,18 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
       activeOpacity={0.7}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          {kitchen.logo ? (
-            <Image source={{ uri: kitchen.logo }} style={styles.logo} />
+          {kitchen.logo && kitchen.logo.trim() !== '' && !imageError ? (
+            <Image
+              source={{ uri: kitchen.logo }}
+              style={styles.logo}
+              onError={() => {
+                console.log('Failed to load kitchen logo:', kitchen.logo);
+                setImageError(true);
+              }}
+            />
           ) : (
             <View style={[styles.logo, styles.placeholderLogo]}>
-              <Icon name="silverware-fork-knife" size={24} color={colors.textMuted} />
+              <Icon name="silverware-fork-knife" size={24} color={colors.primary} />
             </View>
           )}
         </View>
@@ -230,9 +238,11 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadiusSm,
   },
   placeholderLogo: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
   headerInfo: {
     flex: 1,

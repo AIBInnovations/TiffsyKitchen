@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { BackHandler } from 'react-native';
+import { UserRole } from '../types/user';
+import { getDefaultScreenForRole } from '../utils/rbac';
 
 export type ScreenName =
   | 'Dashboard'
@@ -36,9 +38,11 @@ interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
-export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentScreen, setCurrentScreen] = useState<ScreenName>('Dashboard');
-  const [screenHistory, setScreenHistory] = useState<ScreenName[]>(['Dashboard']);
+export const NavigationProvider: React.FC<{ children: ReactNode; userRole?: UserRole | null }> = ({ children, userRole }) => {
+  // Initialize with role-based default screen
+  const initialScreen = getDefaultScreenForRole(userRole || null);
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>(initialScreen);
+  const [screenHistory, setScreenHistory] = useState<ScreenName[]>([initialScreen]);
 
   const navigate = (screen: ScreenName) => {
     // Avoid pushing the same screen multiple times consecutively
@@ -60,6 +64,13 @@ export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children
     }
     return false;
   };
+
+  // Update default screen when user role changes (e.g., after login)
+  useEffect(() => {
+    const defaultScreen = getDefaultScreenForRole(userRole || null);
+    setCurrentScreen(defaultScreen);
+    setScreenHistory([defaultScreen]);
+  }, [userRole]);
 
   useEffect(() => {
     const backAction = () => {

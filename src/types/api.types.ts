@@ -584,6 +584,9 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentMethod?: string;
   paymentId?: string;
+  acceptedAt?: string; // Timestamp when auto-accepted
+  isAutoOrder?: boolean; // Subscription-based auto-order flag
+  autoAccepted?: boolean; // Response field from order creation
   status: OrderStatus;
   statusTimeline: StatusEntry[];
   specialInstructions?: string;

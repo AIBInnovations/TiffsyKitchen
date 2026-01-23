@@ -50,6 +50,8 @@ export interface UpdateKitchenRequest {
   operatingHours?: OperatingHours;
   contactPhone?: string;
   contactEmail?: string;
+  ownerName?: string;
+  ownerPhone?: string;
   logo?: string;
   coverImage?: string;
 }

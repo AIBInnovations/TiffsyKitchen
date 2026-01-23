@@ -46,12 +46,29 @@ class OrdersService {
     const queryString = queryParams.toString();
     const endpoint = `/api/orders/admin/all${queryString ? `?${queryString}` : ''}`;
 
+    console.log('🔍 [OrdersService] Fetching orders from:', endpoint);
+
     const response = await apiService.get<{
       success: boolean;
       message: string;
       data: OrderListResponse;
       error: null;
     }>(endpoint);
+
+    console.log('📦 [OrdersService] Orders received:', response.data?.orders?.length || 0);
+
+    // Log first few orders to check population status
+    if (response.data?.orders?.length > 0) {
+      const firstOrder = response.data.orders[0];
+      console.log('🔍 [OrdersService] Sample order kitchenId check:', {
+        orderNumber: firstOrder.orderNumber,
+        kitchenIdType: typeof firstOrder.kitchenId,
+        isPopulated: typeof firstOrder.kitchenId === 'object' && firstOrder.kitchenId !== null,
+        kitchenName: typeof firstOrder.kitchenId === 'object' && firstOrder.kitchenId !== null
+          ? (firstOrder.kitchenId as any).name
+          : 'NOT POPULATED'
+      });
+    }
 
     // Backend now consistently returns data in 'data' field
     return response.data;

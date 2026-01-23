@@ -10,36 +10,98 @@ import {
   RefreshControl,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { colors, spacing } from '../../../theme';
+import { colors, spacing, wp, hp, rf, rs } from '../../../theme';
 import { deliveryService } from '../../../services/delivery.service';
-import { Batch, BatchStatus, MealWindow } from '../../../types/api.types';
+import { Batch, BatchStatus, MealWindow, OperatingHours } from '../../../types/api.types';
+import { kitchenStaffService } from '../../../services/kitchen-staff.service';
 
 interface BatchManagementTabProps {
   kitchenId?: string;
 }
 
-// Helper function to check if dispatch is allowed based on time
-const canDispatchMealWindow = (mealWindow: MealWindow): boolean => {
-  const now = new Date();
-  const currentHour = now.getHours();
-
-  if (mealWindow === 'LUNCH') {
-    return currentHour >= 13; // After 1 PM
-  } else {
-    return currentHour >= 22; // After 10 PM
-  }
+// Helper function to parse time string (HH:MM) to hour number
+const parseTimeToHour = (timeString: string): number => {
+  const [hours] = timeString.split(':').map(Number);
+  return hours;
 };
 
-const getTimeUntilDispatch = (mealWindow: MealWindow): string => {
+// Helper function to check if dispatch is allowed based on operating hours
+const canDispatchMealWindow = (
+  mealWindow: MealWindow,
+  operatingHours: OperatingHours | null
+): boolean => {
+  if (!operatingHours) {
+    // Fallback to hardcoded times if operating hours not available
+    const now = new Date();
+    const currentHour = now.getHours();
+    return mealWindow === 'LUNCH' ? currentHour >= 13 : currentHour >= 22;
+  }
+
   const now = new Date();
   const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-  if (mealWindow === 'LUNCH') {
-    const hoursLeft = 13 - currentHour;
+  if (mealWindow === 'LUNCH' && operatingHours.lunch) {
+    const [endHour, endMinute] = operatingHours.lunch.endTime.split(':').map(Number);
+    const endTimeInMinutes = endHour * 60 + endMinute;
+    return currentTimeInMinutes >= endTimeInMinutes;
+  } else if (mealWindow === 'DINNER' && operatingHours.dinner) {
+    const [endHour, endMinute] = operatingHours.dinner.endTime.split(':').map(Number);
+    const endTimeInMinutes = endHour * 60 + endMinute;
+    return currentTimeInMinutes >= endTimeInMinutes;
+  }
+
+  // Fallback
+  return false;
+};
+
+const getTimeUntilDispatch = (
+  mealWindow: MealWindow,
+  operatingHours: OperatingHours | null
+): string => {
+  if (!operatingHours) {
+    // Fallback to hardcoded times
+    const now = new Date();
+    const currentHour = now.getHours();
+    const targetHour = mealWindow === 'LUNCH' ? 13 : 22;
+    const hoursLeft = targetHour - currentHour;
     return hoursLeft > 0 ? `${hoursLeft} hour(s)` : 'Now';
+  }
+
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+  let endTimeInMinutes = 0;
+  let endTimeString = '';
+
+  if (mealWindow === 'LUNCH' && operatingHours.lunch) {
+    endTimeString = operatingHours.lunch.endTime;
+    const [endHour, endMinute] = endTimeString.split(':').map(Number);
+    endTimeInMinutes = endHour * 60 + endMinute;
+  } else if (mealWindow === 'DINNER' && operatingHours.dinner) {
+    endTimeString = operatingHours.dinner.endTime;
+    const [endHour, endMinute] = endTimeString.split(':').map(Number);
+    endTimeInMinutes = endHour * 60 + endMinute;
+  }
+
+  const minutesLeft = endTimeInMinutes - currentTimeInMinutes;
+
+  if (minutesLeft <= 0) {
+    return 'Now';
+  }
+
+  const hoursLeft = Math.floor(minutesLeft / 60);
+  const minsLeft = minutesLeft % 60;
+
+  if (hoursLeft > 0 && minsLeft > 0) {
+    return `${hoursLeft}h ${minsLeft}m`;
+  } else if (hoursLeft > 0) {
+    return `${hoursLeft} hour(s)`;
   } else {
-    const hoursLeft = 22 - currentHour;
-    return hoursLeft > 0 ? `${hoursLeft} hour(s)` : 'Now';
+    return `${minsLeft} min(s)`;
   }
 };
 
@@ -73,20 +135,55 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
   const [isDispatching, setIsDispatching] = useState(false);
   const [selectedMealWindow, setSelectedMealWindow] = useState<MealWindow>('LUNCH');
   const [filterStatus, setFilterStatus] = useState<BatchStatus | 'ALL'>('ALL');
+  const [operatingHours, setOperatingHours] = useState<OperatingHours | null>(null);
+  const [isLoadingKitchen, setIsLoadingKitchen] = useState(true);
+
+  useEffect(() => {
+    loadKitchenData();
+  }, [kitchenId]);
 
   useEffect(() => {
     loadBatches();
-  }, [kitchenId, filterStatus]);
+  }, [filterStatus, selectedMealWindow]);
+
+  const loadKitchenData = async () => {
+    setIsLoadingKitchen(true);
+    try {
+      const response = await kitchenStaffService.getDashboardStats();
+      if (response?.data?.kitchen?.operatingHours) {
+        setOperatingHours(response.data.kitchen.operatingHours);
+        console.log('✅ Loaded kitchen operating hours:', response.data.kitchen.operatingHours);
+      }
+    } catch (error) {
+      console.error('❌ Error loading kitchen data:', error);
+    } finally {
+      setIsLoadingKitchen(false);
+    }
+  };
 
   const loadBatches = async () => {
     setIsLoading(true);
     try {
-      // Note: You'll need to add the getBatches method to delivery.service.ts
-      // For now, this will be empty until backend is connected
+      console.log('🔄 Loading batches for kitchen...');
+      console.log('Meal Window:', selectedMealWindow);
+      console.log('Filter Status:', filterStatus);
+
+      const response = await deliveryService.getMyKitchenBatches({
+        status: filterStatus === 'ALL' ? undefined : filterStatus,
+        mealWindow: selectedMealWindow,
+        limit: 50,
+      });
+
+      // Backend quirk: actual data might be in result.error or result.data
+      const responseData = response.error || response.data || response;
+      const fetchedBatches = responseData?.batches || [];
+
+      console.log('✅ Loaded batches:', fetchedBatches.length);
+      setBatches(fetchedBatches);
+    } catch (error: any) {
+      console.error('❌ Error loading batches:', error);
+      Alert.alert('Error', error?.message || 'Failed to load batches');
       setBatches([]);
-    } catch (error) {
-      console.error('Error loading batches:', error);
-      Alert.alert('Error', 'Failed to load batches');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -132,10 +229,10 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
   };
 
   const handleDispatch = async () => {
-    if (!canDispatchMealWindow(selectedMealWindow)) {
+    if (!canDispatchMealWindow(selectedMealWindow, operatingHours)) {
       Alert.alert(
         'Cannot Dispatch Yet',
-        `${selectedMealWindow} meal window ends in ${getTimeUntilDispatch(selectedMealWindow)}. Dispatch is only allowed after the meal window ends.`
+        `${selectedMealWindow} meal window ends in ${getTimeUntilDispatch(selectedMealWindow, operatingHours)}. Dispatch is only allowed after the meal window ends.`
       );
       return;
     }
@@ -200,7 +297,9 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
         <View style={styles.batchDetails}>
           <View style={styles.detailRow}>
             <MaterialIcons name="shopping-bag" size={16} color={colors.textMuted} />
-            <Text style={styles.detailText}>{batch.orders.length} orders</Text>
+            <Text style={styles.detailText}>
+              {batch.orders?.length || batch.orderCount || 0} orders
+            </Text>
           </View>
 
           {batch.driverId && (
@@ -306,10 +405,10 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
             style={[
               styles.actionButton,
               styles.dispatchButton,
-              !canDispatchMealWindow(selectedMealWindow) && styles.actionButtonDisabled,
+              !canDispatchMealWindow(selectedMealWindow, operatingHours) && styles.actionButtonDisabled,
             ]}
             onPress={handleDispatch}
-            disabled={isDispatching || !canDispatchMealWindow(selectedMealWindow)}
+            disabled={isDispatching || !canDispatchMealWindow(selectedMealWindow, operatingHours)}
           >
             {isDispatching ? (
               <ActivityIndicator size="small" color={colors.white} />
@@ -317,9 +416,9 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
               <>
                 <MaterialIcons name="local-shipping" size={20} color={colors.white} />
                 <Text style={styles.actionButtonText}>
-                  {canDispatchMealWindow(selectedMealWindow)
+                  {canDispatchMealWindow(selectedMealWindow, operatingHours)
                     ? 'Dispatch to Drivers'
-                    : `Wait ${getTimeUntilDispatch(selectedMealWindow)}`}
+                    : `Wait ${getTimeUntilDispatch(selectedMealWindow, operatingHours)}`}
                 </Text>
               </>
             )}
@@ -327,14 +426,48 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
         </View>
 
         {/* Dispatch Info */}
-        {!canDispatchMealWindow(selectedMealWindow) && (
+        {!canDispatchMealWindow(selectedMealWindow, operatingHours) && (
           <View style={styles.infoBox}>
             <MaterialIcons name="info-outline" size={16} color={colors.info} />
             <Text style={styles.infoText}>
-              {selectedMealWindow === 'LUNCH'
+              {operatingHours && selectedMealWindow === 'LUNCH' && operatingHours.lunch
+                ? `Dispatch available after ${operatingHours.lunch.endTime}`
+                : operatingHours && selectedMealWindow === 'DINNER' && operatingHours.dinner
+                ? `Dispatch available after ${operatingHours.dinner.endTime}`
+                : selectedMealWindow === 'LUNCH'
                 ? 'Dispatch available after 1:00 PM'
                 : 'Dispatch available after 10:00 PM'}
             </Text>
+          </View>
+        )}
+
+        {/* Operating Hours Display */}
+        {operatingHours && (
+          <View style={styles.operatingHoursContainer}>
+            <Text style={styles.operatingHoursTitle}>Operating Hours</Text>
+            <View style={styles.operatingHoursContent}>
+              {operatingHours.lunch && (
+                <View style={styles.operatingHourRow}>
+                  <MaterialIcons name="wb-sunny" size={16} color="#f59e0b" />
+                  <Text style={styles.operatingHourLabel}>Lunch:</Text>
+                  <Text style={styles.operatingHourTime}>
+                    {operatingHours.lunch.startTime} - {operatingHours.lunch.endTime}
+                  </Text>
+                </View>
+              )}
+              {operatingHours.dinner && (
+                <View style={styles.operatingHourRow}>
+                  <MaterialIcons name="nights-stay" size={16} color="#6366f1" />
+                  <Text style={styles.operatingHourLabel}>Dinner:</Text>
+                  <Text style={styles.operatingHourTime}>
+                    {operatingHours.dinner.startTime} - {operatingHours.dinner.endTime}
+                  </Text>
+                </View>
+              )}
+              {!operatingHours.lunch && !operatingHours.dinner && (
+                <Text style={styles.noOperatingHours}>No operating hours set</Text>
+              )}
+            </View>
           </View>
         )}
       </View>
@@ -417,7 +550,7 @@ const styles = StyleSheet.create({
     margin: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: spacing.md,
@@ -432,19 +565,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.sm,
+    paddingVertical: rs(12),
     paddingHorizontal: spacing.md,
     borderRadius: spacing.borderRadiusMd,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.divider,
+    minHeight: rs(44),
   },
   mealWindowButtonActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   mealWindowText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '500',
     color: colors.textSecondary,
     marginLeft: spacing.xs,
@@ -460,9 +594,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: rs(14),
     borderRadius: spacing.borderRadiusMd,
     gap: spacing.xs,
+    minHeight: rs(48),
   },
   batchButton: {
     backgroundColor: colors.primary,
@@ -475,7 +610,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
     color: colors.white,
   },
@@ -492,6 +627,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.info,
     flex: 1,
+  },
+  operatingHoursContainer: {
+    marginTop: spacing.md,
+    padding: spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusMd,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  operatingHoursTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  operatingHoursContent: {
+    gap: spacing.xs,
+  },
+  operatingHourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  operatingHourLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    minWidth: 55,
+  },
+  operatingHourTime: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  noOperatingHours: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingVertical: spacing.xs,
   },
   filterBar: {
     flexDirection: 'row',

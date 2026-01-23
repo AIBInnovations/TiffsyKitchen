@@ -73,6 +73,9 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         page,
         limit: 20,
       }),
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
+    refetchOnMount: 'always', // Always refetch when component mounts
   });
 
   // Update order status mutation (using ADMIN endpoint)
@@ -192,20 +195,25 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     }>();
 
     filteredOrders.forEach((order) => {
-      // Handle null or undefined kitchenId
-      if (!order.kitchenId) {
-        return; // Skip orders with no kitchen data
-      }
+      // Handle null or undefined kitchenId - group under "Unassigned"
+      let kitchenId: string;
+      let kitchenName: string;
+      let kitchenCode: string;
 
-      const kitchenId = typeof order.kitchenId === 'string'
-        ? order.kitchenId
-        : order.kitchenId._id;
-      const kitchenName = typeof order.kitchenId === 'string'
-        ? 'Unknown Kitchen'
-        : order.kitchenId.name;
-      const kitchenCode = typeof order.kitchenId === 'string'
-        ? 'N/A'
-        : order.kitchenId.code;
+      if (!order.kitchenId) {
+        kitchenId = 'unassigned';
+        kitchenName = 'Unassigned Kitchen';
+        kitchenCode = 'N/A';
+      } else if (typeof order.kitchenId === 'string') {
+        // Backend didn't populate - use the ID string
+        kitchenId = order.kitchenId;
+        kitchenName = 'Loading...';
+        kitchenCode = order.kitchenId.substring(0, 8);
+      } else {
+        kitchenId = order.kitchenId._id;
+        kitchenName = order.kitchenId.name;
+        kitchenCode = order.kitchenId.code;
+      }
 
       if (!groupedMap.has(kitchenId)) {
         groupedMap.set(kitchenId, {

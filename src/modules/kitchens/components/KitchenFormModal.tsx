@@ -34,6 +34,9 @@ export interface KitchenFormState {
   lunchEndTime: string;
   dinnerStartTime: string;
   dinnerEndTime: string;
+  onDemandStartTime: string;
+  onDemandEndTime: string;
+  isAlwaysOpen: boolean;
   contactPhone: string;
   contactEmail: string;
   ownerName: string;
@@ -82,6 +85,9 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
     lunchEndTime: '15:00',
     dinnerStartTime: '19:00',
     dinnerEndTime: '23:00',
+    onDemandStartTime: '10:00',
+    onDemandEndTime: '22:00',
+    isAlwaysOpen: false,
     contactPhone: '',
     contactEmail: '',
     ownerName: '',
@@ -111,6 +117,9 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
         lunchEndTime: kitchen.operatingHours.lunch?.endTime || '15:00',
         dinnerStartTime: kitchen.operatingHours.dinner?.startTime || '19:00',
         dinnerEndTime: kitchen.operatingHours.dinner?.endTime || '23:00',
+        onDemandStartTime: kitchen.operatingHours.onDemand?.startTime || '10:00',
+        onDemandEndTime: kitchen.operatingHours.onDemand?.endTime || '22:00',
+        isAlwaysOpen: kitchen.operatingHours.onDemand?.isAlwaysOpen || false,
         contactPhone: kitchen.contactPhone || '',
         contactEmail: kitchen.contactEmail || '',
         ownerName: kitchen.ownerName || '',
@@ -134,6 +143,9 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
         lunchEndTime: '15:00',
         dinnerStartTime: '19:00',
         dinnerEndTime: '23:00',
+        onDemandStartTime: '10:00',
+        onDemandEndTime: '22:00',
+        isAlwaysOpen: false,
         contactPhone: '',
         contactEmail: '',
         ownerName: '',
@@ -244,6 +256,22 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
     if (formData.dinnerStartTime >= formData.dinnerEndTime) {
       showToast('Dinner start time must be before end time', 'error');
       return false;
+    }
+
+    // 7b. On-Demand Hours Validation (if not always open)
+    if (!formData.isAlwaysOpen) {
+      if (!formData.onDemandStartTime || !timePattern.test(formData.onDemandStartTime)) {
+        showToast('Invalid on-demand start time format (use HH:MM)', 'error');
+        return false;
+      }
+      if (!formData.onDemandEndTime || !timePattern.test(formData.onDemandEndTime)) {
+        showToast('Invalid on-demand end time format (use HH:MM)', 'error');
+        return false;
+      }
+      if (formData.onDemandStartTime >= formData.onDemandEndTime) {
+        showToast('On-demand start time must be before end time', 'error');
+        return false;
+      }
     }
 
     // 8. Contact Phone Validation (Optional but must be valid if provided)
@@ -607,6 +635,46 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
               </View>
             </View>
 
+            {/* On-Demand Operating Hours */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>On-Demand Operating Hours</Text>
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.label}>Start Time</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Start (HH:MM)"
+                    value={formData.onDemandStartTime}
+                    onChangeText={(text) => updateField('onDemandStartTime', text)}
+                    editable={!loading}
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.label}>End Time</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="End (HH:MM)"
+                    value={formData.onDemandEndTime}
+                    onChangeText={(text) => updateField('onDemandEndTime', text)}
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+
+              {/* Always Open Toggle */}
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => updateField('isAlwaysOpen', !formData.isAlwaysOpen)}
+                disabled={loading}>
+                <Icon
+                  name={formData.isAlwaysOpen ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                  size={24}
+                  color={colors.primary}
+                />
+                <Text style={styles.checkboxLabel}>Always Open (24/7)</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Contact Information */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Contact Information</Text>
@@ -801,6 +869,17 @@ const styles = StyleSheet.create({
   },
   halfWidth: {
     flex: 1,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    gap: spacing.sm,
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
   zonePicker: {
     flexDirection: 'row',

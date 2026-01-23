@@ -132,11 +132,17 @@ export const canAccessScreen = (role: UserRole | null, screen: ScreenName): bool
 };
 
 /**
- * Get the default screen for a role (first accessible screen)
+ * Get the default screen for a role
  */
 export const getDefaultScreenForRole = (role: UserRole | null): ScreenName => {
   if (!role) return 'Dashboard';
 
+  // Kitchen staff should default to Orders screen
+  if (role === 'KITCHEN_STAFF') {
+    return 'Orders';
+  }
+
+  // For other roles, use the first accessible screen
   const menuItems = getMenuItemsForRole(role);
   return menuItems.length > 0 ? menuItems[0].screen : 'Dashboard';
 };

@@ -123,6 +123,46 @@ class DeliveryService {
     return apiService.post('/api/delivery/my-kitchen/dispatch', data);
   }
 
+  /**
+   * Get batches for kitchen staff's own kitchen
+   * Kitchen staff endpoint - no kitchenId required
+   */
+  async getMyKitchenBatches(params?: {
+    status?: string;
+    mealWindow?: 'LUNCH' | 'DINNER';
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      batches: any[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+      };
+    };
+    error: null;
+  }> {
+    const query = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) {
+          query.append(key, value.toString());
+        }
+      });
+    }
+    const queryString = query.toString();
+    const endpoint = queryString
+      ? `/api/delivery/kitchen-batches?${queryString}`
+      : '/api/delivery/kitchen-batches';
+    return apiService.get(endpoint);
+  }
+
   async getBatches(params?: {
     kitchenId?: string;
     zoneId?: string;

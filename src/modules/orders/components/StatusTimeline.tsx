@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity, Vibration} from 'react-native'
 import {StatusEntry, OrderStatus} from '../../../types/api.types';
 import {format} from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {isAutoAcceptNote} from '../../../utils/autoAccept';
 
 interface StatusTimelineProps {
   timeline: StatusEntry[];
@@ -271,9 +272,23 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({
               </View>
 
               {hasOccurred && entry?.notes && (
-                <View style={styles.notesContainer}>
-                  <MaterialIcons name="note" size={14} color="#8E8E93" />
-                  <Text style={styles.notes}>{entry.notes}</Text>
+                <View
+                  style={[
+                    styles.notesContainer,
+                    isAutoAcceptNote(entry.notes) && styles.autoAcceptNotesContainer,
+                  ]}>
+                  <MaterialIcons
+                    name={isAutoAcceptNote(entry.notes) ? 'verified' : 'note'}
+                    size={14}
+                    color={isAutoAcceptNote(entry.notes) ? '#10B981' : '#8E8E93'}
+                  />
+                  <Text
+                    style={[
+                      styles.notes,
+                      isAutoAcceptNote(entry.notes) && styles.autoAcceptNotes,
+                    ]}>
+                    {entry.notes}
+                  </Text>
                 </View>
               )}
 
@@ -515,6 +530,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#3C3C43',
     lineHeight: 14,
+  },
+  autoAcceptNotesContainer: {
+    backgroundColor: '#D1FAE5',
+    borderLeftWidth: 3,
+    borderLeftColor: '#10B981',
+    paddingLeft: 6,
+  },
+  autoAcceptNotes: {
+    color: '#059669',
+    fontWeight: '600',
   },
   updatedByContainer: {
     flexDirection: 'row',

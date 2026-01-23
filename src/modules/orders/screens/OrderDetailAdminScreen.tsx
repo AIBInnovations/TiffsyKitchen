@@ -22,6 +22,8 @@ import { DeliveryStatusModal } from '../components/DeliveryStatusModal';
 import OrderStatusDropdown from '../components/OrderStatusDropdown';
 import { formatDistanceToNow } from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { wp, hp, rf, rs } from '../../../theme/responsive';
+import { getAutoAcceptBadgeInfo, getAutoAcceptDescription } from '../../../utils/autoAccept';
 
 interface OrderDetailAdminScreenProps {
   route: {
@@ -442,7 +444,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   });
 
   return (
-    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#f97316">
+    <SafeAreaScreen style={{ flex: 1 }} backgroundColor="#F56B4C">
       <ScrollView style={[styles.scrollView, { backgroundColor: '#F5F5F5' }]}>
         {/* Header */}
         <View style={styles.header}>
@@ -453,22 +455,47 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
               <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={styles.headerContent}>
-              <View style={styles.headerTop}>
-                <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
-              </View>
+              <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
               <Text style={styles.placedTime}>
                 Placed {safeFormatDate(order.placedAt)}
               </Text>
-              {order.menuType && (
-                <View style={styles.menuTypeBadge}>
-                  <Text style={styles.menuTypeText}>
-                    {order.menuType === 'MEAL_MENU' ? '🍱 Meal Menu' : '🍔 On-Demand'}
-                  </Text>
-                </View>
-              )}
             </View>
           </View>
         </View>
+
+        {/* Auto-Accept Info Alert */}
+        {(() => {
+          const badgeInfo = getAutoAcceptBadgeInfo(order);
+          const description = getAutoAcceptDescription(order);
+          if (badgeInfo && description) {
+            return (
+              <View
+                style={[
+                  styles.autoAcceptAlert,
+                  { borderLeftColor: badgeInfo.color },
+                ]}>
+                <MaterialIcons
+                  name={badgeInfo.icon}
+                  size={20}
+                  color={badgeInfo.color}
+                />
+                <View style={styles.autoAcceptAlertContent}>
+                  <Text
+                    style={[
+                      styles.autoAcceptAlertTitle,
+                      { color: badgeInfo.color },
+                    ]}>
+                    {badgeInfo.label}
+                  </Text>
+                  <Text style={styles.autoAcceptAlertText}>
+                    {description}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+          return null;
+        })()}
 
         {/* Action Buttons */}
         {(canAcceptOrder(order) || canRejectOrder(order) || canUpdateStatus(order) || canUpdateDeliveryStatus(order) || canCancelOrder(order)) && (
@@ -583,26 +610,28 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
-        {/* Kitchen Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kitchen</Text>
-          <View style={styles.card}>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Name:</Text>
-              <Text style={styles.value}>{order.kitchenId?.name || 'N/A'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Code:</Text>
-              <Text style={styles.value}>{order.kitchenId?.code || 'N/A'}</Text>
-            </View>
-            {order.kitchenId?.contactPhone && (
+        {/* Kitchen Section - Hidden for kitchen staff */}
+        {!isKitchenMode && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Kitchen</Text>
+            <View style={styles.card}>
               <View style={styles.infoRow}>
-                <Text style={styles.label}>Phone:</Text>
-                <Text style={styles.value}>{order.kitchenId?.contactPhone}</Text>
+                <Text style={styles.label}>Name:</Text>
+                <Text style={styles.value}>{order.kitchenId?.name || 'N/A'}</Text>
               </View>
-            )}
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Code:</Text>
+                <Text style={styles.value}>{order.kitchenId?.code || 'N/A'}</Text>
+              </View>
+              {order.kitchenId?.contactPhone && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Phone:</Text>
+                  <Text style={styles.value}>{order.kitchenId?.contactPhone}</Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Items Section */}
         <View style={styles.section}>
@@ -637,65 +666,67 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
-        {/* Pricing Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pricing Breakdown</Text>
-          <View style={styles.card}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Subtotal</Text>
-              <Text style={styles.priceValue}>
-                ₹{(order.subtotal || 0).toFixed(2)}
-              </Text>
-            </View>
-            {order.charges && order.charges.deliveryFee > 0 && (
+        {/* Pricing Section - Hidden for kitchen staff */}
+        {!isKitchenMode && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pricing Breakdown</Text>
+            <View style={styles.card}>
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Delivery Fee</Text>
+                <Text style={styles.priceLabel}>Subtotal</Text>
                 <Text style={styles.priceValue}>
-                  ₹{(order.charges.deliveryFee || 0).toFixed(2)}
+                  ₹{(order.subtotal || 0).toFixed(2)}
                 </Text>
               </View>
-            )}
-            {order.charges && order.charges.packagingFee > 0 && (
+              {order.charges && order.charges.deliveryFee > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Delivery Fee</Text>
+                  <Text style={styles.priceValue}>
+                    ₹{(order.charges.deliveryFee || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {order.charges && order.charges.packagingFee > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Packaging Fee</Text>
+                  <Text style={styles.priceValue}>
+                    ₹{(order.charges.packagingFee || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {order.charges && order.charges.taxAmount > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Tax</Text>
+                  <Text style={styles.priceValue}>
+                    ₹{(order.charges.taxAmount || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {order.discount && order.discount.discountAmount > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={[styles.priceLabel, styles.discountText]}>
+                    Discount
+                  </Text>
+                  <Text style={[styles.priceValue, styles.discountText]}>
+                    -₹{(order.discount.discountAmount || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.divider} />
               <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Packaging Fee</Text>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>
+                  ₹{(order.grandTotal || 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Amount Paid</Text>
                 <Text style={styles.priceValue}>
-                  ₹{(order.charges.packagingFee || 0).toFixed(2)}
+                  ₹{(order.amountPaid || 0).toFixed(2)}
                 </Text>
               </View>
-            )}
-            {order.charges && order.charges.taxAmount > 0 && (
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Tax</Text>
-                <Text style={styles.priceValue}>
-                  ₹{(order.charges.taxAmount || 0).toFixed(2)}
-                </Text>
-              </View>
-            )}
-            {order.discount && order.discount.discountAmount > 0 && (
-              <View style={styles.priceRow}>
-                <Text style={[styles.priceLabel, styles.discountText]}>
-                  Discount
-                </Text>
-                <Text style={[styles.priceValue, styles.discountText]}>
-                  -₹{(order.discount.discountAmount || 0).toFixed(2)}
-                </Text>
-              </View>
-            )}
-            <View style={styles.divider} />
-            <View style={styles.priceRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>
-                ₹{(order.grandTotal || 0).toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Amount Paid</Text>
-              <Text style={styles.priceValue}>
-                ₹{(order.amountPaid || 0).toFixed(2)}
-              </Text>
             </View>
           </View>
-        </View>
+        )}
 
         {/* Voucher Usage */}
         {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
@@ -885,12 +916,42 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   header: {
-    backgroundColor: '#f97316',
-    paddingTop: 32,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    backgroundColor: '#F56B4C',
+    paddingTop: rs(12),
+    paddingBottom: rs(20),
+    paddingHorizontal: wp(5),
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+  },
+  autoAcceptAlert: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: wp(4),
+    marginTop: hp(2),
+    padding: rs(12),
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    gap: rs(10),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  autoAcceptAlertContent: {
+    flex: 1,
+    gap: rs(4),
+  },
+  autoAcceptAlertTitle: {
+    fontSize: rf(14),
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  autoAcceptAlertText: {
+    fontSize: rf(12),
+    color: '#3C3C43',
+    lineHeight: rf(16),
   },
   statusSection: {
     paddingHorizontal: 16,
@@ -898,25 +959,20 @@ const styles = StyleSheet.create({
   },
   headerTopRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   backButton: {
-    marginRight: 12,
-    marginTop: 2,
+    marginRight: rs(12),
+    padding: rs(4),
   },
   headerContent: {
     flex: 1,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   orderNumber: {
-    fontSize: 20,
+    fontSize: rf(20),
     fontWeight: '700',
     color: '#FFFFFF',
+    marginBottom: rs(4),
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -929,22 +985,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   placedTime: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: '#FFFFFF',
     opacity: 0.9,
   },
-  menuTypeBadge: {
-    marginTop: 8,
-  },
   menuTypeText: {
-    fontSize: 13,
+    fontSize: rf(13),
     color: '#FFFFFF',
     opacity: 0.85,
   },
   actionsSection: {
-    marginTop: 12,
+    marginTop: rs(12),
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: wp(4),
   },
   actionsGrid: {
     flexDirection: 'row',
@@ -954,10 +1007,11 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
+    paddingHorizontal: rs(16),
+    paddingVertical: rs(12),
+    borderRadius: rs(8),
+    gap: rs(6),
+    minHeight: rs(44), // Minimum touch target size
   },
   acceptButton: {
     backgroundColor: '#34C759',
@@ -976,35 +1030,35 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: rf(14),
     fontWeight: '600',
   },
   section: {
-    marginTop: 12,
+    marginTop: rs(12),
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: rf(16),
     fontWeight: '600',
     color: '#000000',
-    marginBottom: 8,
-    paddingHorizontal: 16,
+    marginBottom: rs(8),
+    paddingHorizontal: wp(4),
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: wp(4),
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: rs(12),
   },
   label: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: '#8E8E93',
     flex: 1,
   },
   value: {
-    fontSize: 14,
+    fontSize: rf(14),
     color: '#000000',
     fontWeight: '500',
     flex: 2,
@@ -1094,13 +1148,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#f97316',
+    borderColor: '#F56B4C',
     borderRadius: 8,
   },
   trackOrderButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#f97316',
+    color: '#F56B4C',
   },
 });
 

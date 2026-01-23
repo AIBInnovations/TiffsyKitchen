@@ -12,12 +12,17 @@ import {
 import {Order, OrderStatus, MenuType} from '../../../types/api.types';
 import {formatDistanceToNow} from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { wp, hp, rf, rs } from '../../../theme/responsive';
+import AutoAcceptBadge from './AutoAcceptBadge';
 
 interface OrderCardKitchenProps {
   order: Order;
   onPress: () => void;
   onStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
   isUpdating?: boolean;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 const getStatusColor = (status: OrderStatus): string => {
@@ -80,6 +85,33 @@ const formatTimeAgo = (date: string): string => {
   }
 };
 
+// Helper function to check if order is auto-accepted
+const isAutoAccepted = (order: Order): boolean => {
+  const acceptEntry = order.statusTimeline?.find(
+    entry => entry.status === 'ACCEPTED'
+  );
+  return acceptEntry?.notes?.toLowerCase().includes('auto-accepted') || false;
+};
+
+// Helper function to check if order is auto-order (subscription-based)
+const isAutoOrder = (order: Order | any): boolean => {
+  // Check explicit flag if available
+  if ('isAutoOrder' in order && order.isAutoOrder === true) {
+    return true;
+  }
+  // Check special instructions
+  if (order.specialInstructions?.toLowerCase() === 'auto-order') {
+    return true;
+  }
+  // Check payment method and voucher usage
+  if (order.paymentMethod === 'VOUCHER_ONLY' &&
+      order.voucherUsage?.voucherCount > 0 &&
+      order.status === 'ACCEPTED') {
+    return true;
+  }
+  return false;
+};
+
 // Kitchen-specific status flow: PLACED → ACCEPTED/REJECTED → PREPARING → READY
 const getKitchenStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
   const statusFlow: Record<OrderStatus, OrderStatus[]> = {
@@ -103,6 +135,9 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
   onPress,
   onStatusChange,
   isUpdating = false,
+  selectionMode = false,
+  isSelected = false,
+  onSelect,
 }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
 
@@ -148,10 +183,26 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
 
   return (
     <>
-      <TouchableOpacity style={styles.card} onPress={handleCardPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={[
+          styles.card,
+          selectionMode && isSelected && styles.cardSelected,
+        ]}
+        onPress={handleCardPress}
+        activeOpacity={0.7}
+      >
+        {/* Selection Checkbox */}
+        {selectionMode && (
+          <View style={styles.checkboxContainer}>
+            <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+              {isSelected && <Icon name="check" size={14} color="#FFFFFF" />}
+            </View>
+          </View>
+        )}
+
         {/* Header with Status Dropdown */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
+          <View style={[styles.headerLeft, selectionMode && styles.headerLeftWithCheckbox]}>
             <Text style={styles.orderNumber} numberOfLines={1}>
               {order.orderNumber || 'N/A'}
             </Text>
@@ -191,24 +242,23 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Customer Info - Compact */}
-        <View style={styles.compactInfoRow}>
-          <Icon name="person" size={16} color="#6b7280" style={styles.compactIcon} />
-          <Text style={styles.compactText} numberOfLines={1}>
-            {order.userId?.name || 'Unknown'}
-          </Text>
-          <TouchableOpacity onPress={handleCallCustomer} style={styles.compactPhoneButton}>
-            <Icon name="phone" size={14} color="#f97316" />
-          </TouchableOpacity>
-        </View>
+        {/* Auto-Accept Badge */}
+        <AutoAcceptBadge order={order} size="small" showLabel={true} />
 
-        {/* Kitchen Info - Compact */}
-        <View style={styles.compactInfoRow}>
-          <Icon name="restaurant" size={16} color="#6b7280" style={styles.compactIcon} />
-          <Text style={styles.compactText} numberOfLines={1}>
-            {order.kitchenId?.name || 'Unknown'}
-          </Text>
-        </View>
+        {/* Customer Info - Compact - Only show if customer name is available */}
+        {order.userId?.name && (
+          <View style={styles.compactInfoRow}>
+            <Icon name="person" size={16} color="#6b7280" style={styles.compactIcon} />
+            <Text style={styles.compactText} numberOfLines={1}>
+              {order.userId.name}
+            </Text>
+            <TouchableOpacity onPress={handleCallCustomer} style={styles.compactPhoneButton}>
+              <Icon name="phone" size={14} color="#f97316" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Kitchen Info - Hidden for kitchen staff as they're viewing their own orders */}
 
         {/* Tags Row */}
         <View style={styles.tagsRow}>
@@ -239,19 +289,19 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
 
           <View style={styles.itemCountBadge}>
             <Text style={styles.itemCountText} numberOfLines={1}>
-              {order.itemCount || order.items?.length || 0} items
+              {order.items?.reduce((sum, item) => sum + item.quantity, 0) || order.itemCount || 0} items
             </Text>
           </View>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.amountContainer}>
+          {/* <View style={styles.amountContainer}>
             <Text style={styles.amountLabel}>Total:</Text>
             <Text style={styles.amountValue} numberOfLines={1}>
               ₹{(order.grandTotal || 0).toFixed(2)}
             </Text>
-          </View>
+          </View> */}
           {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
             <View style={styles.voucherBadge}>
               <Text style={styles.voucherText} numberOfLines={1}>
@@ -348,16 +398,41 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    borderRadius: rs(12),
+    padding: wp(3),
+    marginBottom: rs(10),
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowRadius: rs(4),
     elevation: 2,
     borderWidth: 1,
     borderColor: '#f3f4f6',
+  },
+  cardSelected: {
+    borderColor: '#F56B4C',
+    borderWidth: 2,
+    backgroundColor: '#FFF5F3',
+  },
+  checkboxContainer: {
+    position: 'absolute',
+    top: rs(10),
+    left: rs(10),
+    zIndex: 10,
+  },
+  checkbox: {
+    width: rs(20),
+    height: rs(20),
+    borderRadius: rs(10),
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
   },
   header: {
     flexDirection: 'row',
@@ -373,15 +448,18 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minWidth: 0,
   },
+  headerLeftWithCheckbox: {
+    marginLeft: rs(38),
+  },
   orderNumber: {
-    fontSize: 15,
+    fontSize: rf(15),
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 3,
+    marginBottom: rs(3),
     letterSpacing: 0.2,
   },
   timeAgo: {
-    fontSize: 11,
+    fontSize: rf(11),
     color: '#9ca3af',
     fontWeight: '600',
   },
@@ -389,17 +467,18 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(6),
+    borderRadius: rs(16),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: rs(4),
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: rs(2),
+    minHeight: rs(32),
   },
   statusBadgeDisabled: {
     opacity: 0.9,
@@ -408,30 +487,30 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: rf(10),
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.3,
   },
   syncIcon: {
-    marginLeft: 2,
+    marginLeft: rs(2),
   },
   compactInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingVertical: 1,
+    marginBottom: rs(8),
+    paddingVertical: rs(1),
   },
   compactIcon: {
-    marginRight: 8,
+    marginRight: rs(8),
     flexShrink: 0,
   },
   compactText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: rf(13),
     fontWeight: '600',
     color: '#374151',
-    lineHeight: 18,
+    lineHeight: rf(18),
   },
   compactPhoneButton: {
     padding: 4,
@@ -441,7 +520,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
-    marginBottom: 10,
+    marginBottom: 4,
     flexWrap: 'wrap',
     gap: 6,
   },
@@ -483,10 +562,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 10,
-    marginTop: 6,
+    // borderTopWidth: 1,
+    // borderTopColor: '#f3f4f6',
+    paddingTop: 4,
+    marginTop: 2,
   },
   amountContainer: {
     flexDirection: 'column',

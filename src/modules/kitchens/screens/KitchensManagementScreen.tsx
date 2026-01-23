@@ -168,18 +168,35 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
           startTime: formData.dinnerStartTime,
           endTime: formData.dinnerEndTime,
         },
+        onDemand: {
+          startTime: formData.onDemandStartTime,
+          endTime: formData.onDemandEndTime,
+          isAlwaysOpen: formData.isAlwaysOpen,
+        },
       };
 
       if (editingKitchen) {
         // Update existing kitchen
-        await kitchenService.updateKitchen(editingKitchen._id, {
+        const updatePayload: any = {
           name: formData.name,
           description: formData.description,
           cuisineTypes: cuisineTypesArray,
           operatingHours,
           contactPhone: formData.contactPhone,
           contactEmail: formData.contactEmail,
-        });
+        };
+
+        // Add owner details for PARTNER kitchens
+        if (editingKitchen.type === 'PARTNER') {
+          if (formData.ownerName?.trim()) {
+            updatePayload.ownerName = formData.ownerName.trim();
+          }
+          if (formData.ownerPhone?.trim()) {
+            updatePayload.ownerPhone = formData.ownerPhone.trim();
+          }
+        }
+
+        await kitchenService.updateKitchen(editingKitchen._id, updatePayload);
 
         // Update zones if changed
         const currentZones = Array.isArray(editingKitchen.zonesServed)
