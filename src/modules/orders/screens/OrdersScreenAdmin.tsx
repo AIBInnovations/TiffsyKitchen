@@ -365,10 +365,6 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Orders Management</Text>
-          <View style={styles.headerBadge}>
-            <Icon name="bolt" size={16} color="#fff" />
-            <Text style={styles.headerBadgeText}>Quick Edit</Text>
-          </View>
         </View>
       )}
 
@@ -471,20 +467,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
     letterSpacing: 0.3,
-  },
-  headerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-  },
-  headerBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#ffffff',
   },
   statsLoadingContainer: {
     paddingVertical: 40,

@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
   StatusBar,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -65,6 +66,7 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
   const [planStatusFilter, setPlanStatusFilter] = useState<PlanStatus | 'ALL'>('ALL');
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | undefined>(undefined);
+  const [showPlanActionsModal, setShowPlanActionsModal] = useState(false);
 
   // Subscriptions state
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -166,27 +168,39 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
 
   // Handle plan card press
   const handlePlanPress = (plan: SubscriptionPlan) => {
-    Alert.alert(
-      plan.name,
-      'Choose an action',
-      [
-        {
-          text: 'Edit', onPress: () => {
-            setSelectedPlan(plan);
-            setShowPlanForm(true);
-          }
-        },
-        ...(plan.status === 'ACTIVE'
-          ? [{ text: 'Deactivate', onPress: () => handleDeactivatePlan(plan._id) }]
-          : plan.status === 'INACTIVE'
-            ? [{ text: 'Activate', onPress: () => handleActivatePlan(plan._id) }]
-            : []),
-        ...(plan.status !== 'ARCHIVED'
-          ? [{ text: 'Archive', onPress: () => handleArchivePlan(plan._id), style: 'destructive' as const }]
-          : []),
-        { text: 'Cancel', style: 'cancel' as const },
-      ]
-    );
+    setSelectedPlan(plan);
+    setShowPlanActionsModal(true);
+  };
+
+  const closePlanActionsModal = () => {
+    setShowPlanActionsModal(false);
+    setSelectedPlan(undefined);
+  };
+
+  const handleEditPlan = () => {
+    closePlanActionsModal();
+    setShowPlanForm(true);
+  };
+
+  const handleActivatePlanAction = () => {
+    if (selectedPlan) {
+      closePlanActionsModal();
+      handleActivatePlan(selectedPlan._id);
+    }
+  };
+
+  const handleDeactivatePlanAction = () => {
+    if (selectedPlan) {
+      closePlanActionsModal();
+      handleDeactivatePlan(selectedPlan._id);
+    }
+  };
+
+  const handleArchivePlanAction = () => {
+    if (selectedPlan) {
+      closePlanActionsModal();
+      handleArchivePlan(selectedPlan._id);
+    }
   };
 
   const handleActivatePlan = async (planId: string) => {
@@ -448,6 +462,79 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
           customerName={selectedSubscription.userId.name}
         />
       )}
+
+      {/* Plan Actions Modal */}
+      <Modal
+        visible={showPlanActionsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={closePlanActionsModal}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closePlanActionsModal}
+        >
+          <View style={styles.actionsContainer}>
+            <View style={styles.actionsHeader}>
+              <View>
+                <Text style={styles.actionsTitle}>{selectedPlan?.name}</Text>
+                <Text style={styles.actionsSubtitle}>Choose an action</Text>
+              </View>
+              <TouchableOpacity
+                onPress={closePlanActionsModal}
+                style={styles.closeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Icon name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.actionsBody}>
+              <TouchableOpacity
+                style={styles.actionItem}
+                onPress={handleEditPlan}
+              >
+                <Icon name="edit" size={22} color="#374151" />
+                <Text style={styles.actionText}>Edit</Text>
+              </TouchableOpacity>
+
+              {selectedPlan?.status === 'ACTIVE' && (
+                <TouchableOpacity
+                  style={styles.actionItem}
+                  onPress={handleDeactivatePlanAction}
+                >
+                  <Icon name="visibility-off" size={22} color="#374151" />
+                  <Text style={styles.actionText}>Deactivate</Text>
+                </TouchableOpacity>
+              )}
+
+              {selectedPlan?.status === 'INACTIVE' && (
+                <TouchableOpacity
+                  style={styles.actionItem}
+                  onPress={handleActivatePlanAction}
+                >
+                  <Icon name="visibility" size={22} color="#374151" />
+                  <Text style={styles.actionText}>Activate</Text>
+                </TouchableOpacity>
+              )}
+
+              {selectedPlan?.status !== 'ARCHIVED' && (
+                <>
+                  <View style={styles.actionDivider} />
+                  <TouchableOpacity
+                    style={styles.actionItem}
+                    onPress={handleArchivePlanAction}
+                  >
+                    <Icon name="archive" size={22} color="#ef4444" />
+                    <Text style={[styles.actionText, styles.actionTextDanger]}>Archive</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -579,5 +666,69 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  actionsContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  actionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  actionsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  actionsSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  actionsBody: {
+    padding: 8,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  actionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#374151',
+    marginLeft: 16,
+  },
+  actionTextDanger: {
+    color: '#ef4444',
+  },
+  actionDivider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 8,
+    marginHorizontal: 12,
   },
 });

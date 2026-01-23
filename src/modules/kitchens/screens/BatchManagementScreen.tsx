@@ -14,6 +14,7 @@ import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
 import { deliveryService } from '../../../services/delivery.service';
 import kitchenService from '../../../services/kitchen.service';
+import { ordersService } from '../../../services/orders.service';
 import { Batch, BatchStatus, MealWindow, Kitchen } from '../../../types/api.types';
 
 interface BatchManagementScreenProps {
@@ -124,6 +125,8 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
   const [isDispatching, setIsDispatching] = useState(false);
   const [selectedMealWindow, setSelectedMealWindow] = useState<MealWindow>('LUNCH');
   const [filterStatus, setFilterStatus] = useState<BatchStatus | 'ALL'>('ALL');
+  const [orderCount, setOrderCount] = useState<number>(0);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   useEffect(() => {
     loadKitchenData();
@@ -141,7 +144,29 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
 
   useEffect(() => {
     loadBatches();
-  }, [kitchenId, filterStatus]);
+    loadOrderCount();
+  }, [kitchenId, filterStatus, selectedMealWindow]);
+
+  const loadOrderCount = async () => {
+    setIsLoadingOrders(true);
+    try {
+      // Fetch orders for this kitchen and meal window
+      const result = await ordersService.getOrders({
+        kitchenId,
+        status: 'READY', // Only count READY orders that can be batched
+        page: 1,
+        limit: 1, // We only need the total count, not the actual orders
+      });
+
+      // Get total count from pagination
+      setOrderCount(result.pagination?.total || 0);
+    } catch (error) {
+      console.error('Error loading order count:', error);
+      setOrderCount(0);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
 
   const loadBatches = async () => {
     setIsLoading(true);
@@ -189,6 +214,7 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
               );
 
               await loadBatches();
+              await loadOrderCount();
             } catch (error: any) {
               Alert.alert('Error', error.message || 'Failed to create batches');
             } finally {
@@ -310,6 +336,7 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
             onRefresh={() => {
               setIsRefreshing(true);
               loadBatches();
+              loadOrderCount();
             }}
           />
         }
@@ -367,19 +394,35 @@ export const BatchManagementScreen: React.FC<BatchManagementScreenProps> = ({
 
           {/* Action Buttons */}
           <TouchableOpacity
-            style={[styles.actionButton, styles.batchButton]}
+            style={[
+              styles.actionButton,
+              styles.batchButton,
+              (orderCount === 0 || isLoadingOrders) && styles.actionButtonDisabled,
+            ]}
             onPress={handleAutoBatch}
-            disabled={isBatching}
+            disabled={isBatching || orderCount === 0 || isLoadingOrders}
           >
-            {isBatching ? (
+            {isBatching || isLoadingOrders ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
                 <Icon name="auto-fix" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>Batch Orders</Text>
+                <Text style={styles.actionButtonText}>
+                  {orderCount === 0 ? 'No Orders Available' : `Batch Orders (${orderCount})`}
+                </Text>
               </>
             )}
           </TouchableOpacity>
+
+          {/* No Orders Info */}
+          {orderCount === 0 && !isLoadingOrders && (
+            <View style={styles.infoBox}>
+              <Icon name="information-outline" size={16} color={colors.info} />
+              <Text style={styles.infoText}>
+                No orders ready for batching in {selectedMealWindow.toLowerCase()} meal window
+              </Text>
+            </View>
+          )}
 
           <TouchableOpacity
             style={[

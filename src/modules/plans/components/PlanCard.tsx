@@ -153,6 +153,17 @@ export const PlanCard: React.FC<PlanCardProps> = ({
           onPress={() => setShowMenu(false)}
         >
           <View style={styles.menuContainer}>
+            <View style={styles.menuHeader}>
+              <Text style={styles.menuTitle}>Plan Actions</Text>
+              <TouchableOpacity
+                onPress={() => setShowMenu(false)}
+                style={styles.menuCloseButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => handleMenuAction(onToggleActive)}
@@ -358,12 +369,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
     padding: spacing.sm,
-    minWidth: 180,
+    minWidth: 200,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    marginBottom: spacing.xs,
+  },
+  menuTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  menuCloseButton: {
+    padding: 4,
   },
   menuItem: {
     flexDirection: 'row',

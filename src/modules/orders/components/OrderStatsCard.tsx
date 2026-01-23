@@ -18,7 +18,7 @@ const OrderStatsCard: React.FC<OrderStatsCardProps> = ({
   icon,
 }) => {
   return (
-    <View style={[styles.card, highlight && styles.cardHighlight]}>
+    <View style={styles.card}>
       {icon && (
         <View style={[styles.iconContainer, {backgroundColor: `${color}15`}]}>
           <Icon name={icon} size={16} color={color} />
@@ -28,11 +28,6 @@ const OrderStatsCard: React.FC<OrderStatsCardProps> = ({
         <Text style={styles.label}>{label}</Text>
         <Text style={[styles.value, {color}]}>{value}</Text>
       </View>
-      {highlight && (
-        <View style={[styles.badge, {backgroundColor: color}]}>
-          <Text style={styles.badgeText}>New</Text>
-        </View>
-      )}
     </View>
   );
 };
@@ -51,13 +46,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 0,
     marginRight: 2,
-  },
-  cardHighlight: {
-    borderWidth: 2,
-    borderColor: '#FF9500',
-    shadowColor: '#FF9500',
-    shadowOpacity: 0.2,
-    elevation: 5,
   },
   iconContainer: {
     width: 28,
@@ -85,22 +73,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: -0.5,
     lineHeight: 20,
-  },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  badgeText: {
-    fontSize: 8,
-    color: '#FFFFFF',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
   },
 });
 
