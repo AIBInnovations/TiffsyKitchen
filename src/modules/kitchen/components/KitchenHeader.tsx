@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { KitchenStatus, MealSummary, CutoffSettings, statusColors } from '../models/types';
 import { colors, spacing } from '../../../theme';
@@ -91,6 +91,7 @@ export const KitchenHeader: React.FC<KitchenHeaderProps> = ({
   onDownloadSummary,
   onMenuPress,
 }) => {
+  const { showSuccess, showConfirm } = useAlert();
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [showCutoffModal, setShowCutoffModal] = useState(false);
 
@@ -114,19 +115,15 @@ export const KitchenHeader: React.FC<KitchenHeaderProps> = ({
 
   const handleStatusChange = (newStatus: KitchenStatus) => {
     if (newStatus !== status) {
-      Alert.alert(
+      showConfirm(
         'Change Kitchen Status',
         `Are you sure you want to change status to "${newStatus}"?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Confirm',
-            onPress: () => {
-              onStatusChange(newStatus);
-              setShowStatusMenu(false);
-            },
-          },
-        ]
+        () => {
+          onStatusChange(newStatus);
+          setShowStatusMenu(false);
+        },
+        undefined,
+        { confirmText: 'Confirm', cancelText: 'Cancel' }
       );
     } else {
       setShowStatusMenu(false);
@@ -451,7 +448,7 @@ export const KitchenHeader: React.FC<KitchenHeaderProps> = ({
                   };
                   onCutoffChange(newSettings);
                   setShowCutoffModal(false);
-                  Alert.alert(
+                  showSuccess(
                     'Cut-off Extended',
                     `${activeTimeField === 'lunch' ? 'Lunch' : 'Dinner'} cut-off time has been updated.`
                   );

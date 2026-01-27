@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Image,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { useAlert } from '../../../hooks/useAlert';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import type { Driver } from '../../../types/driver.types';
 import { adminDriversService } from '../../../services/admin-drivers.service';
@@ -41,6 +41,7 @@ export const DriverProfileDetailScreen: React.FC<DriverProfileDetailScreenProps>
   onBack,
   onActionComplete,
 }) => {
+  const { showSuccess, showError, showConfirm } = useAlert();
   const [driver, setDriver] = useState<Driver>(initialDriver);
   const [stats, setStats] = useState<DriverStats>({
     totalDeliveries: 0,
@@ -85,7 +86,7 @@ export const DriverProfileDetailScreen: React.FC<DriverProfileDetailScreenProps>
         }
       } catch (error: any) {
         console.error('Failed to fetch driver details:', error);
-        Alert.alert('Error', 'Failed to fetch driver details');
+        showError('Error', 'Failed to fetch driver details');
       }
 
       // Handle stats separately - don't let it break the whole page
@@ -110,49 +111,40 @@ export const DriverProfileDetailScreen: React.FC<DriverProfileDetailScreenProps>
   };
 
   const handleActivate = async () => {
-    Alert.alert(
+    showConfirm(
       'Activate Driver',
       `Activate ${driver.name}? Driver will be able to login and accept deliveries.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Activate',
-          onPress: async () => {
-            try {
-              await adminDriversService.activateDriver(driver._id);
-              Alert.alert('Success', 'Driver activated successfully');
-              fetchDriverDetails();
-              onActionComplete?.();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to activate driver');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await adminDriversService.activateDriver(driver._id);
+          showSuccess('Success', 'Driver activated successfully');
+          fetchDriverDetails();
+          onActionComplete?.();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to activate driver');
+        }
+      },
+      undefined,
+      { confirmText: 'Activate', cancelText: 'Cancel' }
     );
   };
 
   const handleDeactivate = async () => {
-    Alert.alert(
+    showConfirm(
       'Deactivate Driver',
       `Deactivate ${driver.name}? Driver will be temporarily blocked from login.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Deactivate',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await adminDriversService.deactivateDriver(driver._id);
-              Alert.alert('Success', 'Driver deactivated successfully');
-              fetchDriverDetails();
-              onActionComplete?.();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to deactivate driver');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await adminDriversService.deactivateDriver(driver._id);
+          showSuccess('Success', 'Driver deactivated successfully');
+          fetchDriverDetails();
+          onActionComplete?.();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to deactivate driver');
+        }
+      },
+      undefined,
+      { confirmText: 'Deactivate', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

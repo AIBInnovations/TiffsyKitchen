@@ -6,12 +6,12 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { addonService } from '../../../services/addon.service';
 import { Addon, DietaryType, CreateAddonRequest } from '../../../types/api.types';
 
@@ -28,6 +28,7 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
   onBack,
   onSaved,
 }) => {
+  const { showSuccess, showError, showWarning, showInfo, showConfirm } = useAlert();
   const insets = useSafeAreaInsets();
   const isEditMode = !!addonId;
 
@@ -65,7 +66,7 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
       setDisplayOrder(String(loadedAddon.displayOrder));
     } catch (error) {
       console.error('Error loading addon:', error);
-      Alert.alert('Error', 'Failed to load add-on');
+      showError('Error', 'Failed to load add-on');
     } finally {
       setLoading(false);
     }
@@ -73,12 +74,12 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
 
   const validateForm = (): boolean => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Name is required');
+      showWarning('Validation Error', 'Name is required');
       return false;
     }
 
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation Error', 'Valid price is required');
+      showWarning('Validation Error', 'Valid price is required');
       return false;
     }
 
@@ -86,17 +87,17 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
     const max = Number(maxQuantity);
 
     if (isNaN(min) || min < 0) {
-      Alert.alert('Validation Error', 'Min quantity must be 0 or greater');
+      showWarning('Validation Error', 'Min quantity must be 0 or greater');
       return false;
     }
 
     if (isNaN(max) || max < 1) {
-      Alert.alert('Validation Error', 'Max quantity must be at least 1');
+      showWarning('Validation Error', 'Max quantity must be at least 1');
       return false;
     }
 
     if (min > max) {
-      Alert.alert('Validation Error', 'Min quantity cannot exceed max quantity');
+      showWarning('Validation Error', 'Min quantity cannot exceed max quantity');
       return false;
     }
 
@@ -122,17 +123,20 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
 
       if (isEditMode && addonId) {
         await addonService.updateAddon(addonId, data);
-        Alert.alert('Success', 'Add-on updated successfully');
+        showSuccess('Success', 'Add-on updated successfully', () => {
+          onSaved();
+          onBack();
+        });
       } else {
         await addonService.createAddon(data);
-        Alert.alert('Success', 'Add-on created successfully');
+        showSuccess('Success', 'Add-on created successfully', () => {
+          onSaved();
+          onBack();
+        });
       }
-
-      onSaved();
-      onBack();
     } catch (error: any) {
       console.error('Error saving addon:', error);
-      Alert.alert('Error', error.message || 'Failed to save add-on');
+      showError('Error', error.message || 'Failed to save add-on');
     } finally {
       setSaving(false);
     }
@@ -140,34 +144,29 @@ export const AddonDetailScreen: React.FC<AddonDetailScreenProps> = ({
 
   const handleDelete = () => {
     if (addon?.menuItemCount && addon.menuItemCount > 0) {
-      Alert.alert(
+      showInfo(
         'Cannot Delete',
-        `This add-on is used in ${addon.menuItemCount} menu item${addon.menuItemCount > 1 ? 's' : ''}. Remove it from all menu items first.`,
-        [{ text: 'OK' }]
+        `This add-on is used in ${addon.menuItemCount} menu item${addon.menuItemCount > 1 ? 's' : ''}. Remove it from all menu items first.`
       );
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Delete Add-on',
       'Are you sure you want to delete this add-on?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await addonService.deleteAddon(addonId!);
-              Alert.alert('Success', 'Add-on deleted');
-              onSaved();
-              onBack();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete add-on');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await addonService.deleteAddon(addonId!);
+          showSuccess('Success', 'Add-on deleted', () => {
+            onSaved();
+            onBack();
+          });
+        } catch (error) {
+          showError('Error', 'Failed to delete add-on');
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

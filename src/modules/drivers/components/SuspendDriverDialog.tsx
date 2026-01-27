@@ -7,9 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import { adminDriversService } from '../../../services/admin-drivers.service';
@@ -38,6 +38,7 @@ export const SuspendDriverDialog: React.FC<SuspendDriverDialogProps> = ({
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { showSuccess, showError } = useAlert();
 
   const handleSelectReason = (selectedReason: string) => {
     setReason(selectedReason);
@@ -64,11 +65,11 @@ export const SuspendDriverDialog: React.FC<SuspendDriverDialogProps> = ({
     setIsLoading(true);
     try {
       await adminDriversService.suspendDriver(driver._id, reason.trim());
-      Alert.alert('Success', `${driver.name} has been suspended successfully`);
+      showSuccess('Success', `${driver.name} has been suspended successfully`);
       onSuccess();
       handleClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to suspend driver');
+      showError('Error', error.message || 'Failed to suspend driver');
     } finally {
       setIsLoading(false);
     }

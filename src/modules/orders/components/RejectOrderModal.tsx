@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing } from '../../../theme';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface RejectOrderModalProps {
   visible: boolean;
@@ -38,41 +38,37 @@ export const RejectOrderModal: React.FC<RejectOrderModalProps> = ({
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [customReason, setCustomReason] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showWarning, showError, showConfirm } = useAlert();
 
   const handleReject = async () => {
     const reason = selectedReason || customReason.trim();
 
     if (!reason) {
-      Alert.alert('Reason Required', 'Please select or enter a reason for rejection');
+      showWarning('Reason Required', 'Please select or enter a reason for rejection');
       return;
     }
 
     if (reason.length < 10) {
-      Alert.alert('Invalid Reason', 'Please provide a more detailed reason (at least 10 characters)');
+      showWarning('Invalid Reason', 'Please provide a more detailed reason (at least 10 characters)');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Confirm Rejection',
       'Are you sure you want to reject this order? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await onReject(reason);
-              onClose();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to reject order');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setLoading(true);
+        try {
+          await onReject(reason);
+          onClose();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to reject order');
+        } finally {
+          setLoading(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Reject', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

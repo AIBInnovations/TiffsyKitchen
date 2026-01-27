@@ -13,11 +13,11 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { CancelSubscriptionRequest } from '../../../types/subscription.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface CancelSubscriptionModalProps {
   visible: boolean;
@@ -36,6 +36,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
   subscriptionName,
   customerName,
 }) => {
+  const { showWarning, showError } = useAlert();
   const [reason, setReason] = useState('');
   const [issueRefund, setIssueRefund] = useState(false);
   const [refundAmount, setRefundAmount] = useState('');
@@ -49,14 +50,14 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
 
   const handleSubmit = async () => {
     if (!reason.trim()) {
-      Alert.alert('Validation Error', 'Cancellation reason is required');
+      showWarning('Validation Error', 'Cancellation reason is required');
       return;
     }
 
     if (issueRefund) {
       const amount = parseFloat(refundAmount);
       if (!refundAmount || isNaN(amount) || amount <= 0) {
-        Alert.alert('Validation Error', 'Valid refund amount is required');
+        showWarning('Validation Error', 'Valid refund amount is required');
         return;
       }
     }
@@ -74,7 +75,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
       resetForm();
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to cancel subscription');
+      showError('Error', error.message || 'Failed to cancel subscription');
     } finally {
       setLoading(false);
     }

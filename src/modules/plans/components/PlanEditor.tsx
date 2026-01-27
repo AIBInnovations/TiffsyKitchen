@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   Switch,
   Modal,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import {
   Plan,
   PlanFormData,
@@ -51,6 +51,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
   onSave,
   onClose,
 }) => {
+  const { showWarning, showConfirm } = useAlert();
   const isEditing = !!plan;
   const [formData, setFormData] = useState<PlanFormData>(getEmptyFormData());
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -113,32 +114,30 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
 
     if (hasValidationErrors(validationErrors)) {
       setErrors(validationErrors);
-      Alert.alert(
+      showWarning(
         'Validation Error',
-        'Please fix the highlighted fields before saving.',
-        [{ text: 'OK' }]
+        'Please fix the highlighted fields before saving.'
       );
       return;
     }
 
     onSave(formData);
-  }, [formData, existingPlans, plan, onSave]);
+  }, [formData, existingPlans, plan, onSave, showWarning]);
 
   // Handle close with unsaved changes check
   const handleClose = useCallback(() => {
     if (hasChanges) {
-      Alert.alert(
+      showConfirm(
         'Discard changes?',
         'You have unsaved changes to this plan.',
-        [
-          { text: 'Keep editing', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: onClose },
-        ]
+        onClose,
+        undefined,
+        { confirmText: 'Discard', cancelText: 'Keep editing', isDestructive: true }
       );
     } else {
       onClose();
     }
-  }, [hasChanges, onClose]);
+  }, [hasChanges, onClose, showConfirm]);
 
   // Render section header
   const renderSectionHeader = (title: string, icon: string) => (

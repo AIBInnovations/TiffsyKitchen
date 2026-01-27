@@ -7,9 +7,9 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import type { RejectDriverModalProps } from '../../../types/driver.types';
@@ -32,12 +32,13 @@ export const RejectDriverModal: React.FC<RejectDriverModalProps> = ({
 }) => {
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { showSuccess, showError, showWarning } = useAlert();
 
   const handleReject = async () => {
     if (!driver) return;
 
     if (!reason.trim() || reason.trim().length < 10) {
-      Alert.alert(
+      showWarning(
         'Invalid Reason',
         'Please provide a rejection reason with at least 10 characters.'
       );
@@ -48,22 +49,17 @@ export const RejectDriverModal: React.FC<RejectDriverModalProps> = ({
       setIsLoading(true);
       await adminDriversService.rejectDriver(driver._id, reason.trim());
 
-      Alert.alert(
+      showSuccess(
         'Driver Rejected',
         `${driver.name}'s registration has been rejected.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setReason('');
-              onSuccess();
-              onClose();
-            },
-          },
-        ]
+        () => {
+          setReason('');
+          onSuccess();
+          onClose();
+        }
       );
     } catch (error: any) {
-      Alert.alert(
+      showError(
         'Error',
         error.message || 'Failed to reject driver. Please try again.'
       );

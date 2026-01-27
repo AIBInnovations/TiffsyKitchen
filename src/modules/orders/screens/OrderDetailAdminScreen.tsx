@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Linking,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +23,7 @@ import { formatDistanceToNow } from 'date-fns';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { wp, hp, rf, rs } from '../../../theme/responsive';
 import { getAutoAcceptBadgeInfo, getAutoAcceptDescription } from '../../../utils/autoAccept';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface OrderDetailAdminScreenProps {
   route: {
@@ -80,6 +80,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   const [pendingDeliveryStatus, setPendingDeliveryStatus] = useState<OrderStatus | null>(null);
   const [showTracking, setShowTracking] = useState(false);
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useAlert();
 
   // Fetch order details
   const {
@@ -112,11 +113,11 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
-      Alert.alert('Success', 'Order accepted successfully');
+      showSuccess('Success', 'Order accepted successfully');
       setShowAcceptModal(false);
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message ||
         'Failed to accept order. Please try again.',
@@ -131,12 +132,10 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
-      Alert.alert('Order Rejected', 'Order has been rejected successfully', [
-        { text: 'OK', onPress: () => setShowRejectModal(false) },
-      ]);
+      showSuccess('Order Rejected', 'Order has been rejected successfully', () => setShowRejectModal(false));
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message ||
         'Failed to reject order. Please try again.',
@@ -180,7 +179,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
-      Alert.alert('Success', 'Order status updated successfully');
+      showSuccess('Success', 'Order status updated successfully');
       setShowUpdateStatusModal(false);
     },
     onError: (error: any) => {
@@ -192,7 +191,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       console.log('Response Data:', error?.response?.data);
       console.log('====================================');
 
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message ||
         'Failed to update order status. Please try again.',
@@ -245,7 +244,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       queryClient.invalidateQueries({ queryKey: ['order', orderId] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
-      Alert.alert('Success', 'Delivery status updated successfully');
+      showSuccess('Success', 'Delivery status updated successfully');
       setShowDeliveryStatusModal(false);
     },
     onError: (error: any) => {
@@ -257,7 +256,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       console.log('Response Data:', error?.response?.data);
       console.log('====================================');
 
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message ||
         'Failed to update delivery status. Please try again.',
@@ -277,18 +276,18 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
 
-      Alert.alert(
+      showSuccess(
         'Order Cancelled',
         `Order cancelled successfully${data.refund ? `\nRefund of ₹${data.refund.amount} initiated` : ''
         }${data.vouchersRestored
           ? `\n${data.vouchersRestored} voucher(s) restored`
           : ''
         }`,
-        [{ text: 'OK', onPress: () => setShowCancelModal(false) }],
+        () => setShowCancelModal(false),
       );
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message ||
         'Failed to cancel order. Please try again.',

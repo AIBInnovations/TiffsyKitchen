@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import { Header } from '../../components/common/Header';
@@ -20,6 +20,7 @@ const MAX_MESSAGE_LENGTH = 500;
 
 export const SendMenuAnnouncementScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { showSuccess, showError, showWarning } = useAlert();
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export const SendMenuAnnouncementScreen: React.FC = () => {
 
   const handleSend = async () => {
     if (!canSend) {
-      Alert.alert('Missing Information', 'Please enter both title and message');
+      showWarning('Missing Information', 'Please enter both title and message');
       return;
     }
 
@@ -41,26 +42,21 @@ export const SendMenuAnnouncementScreen: React.FC = () => {
       });
 
       if (response.success) {
-        Alert.alert(
+        showSuccess(
           'Success',
           `Announcement sent to ${response.data.subscribersNotified} subscribers!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setTitle('');
-                setMessage('');
-                navigation.goBack();
-              },
-            },
-          ]
+          () => {
+            setTitle('');
+            setMessage('');
+            navigation.goBack();
+          }
         );
       } else {
-        Alert.alert('Error', response.message || 'Failed to send announcement');
+        showError('Error', response.message || 'Failed to send announcement');
       }
     } catch (error: any) {
       console.error('Error sending announcement:', error);
-      Alert.alert(
+      showError(
         'Error',
         error?.message || 'Failed to send announcement. Please try again.'
       );

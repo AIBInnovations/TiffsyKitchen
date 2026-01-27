@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Switch,
-  Alert,
   StyleSheet,
   Animated,
 } from 'react-native';
@@ -12,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Zone } from '../../../types/api.types';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface ZoneCardProps {
   zone: Zone;
@@ -28,34 +28,27 @@ export const ZoneCard: React.FC<ZoneCardProps> = ({
   onToggleStatus,
   onToggleOrdering,
 }) => {
+  const { showConfirm } = useAlert();
+
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Zone',
       `Are you sure you want to delete ${zone.name} (${zone.pincode})?\n\nThis action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => onDelete(zone),
-        },
-      ]
+      () => onDelete(zone),
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 
   const handleToggleStatus = () => {
     const action = zone.status === 'ACTIVE' ? 'deactivate' : 'activate';
     const actionTitle = action === 'activate' ? 'Activate' : 'Deactivate';
-    Alert.alert(
+    showConfirm(
       `${actionTitle} Zone`,
       `Are you sure you want to ${action} ${zone.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: actionTitle,
-          onPress: () => onToggleStatus(zone),
-        },
-      ]
+      () => onToggleStatus(zone),
+      undefined,
+      { confirmText: actionTitle, cancelText: 'Cancel' }
     );
   };
 

@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing } from '../../../theme';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface DeliveryStatusModalProps {
   visible: boolean;
@@ -52,6 +52,7 @@ export const DeliveryStatusModal: React.FC<DeliveryStatusModalProps> = ({
   const [notes, setNotes] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showWarning, showError } = useAlert();
 
   // Update selectedStatus when initialStatus changes
   React.useEffect(() => {
@@ -62,13 +63,13 @@ export const DeliveryStatusModal: React.FC<DeliveryStatusModalProps> = ({
 
   const handleUpdate = async () => {
     if (!selectedStatus) {
-      Alert.alert('Status Required', 'Please select a delivery status');
+      showWarning('Status Required', 'Please select a delivery status');
       return;
     }
 
     // OTP required for delivered status
     if (selectedStatus === 'DELIVERED' && !otp.trim()) {
-      Alert.alert('OTP Required', 'Please enter the delivery OTP');
+      showWarning('OTP Required', 'Please enter the delivery OTP');
       return;
     }
 
@@ -114,7 +115,7 @@ export const DeliveryStatusModal: React.FC<DeliveryStatusModalProps> = ({
       console.log('❌ DELIVERY STATUS UPDATE FAILED');
       console.log('Error:', error);
       console.log('====================================');
-      Alert.alert('Error', error.message || 'Failed to update delivery status');
+      showError('Error', error.message || 'Failed to update delivery status');
     } finally {
       setLoading(false);
     }

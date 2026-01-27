@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Order, StatusTimelineStep } from '../models/types';
@@ -29,6 +28,7 @@ import {
   OrderSectionsState,
 } from '../storage/orderNotesStorage';
 import { colors, spacing } from '../../../theme';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface OrderDetailScreenProps {
   order: Order;
@@ -53,6 +53,7 @@ export const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
     notes: true,
     audit: true,
   });
+  const { showInfo } = useAlert();
 
   const statusTimeline = generateStatusTimeline(order);
   const isFailed = ['FAILED', 'CANCELLED', 'REFUNDED'].includes(order.status);
@@ -89,7 +90,7 @@ export const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
 
   // View customer profile
   const handleViewCustomerProfile = () => {
-    Alert.alert('Navigate', 'Would navigate to customer profile');
+    showInfo('Navigate', 'Would navigate to customer profile');
   };
 
   // Render failure banner

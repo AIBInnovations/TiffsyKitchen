@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   Linking,
 } from 'react-native';
@@ -22,6 +21,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { SuspendUserModal } from '../components/SuspendUserModal';
 import { ResetPasswordModal } from '../components/ResetPasswordModal';
 import { EditUserModal } from '../components/EditUserModal';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface UserDetailAdminScreenProps {
   userId: string;
@@ -52,6 +52,7 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
   userId,
   onBack,
 }) => {
+  const { showSuccess, showError, showConfirm } = useAlert();
   const [userData, setUserData] = useState<UserDetailsResponse | null>(null);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -87,7 +88,7 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load user details');
-      Alert.alert('Error', err.message || 'Failed to load user details');
+      showError('Error', err.message || 'Failed to load user details');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -145,78 +146,64 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
   };
 
   const handleActivate = async () => {
-    Alert.alert(
+    showConfirm(
       'Activate User',
       `Are you sure you want to activate ${userData?.user.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Activate',
-          onPress: async () => {
-            try {
-              setActionLoading(true);
-              await adminUsersService.activateUser(userId);
-              Alert.alert('Success', 'User activated successfully');
-              fetchUserDetails();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to activate user');
-            } finally {
-              setActionLoading(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setActionLoading(true);
+          await adminUsersService.activateUser(userId);
+          showSuccess('Success', 'User activated successfully');
+          fetchUserDetails();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to activate user');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Activate', cancelText: 'Cancel' }
     );
   };
 
   const handleDeactivate = async () => {
-    Alert.alert(
+    showConfirm(
       'Deactivate User',
       `Are you sure you want to deactivate ${userData?.user.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Deactivate',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setActionLoading(true);
-              await adminUsersService.deactivateUser(userId);
-              Alert.alert('Success', 'User deactivated successfully');
-              fetchUserDetails();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to deactivate user');
-            } finally {
-              setActionLoading(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setActionLoading(true);
+          await adminUsersService.deactivateUser(userId);
+          showSuccess('Success', 'User deactivated successfully');
+          fetchUserDetails();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to deactivate user');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Deactivate', cancelText: 'Cancel', isDestructive: true }
     );
   };
 
   const handleDelete = async () => {
-    Alert.alert(
+    showConfirm(
       'Delete User',
       `Are you sure you want to delete ${userData?.user.name}? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setActionLoading(true);
-              await adminUsersService.deleteUser(userId);
-              Alert.alert('Success', 'User deleted successfully');
-              onBack();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete user');
-              setActionLoading(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setActionLoading(true);
+          await adminUsersService.deleteUser(userId);
+          showSuccess('Success', 'User deleted successfully');
+          onBack();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to delete user');
+          setActionLoading(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

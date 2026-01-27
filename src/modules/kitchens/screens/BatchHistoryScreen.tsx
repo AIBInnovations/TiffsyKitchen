@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
@@ -57,6 +57,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   kitchenName: propKitchenName,
   onBack,
 }) => {
+  const { showError, showInfo } = useAlert();
   const kitchenId = route?.params?.kitchenId || propKitchenId;
   const kitchenName = route?.params?.kitchenName || propKitchenName;
 
@@ -124,7 +125,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
       setPage(result.data?.pagination?.page || 1);
     } catch (error: any) {
       console.error('Error loading batches:', error);
-      Alert.alert('Error', 'Failed to load batch history');
+      showError('Error', 'Failed to load batch history');
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -242,7 +243,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   };
 
   const handleBatchPress = (batch: Batch) => {
-    Alert.alert(
+    showInfo(
       batch.batchNumber,
       `Status: ${getStatusLabel(batch.status)}\n` +
       `Meal Window: ${batch.mealWindow}\n` +
@@ -254,8 +255,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
       `Failed: ${batch.totalFailed || 0}\n` +
       `Created: ${formatDate(batch.createdAt)}\n` +
       (batch.dispatchedAt ? `Dispatched: ${formatDate(batch.dispatchedAt)}\n` : '') +
-      (batch.completedAt ? `Completed: ${formatDate(batch.completedAt)}` : ''),
-      [{ text: 'OK' }]
+      (batch.completedAt ? `Completed: ${formatDate(batch.completedAt)}` : '')
     );
   };
 

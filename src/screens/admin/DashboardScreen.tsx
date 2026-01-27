@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   RefreshControl,
   ActivityIndicator,
 
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { MealType } from '../../types/dashboard';
@@ -42,6 +42,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const { showInfo } = useAlert();
 
   // Fetch real dashboard data from API
   const { data: apiData, loading, error, refresh } = useApi<DashboardData>(
@@ -67,23 +68,23 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   };
 
   const handleOrderStatusPress = (status: string) => {
-    Alert.alert('Order Status', `Viewing orders with status: ${status}`);
+    showInfo('Order Status', `Viewing orders with status: ${status}`);
   };
 
   const handlePlanPress = (planId: string) => {
-    Alert.alert('Plan Details', `Viewing plan: ${planId}`);
+    showInfo('Plan Details', `Viewing plan: ${planId}`);
   };
 
   const handleActivityPress = (activityId: string) => {
-    Alert.alert('Activity Details', `Viewing activity: ${activityId}`);
+    showInfo('Activity Details', `Viewing activity: ${activityId}`);
   };
 
   const handleViewAllPlans = () => {
-    Alert.alert('Plans', 'Navigating to all plans');
+    showInfo('Plans', 'Navigating to all plans');
   };
 
   const handleViewAllActivity = () => {
-    Alert.alert('Activity', 'Navigating to all activity');
+    showInfo('Activity', 'Navigating to all activity');
   };
 
   // Transform API activity data to match component format

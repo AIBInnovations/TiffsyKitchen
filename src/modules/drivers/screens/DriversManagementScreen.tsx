@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { useAlert } from '../../../hooks/useAlert';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
 import type { Driver } from '../../../types/driver.types';
@@ -27,6 +27,7 @@ type FilterTab = 'PENDING' | 'APPROVED' | 'REJECTED';
 export const DriversManagementScreen: React.FC<DriversManagementScreenProps> = ({
   onMenuPress,
 }) => {
+  const { showError } = useAlert();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +66,7 @@ export const DriversManagementScreen: React.FC<DriversManagementScreenProps> = (
       setCurrentPage(response.data.pagination.page);
       setTotalPages(response.data.pagination.pages);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch drivers');
+      showError('Error', error.message || 'Failed to fetch drivers');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

@@ -8,8 +8,8 @@ import {
   Switch,
   ScrollView,
   Clipboard,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { StaffMember, OperationalContact } from '../models/types';
 import { colors, spacing } from '../../../theme';
@@ -120,10 +120,10 @@ const StaffDetailModal: React.FC<{
 };
 
 // Contact Row
-const ContactRow: React.FC<{ contact: OperationalContact }> = ({ contact }) => {
+const ContactRow: React.FC<{ contact: OperationalContact; showInfo: (title: string, message: string) => void }> = ({ contact, showInfo }) => {
   const handleCopy = () => {
     Clipboard.setString(contact.value);
-    Alert.alert('Copied', `${contact.label} copied to clipboard`);
+    showInfo('Copied', `${contact.label} copied to clipboard`);
   };
 
   const getIcon = () => {
@@ -158,6 +158,7 @@ export const StaffTab: React.FC<StaffTabProps> = ({
   operationalContacts,
   onStaffUpdate,
 }) => {
+  const { showInfo } = useAlert();
   const [selectedMember, setSelectedMember] = useState<StaffMember | null>(null);
 
   const activeStaff = staffMembers.filter((m) => m.isActive);
@@ -204,7 +205,7 @@ export const StaffTab: React.FC<StaffTabProps> = ({
       {/* Operational Contacts */}
       <Card title="Operational Contacts">
         {operationalContacts.map((contact) => (
-          <ContactRow key={contact.id} contact={contact} />
+          <ContactRow key={contact.id} contact={contact} showInfo={showInfo} />
         ))}
       </Card>
 

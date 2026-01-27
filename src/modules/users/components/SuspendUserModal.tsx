@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
 import { User } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface SuspendUserModalProps {
   visible: boolean;
@@ -43,6 +43,7 @@ export const SuspendUserModal: React.FC<SuspendUserModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +54,7 @@ export const SuspendUserModal: React.FC<SuspendUserModalProps> = ({
 
   const handleSubmit = async () => {
     if (!reason.trim()) {
-      Alert.alert('Validation Error', 'Please enter a reason for suspension');
+      showWarning('Validation Error', 'Please enter a reason for suspension');
       return;
     }
 
@@ -62,11 +63,11 @@ export const SuspendUserModal: React.FC<SuspendUserModalProps> = ({
     try {
       setLoading(true);
       await adminUsersService.suspendUser(user._id, { reason: reason.trim() });
-      Alert.alert('Success', 'User suspended successfully');
+      showSuccess('Success', 'User suspended successfully');
       handleClose();
       onSuccess();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to suspend user');
+      showError('Error', error.message || 'Failed to suspend user');
     } finally {
       setLoading(false);
     }

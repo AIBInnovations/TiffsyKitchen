@@ -6,8 +6,8 @@ import {
   StyleSheet,
   Image,
   Switch,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Kitchen, Zone } from '../../../types/api.types';
 import { colors } from '../../../theme/colors';
@@ -30,6 +30,7 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
   onDelete,
   onActivate,
 }) => {
+  const { showConfirm } = useAlert();
   const [imageError, setImageError] = useState(false);
   const getStatusColor = () => {
     switch (kitchen.status) {
@@ -58,17 +59,12 @@ export const KitchenCard: React.FC<KitchenCardProps> = ({
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Kitchen',
       `Are you sure you want to delete "${kitchen.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => onDelete?.(kitchen),
-        },
-      ]
+      () => onDelete?.(kitchen),
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

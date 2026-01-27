@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import type { ApproveDriverModalProps } from '../../../types/driver.types';
@@ -20,6 +20,7 @@ export const ApproveDriverModal: React.FC<ApproveDriverModalProps> = ({
   onSuccess,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const { showSuccess, showError } = useAlert();
 
   const handleApprove = async () => {
     if (!driver) return;
@@ -28,21 +29,16 @@ export const ApproveDriverModal: React.FC<ApproveDriverModalProps> = ({
       setIsLoading(true);
       await adminDriversService.approveDriver(driver._id);
 
-      Alert.alert(
+      showSuccess(
         'Success',
         `${driver.name} has been approved as a driver.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              onSuccess();
-              onClose();
-            },
-          },
-        ]
+        () => {
+          onSuccess();
+          onClose();
+        }
       );
     } catch (error: any) {
-      Alert.alert(
+      showError(
         'Error',
         error.message || 'Failed to approve driver. Please try again.'
       );

@@ -7,8 +7,8 @@ import {
   TextInput,
   Switch,
   ScrollView,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   CapacitySettings,
@@ -139,12 +139,13 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   onServiceAreasChange,
   onPackagingChange,
 }) => {
+  const { showError, showConfirm } = useAlert();
   const [newAreaName, setNewAreaName] = useState('');
   const [newAreaPincode, setNewAreaPincode] = useState('');
 
   const handleAddArea = () => {
     if (!newAreaName.trim()) {
-      Alert.alert('Error', 'Please enter area name');
+      showError('Error', 'Please enter area name');
       return;
     }
 
@@ -160,16 +161,15 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
   };
 
   const handleRemoveArea = (areaId: string) => {
-    Alert.alert('Remove Area', 'Are you sure you want to remove this service area?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: () => {
-          onServiceAreasChange(serviceAreas.filter((a) => a.id !== areaId));
-        },
+    showConfirm(
+      'Remove Area',
+      'Are you sure you want to remove this service area?',
+      () => {
+        onServiceAreasChange(serviceAreas.filter((a) => a.id !== areaId));
       },
-    ]);
+      undefined,
+      { confirmText: 'Remove', cancelText: 'Cancel', isDestructive: true }
+    );
   };
 
   return (

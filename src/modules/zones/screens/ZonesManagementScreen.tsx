@@ -9,7 +9,6 @@ import {
   RefreshControl,
   ToastAndroid,
   Platform,
-  Alert,
   StatusBar,
 } from 'react-native';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
@@ -22,6 +21,7 @@ import { Zone } from '../../../types/api.types';
 import zoneService from '../../../services/zone.service';
 import { ZoneCard, ZoneFiltersComponent, ZoneFormModal } from '../components';
 import { ZoneFilters, ZoneFormState } from '../models/types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface ZonesManagementScreenProps {
   onMenuPress?: () => void;
@@ -31,6 +31,7 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
   onMenuPress,
 }) => {
   const insets = useSafeAreaInsets();
+  const { showSuccess, showError } = useAlert();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -210,7 +211,11 @@ export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
     if (Platform.OS === 'android') {
       ToastAndroid.show(message, ToastAndroid.SHORT);
     } else {
-      Alert.alert(type === 'success' ? 'Success' : 'Error', message);
+      if (type === 'success') {
+        showSuccess('Success', message);
+      } else {
+        showError('Error', message);
+      }
     }
   };
 

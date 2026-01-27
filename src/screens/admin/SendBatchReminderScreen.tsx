@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import { Header } from '../../components/common/Header';
@@ -22,6 +22,7 @@ const MEAL_WINDOWS = [
 
 export const SendBatchReminderScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { showSuccess, showError } = useAlert();
   const [selectedMealWindow, setSelectedMealWindow] = useState<'BREAKFAST' | 'LUNCH' | 'DINNER'>(
     'LUNCH'
   );
@@ -47,22 +48,17 @@ export const SendBatchReminderScreen: React.FC = () => {
             .join('');
         }
 
-        Alert.alert(
+        showSuccess(
           'Reminders Sent Successfully',
           `Notified ${kitchensNotified} kitchen(s) about pending orders.\n\nCutoff: ${cutoffTime} (in ${minutesUntilCutoff} minutes)${detailText}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ]
+          () => navigation.goBack()
         );
       } else {
-        Alert.alert('Error', response.message || 'Failed to send reminders');
+        showError('Error', response.message || 'Failed to send reminders');
       }
     } catch (error: any) {
       console.error('Error sending batch reminder:', error);
-      Alert.alert('Error', error?.message || 'Failed to send reminders. Please try again.');
+      showError('Error', error?.message || 'Failed to send reminders. Please try again.');
     } finally {
       setIsLoading(false);
     }

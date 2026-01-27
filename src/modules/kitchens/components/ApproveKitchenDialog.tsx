@@ -6,8 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import type { Kitchen } from '../../../types/api.types';
@@ -26,18 +26,19 @@ export const ApproveKitchenDialog: React.FC<ApproveKitchenDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { showSuccess, showError } = useAlert();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleApprove = async () => {
     try {
       setIsLoading(true);
       await kitchenApprovalService.approveKitchen(kitchen._id);
-      Alert.alert('Success', 'Kitchen approved successfully');
+      showSuccess('Success', 'Kitchen approved successfully');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('❌ Error approving kitchen:', error);
-      Alert.alert('Error', error.message || 'Failed to approve kitchen');
+      showError('Error', error.message || 'Failed to approve kitchen');
     } finally {
       setIsLoading(false);
     }

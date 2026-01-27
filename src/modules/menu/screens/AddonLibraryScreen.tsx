@@ -8,12 +8,12 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   Switch,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { addonService } from '../../../services/addon.service';
 import { Addon } from '../../../types/api.types';
 import { DietaryBadge } from '../components/DietaryBadge';
@@ -33,6 +33,7 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
   onNavigateToDetail,
   onBack,
 }) => {
+  const { showSuccess, showError, showInfo, showConfirm } = useAlert();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,7 +53,7 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
       });
     } catch (error) {
       console.error('Error fetching addons:', error);
-      Alert.alert('Error', 'Failed to load add-ons');
+      showError('Error', 'Failed to load add-ons');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -93,7 +94,7 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
       );
     } catch (error) {
       console.error('Error toggling availability:', error);
-      Alert.alert('Error', 'Failed to update availability');
+      showError('Error', 'Failed to update availability');
     }
   };
 
@@ -101,33 +102,26 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
     const usageCount = addon.menuItemCount || 0;
 
     if (usageCount > 0) {
-      Alert.alert(
+      showInfo(
         'Cannot Delete',
-        `This add-on is used in ${usageCount} menu item${usageCount > 1 ? 's' : ''}. Remove it from all menu items first.`,
-        [{ text: 'OK' }]
+        `This add-on is used in ${usageCount} menu item${usageCount > 1 ? 's' : ''}. Remove it from all menu items first.`
       );
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Delete Add-on',
       `Are you sure you want to delete "${addon.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await addonService.deleteAddon(addon._id);
-              Alert.alert('Success', 'Add-on deleted');
-              fetchAddons();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete add-on');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await addonService.deleteAddon(addon._id);
+          showSuccess('Success', 'Add-on deleted', fetchAddons);
+        } catch (error) {
+          showError('Error', 'Failed to delete add-on');
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

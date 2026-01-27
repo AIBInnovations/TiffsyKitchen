@@ -8,12 +8,12 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   TextInput,
   Modal,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
+import { useAlert } from '../../../hooks/useAlert';
 import { Header } from '../../../components/common/Header';
 import { colors } from '../../../theme/colors';
 import { orderBatchService } from '../../../services/order-batch.service';
@@ -73,6 +73,7 @@ interface DriverOrdersBatchesScreenProps {
 }
 
 export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps> = ({ onMenuPress }) => {
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState<TabType>('BATCHES');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -121,23 +122,19 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
 
       // Check if session expired
       if (error?.message?.includes('session has expired') || error?.message?.includes('Please log in again')) {
-        Alert.alert(
+        showConfirm(
           'Session Expired',
           'Your session has expired. Please close the app and log in again.',
-          [
-            {
-              text: 'Log Out',
-              onPress: async () => {
-                // Clear session data to force redirect to login
-                await authService.clearAdminData();
-                // Note: User needs to close and reopen app or navigate back to trigger auth check
-              }
-            }
-          ],
-          { cancelable: false }
+          async () => {
+            // Clear session data to force redirect to login
+            await authService.clearAdminData();
+            // Note: User needs to close and reopen app or navigate back to trigger auth check
+          },
+          undefined,
+          { confirmText: 'Log Out', cancelText: 'Cancel' }
         );
       } else {
-        Alert.alert('Error', 'Failed to load data. Please try again.');
+        showError('Error', 'Failed to load data. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -225,7 +222,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
         }
       } catch (error: any) {
         console.error('❌ Failed to load batch details:', error);
-        Alert.alert('Error', 'Failed to load batch orders. Please try again.');
+        showError('Error', 'Failed to load batch orders. Please try again.');
       } finally {
         setLoadingBatchIds(prev => {
           const newSet = new Set(prev);
@@ -237,68 +234,60 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
   };
 
   const handleAutoBatch = async () => {
-    Alert.alert(
+    showConfirm(
       'Trigger Auto-Batch',
       `This will group all READY orders into batches for ${selectedMealWindow}. Continue?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            setIsAutoBatching(true);
-            try {
-              const response = await orderBatchService.triggerAutoBatch({
-                mealWindow: selectedMealWindow,
-              });
+      async () => {
+        setIsAutoBatching(true);
+        try {
+          const response = await orderBatchService.triggerAutoBatch({
+            mealWindow: selectedMealWindow,
+          });
 
-              if (response.success) {
-                Alert.alert(
-                  'Success',
-                  `Created ${response.data.batchesCreated} batches, updated ${response.data.batchesUpdated} batches, processed ${response.data.ordersProcessed} orders`
-                );
-                loadBatches();
-              }
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to auto-batch orders');
-            } finally {
-              setIsAutoBatching(false);
-            }
-          },
-        },
-      ]
+          if (response.success) {
+            showSuccess(
+              'Success',
+              `Created ${response.data.batchesCreated} batches, updated ${response.data.batchesUpdated} batches, processed ${response.data.ordersProcessed} orders`
+            );
+            loadBatches();
+          }
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to auto-batch orders');
+        } finally {
+          setIsAutoBatching(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Confirm', cancelText: 'Cancel' }
     );
   };
 
   const handleDispatch = async () => {
-    Alert.alert(
+    showConfirm(
       'Dispatch Batches',
       `This will make all COLLECTING batches available for driver acceptance for ${selectedMealWindow}. Continue?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: async () => {
-            setIsDispatching(true);
-            try {
-              const response = await orderBatchService.dispatchBatches({
-                mealWindow: selectedMealWindow,
-              });
+      async () => {
+        setIsDispatching(true);
+        try {
+          const response = await orderBatchService.dispatchBatches({
+            mealWindow: selectedMealWindow,
+          });
 
-              if (response.success) {
-                Alert.alert(
-                  'Success',
-                  `Dispatched ${response.data.batchesDispatched} batches`
-                );
-                loadBatches();
-              }
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to dispatch batches');
-            } finally {
-              setIsDispatching(false);
-            }
-          },
-        },
-      ]
+          if (response.success) {
+            showSuccess(
+              'Success',
+              `Dispatched ${response.data.batchesDispatched} batches`
+            );
+            loadBatches();
+          }
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to dispatch batches');
+        } finally {
+          setIsDispatching(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Confirm', cancelText: 'Cancel' }
     );
   };
 
@@ -339,7 +328,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
       }
     } catch (error: any) {
       console.error('❌ Failed to fetch available drivers:', error);
-      Alert.alert('Error', 'Failed to load available drivers. Please try again.');
+      showError('Error', 'Failed to load available drivers. Please try again.');
       setAvailableDrivers([]);
     } finally {
       setLoadingDrivers(false);
@@ -358,7 +347,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
     if (reassignStep === 1) {
       // Validate reason and move to driver selection
       if (!reassignReason.trim() || reassignReason.trim().length < 10) {
-        Alert.alert('Validation Error', 'Please provide a reason (minimum 10 characters)');
+        showWarning('Validation Error', 'Please provide a reason (minimum 10 characters)');
         return;
       }
 
@@ -375,7 +364,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
     } else if (reassignStep === 2) {
       // Validate driver selection and move to confirmation
       if (!selectedDriverId) {
-        Alert.alert('Validation Error', 'Please select a driver');
+        showWarning('Validation Error', 'Please select a driver');
         return;
       }
       setReassignStep(3);
@@ -391,7 +380,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
   // Submit final reassignment
   const submitReassignment = async () => {
     if (!selectedBatchForAction || !selectedDriverId || !reassignReason.trim()) {
-      Alert.alert('Error', 'Missing required information');
+      showError('Error', 'Missing required information');
       return;
     }
 
@@ -406,93 +395,83 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
       selectedDriver: availableDrivers.find(d => d._id === selectedDriverId),
     });
 
-    Alert.alert(
+    showConfirm(
       'Confirm Reassignment',
-      `Reassign ${selectedBatchForAction.batchNumber} to the selected driver?\n\nThis will:\n• Remove current driver assignment\n• Assign batch to new driver\n• Notify both drivers`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          style: 'default',
-          onPress: async () => {
-            setIsProcessing(true);
-            try {
-              console.log('📤 Sending reassignment request with:', {
-                batchId: selectedBatchForAction._id,
-                newDriverId: selectedDriverId,
-                reason: reassignReason.trim(),
-              });
+      `Reassign ${selectedBatchForAction.batchNumber} to the selected driver?\n\nThis will:\n- Remove current driver assignment\n- Assign batch to new driver\n- Notify both drivers`,
+      async () => {
+        setIsProcessing(true);
+        try {
+          console.log('📤 Sending reassignment request with:', {
+            batchId: selectedBatchForAction._id,
+            newDriverId: selectedDriverId,
+            reason: reassignReason.trim(),
+          });
 
-              const response = await orderBatchService.reassignBatch(
-                selectedBatchForAction._id,
-                selectedDriverId,
-                reassignReason.trim()
-              );
+          const response = await orderBatchService.reassignBatch(
+            selectedBatchForAction._id,
+            selectedDriverId,
+            reassignReason.trim()
+          );
 
-              console.log('✅ Reassignment response:', response);
+          console.log('✅ Reassignment response:', response);
 
-              if (response.success) {
-                Alert.alert(
-                  'Success',
-                  `Batch ${selectedBatchForAction.batchNumber} reassigned successfully`
-                );
-                setShowReassignModal(false);
-                setSelectedBatchForAction(null);
-                setReassignReason('');
-                setSelectedDriverId(null);
-                setReassignStep(1);
-                loadBatches(); // Refresh data
-              }
-            } catch (error: any) {
-              console.error('❌ Reassignment error:', error);
-              Alert.alert('Error', error.message || 'Failed to reassign batch');
-            } finally {
-              setIsProcessing(false);
-            }
-          },
-        },
-      ]
+          if (response.success) {
+            showSuccess(
+              'Success',
+              `Batch ${selectedBatchForAction.batchNumber} reassigned successfully`
+            );
+            setShowReassignModal(false);
+            setSelectedBatchForAction(null);
+            setReassignReason('');
+            setSelectedDriverId(null);
+            setReassignStep(1);
+            loadBatches(); // Refresh data
+          }
+        } catch (error: any) {
+          console.error('❌ Reassignment error:', error);
+          showError('Error', error.message || 'Failed to reassign batch');
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Confirm', cancelText: 'Cancel' }
     );
   };
 
   // Submit cancellation
   const submitCancellation = async () => {
     if (!selectedBatchForAction || !cancelReason.trim() || cancelReason.trim().length < 10) {
-      Alert.alert('Validation Error', 'Please provide a cancellation reason (minimum 10 characters)');
+      showWarning('Validation Error', 'Please provide a cancellation reason (minimum 10 characters)');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Confirm Cancellation',
-      `Cancel batch ${selectedBatchForAction.batchNumber}?\n\nThis will:\n• Remove driver assignment\n• Return ${selectedBatchForAction.orderCount} orders to READY status\n• Notify driver and customers`,
-      [
-        { text: 'Go Back', style: 'cancel' },
-        {
-          text: 'Confirm Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            setIsProcessing(true);
-            try {
-              const response = await orderBatchService.cancelBatch(
-                selectedBatchForAction._id,
-                cancelReason.trim()
-              );
+      `Cancel batch ${selectedBatchForAction.batchNumber}?\n\nThis will:\n- Remove driver assignment\n- Return ${selectedBatchForAction.orderCount} orders to READY status\n- Notify driver and customers`,
+      async () => {
+        setIsProcessing(true);
+        try {
+          const response = await orderBatchService.cancelBatch(
+            selectedBatchForAction._id,
+            cancelReason.trim()
+          );
 
-              if (response.success) {
-                Alert.alert('Success', `Batch ${selectedBatchForAction.batchNumber} cancelled successfully`);
-                setShowCancelDialog(false);
-                setSelectedBatchForAction(null);
-                setCancelReason('');
-                loadBatches(); // Refresh data
-              }
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to cancel batch');
-            } finally {
-              setIsProcessing(false);
-            }
-          },
-        },
-      ]
+          if (response.success) {
+            showSuccess('Success', `Batch ${selectedBatchForAction.batchNumber} cancelled successfully`);
+            setShowCancelDialog(false);
+            setSelectedBatchForAction(null);
+            setCancelReason('');
+            loadBatches(); // Refresh data
+          }
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to cancel batch');
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Confirm Cancel', cancelText: 'Go Back', isDestructive: true }
     );
   };
 

@@ -1,0 +1,3974 @@
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:30 ========== ROLE-BASED ORDERS SCREEN ==========
+RoleBasedOrdersScreen.tsx:31 User Role: ADMIN
+RoleBasedOrdersScreen.tsx:32 ==============================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=1&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "69747869aae4264b997bc4b7"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "_id": "69747869aae4264b997bc4b5",
+        "orderNumber": "ORD-20260124-1RWSH",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "69747869aae4264b997bc4b6"
+          }
+        ],
+        "subtotal": 180,
+        "grandTotal": 234.75,
+        "amountPaid": 234.75,
+        "paymentStatus": "PAID",
+        "paymentMethod": "NETBANKING",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-24T07:44:41.438Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "69747869aae4264b997bc4b8"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-24T07:47:25.332Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Order accepted by kitchen",
+            "_id": "6974790daae4264b997bcb7c"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-24T07:47:25.399Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Preparation started automatically",
+            "_id": "6974790daae4264b997bcb7e"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-24T07:48:09.107Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "_id": "69747939aae4264b997bcd8b"
+          }
+        ],
+        "placedAt": "2026-01-24T07:44:41.438Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-24T07:44:41.444Z",
+        "updatedAt": "2026-01-24T07:48:09.109Z",
+        "__v": 3,
+        "paymentDetails": {
+          "razorpayOrderId": "order_S7dbaTTKmJAc0U",
+          "razorpayPaymentId": "pay_S7dbnvzbqylBdo",
+          "method": "netbanking",
+          "bank": "BARB_R",
+          "wallet": null,
+          "vpa": null,
+          "card": null
+        },
+        "paymentId": "pay_S7dbnvzbqylBdo",
+        "acceptedAt": "2026-01-24T07:47:25.332Z",
+        "preparingAt": "2026-01-24T07:47:25.399Z",
+        "estimatedPrepTime": 30,
+        "preparedAt": "2026-01-24T07:48:09.107Z",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.15,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.15,
+              "_id": "69747371aca6aa3434e68746"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+  
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260124-1RWSH', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=2&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 14.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 14.25,
+              "_id": "696e16e115cd72f58dae85c1"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "6963b16d5eef8e3f62d4fc33"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "_id": "696e16e115cd72f58dae85bd",
+        "orderNumber": "ORD-20260119-N6I94",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "696100c8c39ff249a7227105",
+                "name": "Maharaja Lassi",
+                "quantity": 1,
+                "unitPrice": 40,
+                "totalPrice": 40,
+                "_id": "696e16e115cd72f58dae85bf"
+              },
+              {
+                "addonId": "696100c8c39ff249a7227106",
+                "name": "Extra Roti (2 pcs)",
+                "quantity": 2,
+                "unitPrice": 25,
+                "totalPrice": 50,
+                "_id": "696e16e115cd72f58dae85c0"
+              }
+            ],
+            "_id": "696e16e115cd72f58dae85be"
+          }
+        ],
+        "subtotal": 270,
+        "grandTotal": 329.25,
+        "amountPaid": 149.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-19T11:34:57.403Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "696e16e115cd72f58dae85c2"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-19T12:54:03.307Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e296b15cd72f58daea451"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-19T12:54:41.221Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e299115cd72f58daea73a"
+          }
+        ],
+        "placedAt": "2026-01-19T11:34:57.403Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-19T11:34:57.408Z",
+        "updatedAt": "2026-01-23T14:02:51.935Z",
+        "__v": 2,
+        "acceptedAt": "2026-01-19T12:54:03.307Z",
+        "preparedAt": "2026-01-19T12:54:41.221Z",
+        "batchId": "696f47563e197be7e9bcea4f",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "696e163715cd72f58dae8061"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260119-N6I94', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=3&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 11.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 11.25,
+              "_id": "6966c68f820784414a6cf1fa"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69621768b8de59c1312d9964"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "isAutoOrder": false,
+        "_id": "6966c68f820784414a6cf1f7",
+        "orderNumber": "ORD-20260113-0CFF5",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "6964fc43071ba5846960bd3d",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "6964fc42071ba5846960bd34",
+                "name": "Raita",
+                "quantity": 1,
+                "unitPrice": 30,
+                "totalPrice": 30,
+                "_id": "6966c68f820784414a6cf1f9"
+              }
+            ],
+            "_id": "6966c68f820784414a6cf1f8"
+          }
+        ],
+        "subtotal": 210,
+        "grandTotal": 266.25,
+        "amountPaid": 86.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "FAILED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:26:23.482Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c68f820784414a6cf1fb"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-14T10:38:01.394Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "69677209ebcaf8447e53ab2d"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-14T10:38:01.484Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "69677209ebcaf8447e53ab2f"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:13.247Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6968a3f1eddf5f6d9a40211a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:30.229Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a402eddf5f6d9a40213b"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:35:59.957Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a6efeddf5f6d9a402338"
+          },
+          {
+            "status": "FAILED",
+            "timestamp": "2026-01-15T08:36:07.230Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "6968a6f7eddf5f6d9a402360"
+          }
+        ],
+        "placedAt": "2026-01-13T22:26:23.482Z",
+        "createdAt": "2026-01-13T22:26:23.486Z",
+        "updatedAt": "2026-01-15T08:36:07.232Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-14T10:38:01.396Z",
+        "preparingAt": "2026-01-14T10:38:01.484Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6967722bebcaf8447e53ab76",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-15T08:35:59.958Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.25,
+              "_id": "6966c3b6820784414a6cf18e"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "proofOfDelivery": {
+          "type": "OTP",
+          "value": "verified",
+          "verifiedAt": "2026-01-14T13:15:11.756Z"
+        },
+        "isAutoOrder": false,
+        "_id": "6966c3b6820784414a6cf18c",
+        "orderNumber": "ORD-20260113-HQ6F9",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "LUNCH",
+        "items": [
+          {
+            "menuItemId": "6964fc42071ba5846960bd39",
+            "name": "Lunch Special Thali",
+            "quantity": 1,
+            "unitPrice": 150,
+            "totalPrice": 150,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "6966c3b6820784414a6cf18d"
+          }
+        ],
+        "subtotal": 150,
+        "grandTotal": 203.25,
+        "amountPaid": 203.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "DELIVERED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:14:14.229Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c3b6820784414a6cf18f"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-13T22:38:44.212Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "6966c974820784414a6cf388"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-13T22:38:44.297Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "6966c974820784414a6cf38a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:11:40.387Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6967960cc43922b56318d1f1"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:12:20.016Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "69679634c43922b56318d229"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:14:59.744Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "696796d3c43922b56318d314"
+          },
+          {
+            "status": "DELIVERED",
+            "timestamp": "2026-01-14T13:15:11.756Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "696796dfc43922b56318d33a"
+          }
+        ],
+        "placedAt": "2026-01-13T22:14:14.229Z",
+        "createdAt": "2026-01-13T22:14:14.232Z",
+        "updatedAt": "2026-01-14T13:15:11.758Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-13T22:38:44.213Z",
+        "preparingAt": "2026-01-13T22:38:44.298Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6966df1417cae2edcdcc9aac",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-14T13:14:59.744Z",
+        "deliveredAt": "2026-01-14T13:15:11.756Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 3,
+      "limit": 20,
+      "total": 42,
+      "pages": 3
+    }
+  },
+  "error": null
+}
+orders.service.ts:58 📦 [OrdersService] Orders received: 2
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260113-0CFF5', kitchenIdType: 'object', isPopulated: false, kitchenName: 'NOT POPULATED'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrderCardAdminImproved.tsx:114 📦 OrderCardAdminImproved rendered for order: ORD-20260113-0CFF5
+OrderCardAdminImproved.tsx:114 📦 OrderCardAdminImproved rendered for order: ORD-20260113-HQ6F9
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:31 ========== ROLE-BASED DASHBOARD ==========
+RoleBasedDashboard.tsx:32 User Role: ADMIN
+RoleBasedDashboard.tsx:33 =========================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+api.enhanced.service.ts:185 ╔═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:186 ║ [API REQUEST]
+api.enhanced.service.ts:187 ╠═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:188 ║ Method: GET
+api.enhanced.service.ts:189 ║ URL: https://tiffsy-backend.onrender.com/api/admin/dashboard
+api.enhanced.service.ts:190 ║ Headers: {
+  "Content-Type": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJSUzI1NiIs..."
+}
+api.enhanced.service.ts:194 ║ Body: (none)
+api.enhanced.service.ts:196 ╚═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:212 ╔═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:213 ║ [API RESPONSE]
+api.enhanced.service.ts:214 ╠═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:215 ║ Status: 200 
+api.enhanced.service.ts:216 ║ URL: https://tiffsy-backend.onrender.com/api/admin/dashboard
+api.enhanced.service.ts:217 ║ Response Headers: {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "9c2df18a7f80c1ac-BOM",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Sat, 24 Jan 2026 07:51:04 GMT",
+  "etag": "W/\"2176-nL9OZUIb4cXCm/5Xf97J5+Ew68Y\"",
+  "rndr-id": "c63c8bcc-87a0-423a",
+  "server": "cloudflare",
+  "vary": "Accept-Encoding",
+  "x-powered-by": "Express",
+  "x-render-origin-server": "Render"
+}
+api.enhanced.service.ts:218 ║ Response Body (Raw): {"success":true,"message":"Dashboard retrieved","data":{"overview":{"totalOrders":16,"totalRevenue":27141.75,"activeCustomers":12,"activeKitchens":5},"today":{"orders":6,"revenue":0,"newCustomers":0},"pendingActions":{"pendingOrders":8,"pendingRefunds":0,"pendingKitchenApprovals":0},"recentActivity":[{"_id":"69747427aca6aa3434e688a2","userId":{"_id":"696100c8c39ff249a72270df","role":"ADMIN","name":"Super Admin"},"userRole":"ADMIN","userName":"Super Admin","action":"UPDATE","entityType":"ORDER","
+api.enhanced.service.ts:223 ║ Response Body (Parsed): {
+  "success": true,
+  "message": "Dashboard retrieved",
+  "data": {
+    "overview": {
+      "totalOrders": 16,
+      "totalRevenue": 27141.75,
+      "activeCustomers": 12,
+      "activeKitchens": 5
+    },
+    "today": {
+      "orders": 6,
+      "revenue": 0,
+      "newCustomers": 0
+    },
+    "pendingActions": {
+      "pendingOrders": 8,
+      "pendingRefunds": 0,
+      "pendingKitchenApprovals": 0
+    },
+    "recentActivity": [
+      {
+        "_id": "69747427aca6aa3434e688a2",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "69747371aca6aa3434e68744",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T07:26:31.631Z",
+        "createdAt": "2026-01-24T07:26:31.633Z"
+      },
+      {
+        "_id": "6974741caca6aa3434e68827",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "69747371aca6aa3434e68744",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T07:26:20.808Z",
+        "createdAt": "2026-01-24T07:26:20.810Z"
+      },
+      {
+        "_id": "69746c5a7e9194612cfcd199",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "696e154215cd72f58dae753e",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T06:53:14.001Z",
+        "createdAt": "2026-01-24T06:53:14.003Z"
+      },
+      {
+        "_id": "69746c507e9194612cfcd0d9",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "696e154215cd72f58dae753e",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T06:53:04.773Z",
+        "createdAt": "2026-01-24T06:53:04.775Z"
+      },
+      {
+        "_id": "6973b629e6114e8d10d17c6d",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "6973b5d8e6114e8d10d17ab6",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-23T17:55:53.251Z",
+        "createdAt": "2026-01-23T17:55:53.252Z"
+      },
+      {
+        "_id": "6973b618e6114e8d10d17beb",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "6973b5d8e6114e8d10d17ab6",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "
+api.enhanced.service.ts:237 ╚═══════════════════════════════════════════════════════════
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:30 ========== ROLE-BASED ORDERS SCREEN ==========
+RoleBasedOrdersScreen.tsx:31 User Role: ADMIN
+RoleBasedOrdersScreen.tsx:32 ==============================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=1&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/stats
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/stats', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "69747869aae4264b997bc4b7"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "_id": "69747869aae4264b997bc4b5",
+        "orderNumber": "ORD-20260124-1RWSH",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "69747869aae4264b997bc4b6"
+          }
+        ],
+        "subtotal": 180,
+        "grandTotal": 234.75,
+        "amountPaid": 234.75,
+        "paymentStatus": "PAID",
+        "paymentMethod": "NETBANKING",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-24T07:44:41.438Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "69747869aae4264b997bc4b8"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-24T07:47:25.332Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Order accepted by kitchen",
+            "_id": "6974790daae4264b997bcb7c"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-24T07:47:25.399Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Preparation started automatically",
+            "_id": "6974790daae4264b997bcb7e"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-24T07:48:09.107Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "_id": "69747939aae4264b997bcd8b"
+          }
+        ],
+        "placedAt": "2026-01-24T07:44:41.438Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-24T07:44:41.444Z",
+        "updatedAt": "2026-01-24T07:48:09.109Z",
+        "__v": 3,
+        "paymentDetails": {
+          "razorpayOrderId": "order_S7dbaTTKmJAc0U",
+          "razorpayPaymentId": "pay_S7dbnvzbqylBdo",
+          "method": "netbanking",
+          "bank": "BARB_R",
+          "wallet": null,
+          "vpa": null,
+          "card": null
+        },
+        "paymentId": "pay_S7dbnvzbqylBdo",
+        "acceptedAt": "2026-01-24T07:47:25.332Z",
+        "preparingAt": "2026-01-24T07:47:25.399Z",
+        "estimatedPrepTime": 30,
+        "preparedAt": "2026-01-24T07:48:09.107Z",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.15,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.15,
+              "_id": "69747371aca6aa3434e68746"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+  
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260124-1RWSH', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/stats {
+  "success": true,
+  "message": "Order statistics",
+  "data": {
+    "totalOrders": 42,
+    "totalRevenue": 34953.75,
+    "totalVouchersUsed": 21,
+    "avgOrderValue": 832.23,
+    "byStatus": {
+      "DELIVERED": 16,
+      "FAILED": 3,
+      "READY": 7,
+      "CANCELLED": 2,
+      "PLACED": 8,
+      "REJECTED": 1,
+      "OUT_FOR_DELIVERY": 2,
+      "ACCEPTED": 3
+    },
+    "byMenuType": {
+      "MEAL_MENU": 42
+    }
+  },
+  "error": null
+}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=2&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 14.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 14.25,
+              "_id": "696e16e115cd72f58dae85c1"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "6963b16d5eef8e3f62d4fc33"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "_id": "696e16e115cd72f58dae85bd",
+        "orderNumber": "ORD-20260119-N6I94",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "696100c8c39ff249a7227105",
+                "name": "Maharaja Lassi",
+                "quantity": 1,
+                "unitPrice": 40,
+                "totalPrice": 40,
+                "_id": "696e16e115cd72f58dae85bf"
+              },
+              {
+                "addonId": "696100c8c39ff249a7227106",
+                "name": "Extra Roti (2 pcs)",
+                "quantity": 2,
+                "unitPrice": 25,
+                "totalPrice": 50,
+                "_id": "696e16e115cd72f58dae85c0"
+              }
+            ],
+            "_id": "696e16e115cd72f58dae85be"
+          }
+        ],
+        "subtotal": 270,
+        "grandTotal": 329.25,
+        "amountPaid": 149.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-19T11:34:57.403Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "696e16e115cd72f58dae85c2"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-19T12:54:03.307Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e296b15cd72f58daea451"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-19T12:54:41.221Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e299115cd72f58daea73a"
+          }
+        ],
+        "placedAt": "2026-01-19T11:34:57.403Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-19T11:34:57.408Z",
+        "updatedAt": "2026-01-23T14:02:51.935Z",
+        "__v": 2,
+        "acceptedAt": "2026-01-19T12:54:03.307Z",
+        "preparedAt": "2026-01-19T12:54:41.221Z",
+        "batchId": "696f47563e197be7e9bcea4f",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "696e163715cd72f58dae8061"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260119-N6I94', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=3&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 11.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 11.25,
+              "_id": "6966c68f820784414a6cf1fa"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69621768b8de59c1312d9964"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "isAutoOrder": false,
+        "_id": "6966c68f820784414a6cf1f7",
+        "orderNumber": "ORD-20260113-0CFF5",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "6964fc43071ba5846960bd3d",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "6964fc42071ba5846960bd34",
+                "name": "Raita",
+                "quantity": 1,
+                "unitPrice": 30,
+                "totalPrice": 30,
+                "_id": "6966c68f820784414a6cf1f9"
+              }
+            ],
+            "_id": "6966c68f820784414a6cf1f8"
+          }
+        ],
+        "subtotal": 210,
+        "grandTotal": 266.25,
+        "amountPaid": 86.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "FAILED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:26:23.482Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c68f820784414a6cf1fb"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-14T10:38:01.394Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "69677209ebcaf8447e53ab2d"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-14T10:38:01.484Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "69677209ebcaf8447e53ab2f"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:13.247Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6968a3f1eddf5f6d9a40211a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:30.229Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a402eddf5f6d9a40213b"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:35:59.957Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a6efeddf5f6d9a402338"
+          },
+          {
+            "status": "FAILED",
+            "timestamp": "2026-01-15T08:36:07.230Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "6968a6f7eddf5f6d9a402360"
+          }
+        ],
+        "placedAt": "2026-01-13T22:26:23.482Z",
+        "createdAt": "2026-01-13T22:26:23.486Z",
+        "updatedAt": "2026-01-15T08:36:07.232Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-14T10:38:01.396Z",
+        "preparingAt": "2026-01-14T10:38:01.484Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6967722bebcaf8447e53ab76",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-15T08:35:59.958Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.25,
+              "_id": "6966c3b6820784414a6cf18e"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "proofOfDelivery": {
+          "type": "OTP",
+          "value": "verified",
+          "verifiedAt": "2026-01-14T13:15:11.756Z"
+        },
+        "isAutoOrder": false,
+        "_id": "6966c3b6820784414a6cf18c",
+        "orderNumber": "ORD-20260113-HQ6F9",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "LUNCH",
+        "items": [
+          {
+            "menuItemId": "6964fc42071ba5846960bd39",
+            "name": "Lunch Special Thali",
+            "quantity": 1,
+            "unitPrice": 150,
+            "totalPrice": 150,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "6966c3b6820784414a6cf18d"
+          }
+        ],
+        "subtotal": 150,
+        "grandTotal": 203.25,
+        "amountPaid": 203.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "DELIVERED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:14:14.229Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c3b6820784414a6cf18f"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-13T22:38:44.212Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "6966c974820784414a6cf388"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-13T22:38:44.297Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "6966c974820784414a6cf38a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:11:40.387Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6967960cc43922b56318d1f1"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:12:20.016Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "69679634c43922b56318d229"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:14:59.744Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "696796d3c43922b56318d314"
+          },
+          {
+            "status": "DELIVERED",
+            "timestamp": "2026-01-14T13:15:11.756Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "696796dfc43922b56318d33a"
+          }
+        ],
+        "placedAt": "2026-01-13T22:14:14.229Z",
+        "createdAt": "2026-01-13T22:14:14.232Z",
+        "updatedAt": "2026-01-14T13:15:11.758Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-13T22:38:44.213Z",
+        "preparingAt": "2026-01-13T22:38:44.298Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6966df1417cae2edcdcc9aac",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-14T13:14:59.744Z",
+        "deliveredAt": "2026-01-14T13:15:11.756Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 3,
+      "limit": 20,
+      "total": 42,
+      "pages": 3
+    }
+  },
+  "error": null
+}
+orders.service.ts:58 📦 [OrdersService] Orders received: 2
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260113-0CFF5', kitchenIdType: 'object', isPopulated: false, kitchenName: 'NOT POPULATED'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:31 ========== ROLE-BASED DASHBOARD ==========
+RoleBasedDashboard.tsx:32 User Role: ADMIN
+RoleBasedDashboard.tsx:33 =========================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:30 ========== ROLE-BASED ORDERS SCREEN ==========
+RoleBasedOrdersScreen.tsx:31 User Role: ADMIN
+RoleBasedOrdersScreen.tsx:32 ==============================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=1&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "69747869aae4264b997bc4b7"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "_id": "69747869aae4264b997bc4b5",
+        "orderNumber": "ORD-20260124-1RWSH",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "69747869aae4264b997bc4b6"
+          }
+        ],
+        "subtotal": 180,
+        "grandTotal": 234.75,
+        "amountPaid": 234.75,
+        "paymentStatus": "PAID",
+        "paymentMethod": "NETBANKING",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-24T07:44:41.438Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "69747869aae4264b997bc4b8"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-24T07:47:25.332Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Order accepted by kitchen",
+            "_id": "6974790daae4264b997bcb7c"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-24T07:47:25.399Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Preparation started automatically",
+            "_id": "6974790daae4264b997bcb7e"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-24T07:48:09.107Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "_id": "69747939aae4264b997bcd8b"
+          }
+        ],
+        "placedAt": "2026-01-24T07:44:41.438Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-24T07:44:41.444Z",
+        "updatedAt": "2026-01-24T07:48:09.109Z",
+        "__v": 3,
+        "paymentDetails": {
+          "razorpayOrderId": "order_S7dbaTTKmJAc0U",
+          "razorpayPaymentId": "pay_S7dbnvzbqylBdo",
+          "method": "netbanking",
+          "bank": "BARB_R",
+          "wallet": null,
+          "vpa": null,
+          "card": null
+        },
+        "paymentId": "pay_S7dbnvzbqylBdo",
+        "acceptedAt": "2026-01-24T07:47:25.332Z",
+        "preparingAt": "2026-01-24T07:47:25.399Z",
+        "estimatedPrepTime": 30,
+        "preparedAt": "2026-01-24T07:48:09.107Z",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.15,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.15,
+              "_id": "69747371aca6aa3434e68746"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+  
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260124-1RWSH', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=2&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 14.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 14.25,
+              "_id": "696e16e115cd72f58dae85c1"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "6963b16d5eef8e3f62d4fc33"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "_id": "696e16e115cd72f58dae85bd",
+        "orderNumber": "ORD-20260119-N6I94",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "696100c8c39ff249a7227105",
+                "name": "Maharaja Lassi",
+                "quantity": 1,
+                "unitPrice": 40,
+                "totalPrice": 40,
+                "_id": "696e16e115cd72f58dae85bf"
+              },
+              {
+                "addonId": "696100c8c39ff249a7227106",
+                "name": "Extra Roti (2 pcs)",
+                "quantity": 2,
+                "unitPrice": 25,
+                "totalPrice": 50,
+                "_id": "696e16e115cd72f58dae85c0"
+              }
+            ],
+            "_id": "696e16e115cd72f58dae85be"
+          }
+        ],
+        "subtotal": 270,
+        "grandTotal": 329.25,
+        "amountPaid": 149.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-19T11:34:57.403Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "696e16e115cd72f58dae85c2"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-19T12:54:03.307Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e296b15cd72f58daea451"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-19T12:54:41.221Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e299115cd72f58daea73a"
+          }
+        ],
+        "placedAt": "2026-01-19T11:34:57.403Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-19T11:34:57.408Z",
+        "updatedAt": "2026-01-23T14:02:51.935Z",
+        "__v": 2,
+        "acceptedAt": "2026-01-19T12:54:03.307Z",
+        "preparedAt": "2026-01-19T12:54:41.221Z",
+        "batchId": "696f47563e197be7e9bcea4f",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "696e163715cd72f58dae8061"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260119-N6I94', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=3&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 11.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 11.25,
+              "_id": "6966c68f820784414a6cf1fa"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69621768b8de59c1312d9964"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "isAutoOrder": false,
+        "_id": "6966c68f820784414a6cf1f7",
+        "orderNumber": "ORD-20260113-0CFF5",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "6964fc43071ba5846960bd3d",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "6964fc42071ba5846960bd34",
+                "name": "Raita",
+                "quantity": 1,
+                "unitPrice": 30,
+                "totalPrice": 30,
+                "_id": "6966c68f820784414a6cf1f9"
+              }
+            ],
+            "_id": "6966c68f820784414a6cf1f8"
+          }
+        ],
+        "subtotal": 210,
+        "grandTotal": 266.25,
+        "amountPaid": 86.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "FAILED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:26:23.482Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c68f820784414a6cf1fb"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-14T10:38:01.394Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "69677209ebcaf8447e53ab2d"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-14T10:38:01.484Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "69677209ebcaf8447e53ab2f"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:13.247Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6968a3f1eddf5f6d9a40211a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:30.229Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a402eddf5f6d9a40213b"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:35:59.957Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a6efeddf5f6d9a402338"
+          },
+          {
+            "status": "FAILED",
+            "timestamp": "2026-01-15T08:36:07.230Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "6968a6f7eddf5f6d9a402360"
+          }
+        ],
+        "placedAt": "2026-01-13T22:26:23.482Z",
+        "createdAt": "2026-01-13T22:26:23.486Z",
+        "updatedAt": "2026-01-15T08:36:07.232Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-14T10:38:01.396Z",
+        "preparingAt": "2026-01-14T10:38:01.484Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6967722bebcaf8447e53ab76",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-15T08:35:59.958Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.25,
+              "_id": "6966c3b6820784414a6cf18e"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "proofOfDelivery": {
+          "type": "OTP",
+          "value": "verified",
+          "verifiedAt": "2026-01-14T13:15:11.756Z"
+        },
+        "isAutoOrder": false,
+        "_id": "6966c3b6820784414a6cf18c",
+        "orderNumber": "ORD-20260113-HQ6F9",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "LUNCH",
+        "items": [
+          {
+            "menuItemId": "6964fc42071ba5846960bd39",
+            "name": "Lunch Special Thali",
+            "quantity": 1,
+            "unitPrice": 150,
+            "totalPrice": 150,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "6966c3b6820784414a6cf18d"
+          }
+        ],
+        "subtotal": 150,
+        "grandTotal": 203.25,
+        "amountPaid": 203.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "DELIVERED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:14:14.229Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c3b6820784414a6cf18f"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-13T22:38:44.212Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "6966c974820784414a6cf388"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-13T22:38:44.297Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "6966c974820784414a6cf38a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:11:40.387Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6967960cc43922b56318d1f1"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:12:20.016Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "69679634c43922b56318d229"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:14:59.744Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "696796d3c43922b56318d314"
+          },
+          {
+            "status": "DELIVERED",
+            "timestamp": "2026-01-14T13:15:11.756Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "696796dfc43922b56318d33a"
+          }
+        ],
+        "placedAt": "2026-01-13T22:14:14.229Z",
+        "createdAt": "2026-01-13T22:14:14.232Z",
+        "updatedAt": "2026-01-14T13:15:11.758Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-13T22:38:44.213Z",
+        "preparingAt": "2026-01-13T22:38:44.298Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6966df1417cae2edcdcc9aac",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-14T13:14:59.744Z",
+        "deliveredAt": "2026-01-14T13:15:11.756Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 3,
+      "limit": 20,
+      "total": 42,
+      "pages": 3
+    }
+  },
+  "error": null
+}
+orders.service.ts:58 📦 [OrdersService] Orders received: 2
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260113-0CFF5', kitchenIdType: 'object', isPopulated: false, kitchenName: 'NOT POPULATED'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:31 ========== ROLE-BASED DASHBOARD ==========
+RoleBasedDashboard.tsx:32 User Role: ADMIN
+RoleBasedDashboard.tsx:33 =========================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:30 ========== ROLE-BASED ORDERS SCREEN ==========
+RoleBasedOrdersScreen.tsx:31 User Role: ADMIN
+RoleBasedOrdersScreen.tsx:32 ==============================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=1&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "69747869aae4264b997bc4b7"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "_id": "69747869aae4264b997bc4b5",
+        "orderNumber": "ORD-20260124-1RWSH",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "69747869aae4264b997bc4b6"
+          }
+        ],
+        "subtotal": 180,
+        "grandTotal": 234.75,
+        "amountPaid": 234.75,
+        "paymentStatus": "PAID",
+        "paymentMethod": "NETBANKING",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-24T07:44:41.438Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "69747869aae4264b997bc4b8"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-24T07:47:25.332Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Order accepted by kitchen",
+            "_id": "6974790daae4264b997bcb7c"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-24T07:47:25.399Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Preparation started automatically",
+            "_id": "6974790daae4264b997bcb7e"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-24T07:48:09.107Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "_id": "69747939aae4264b997bcd8b"
+          }
+        ],
+        "placedAt": "2026-01-24T07:44:41.438Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-24T07:44:41.444Z",
+        "updatedAt": "2026-01-24T07:48:09.109Z",
+        "__v": 3,
+        "paymentDetails": {
+          "razorpayOrderId": "order_S7dbaTTKmJAc0U",
+          "razorpayPaymentId": "pay_S7dbnvzbqylBdo",
+          "method": "netbanking",
+          "bank": "BARB_R",
+          "wallet": null,
+          "vpa": null,
+          "card": null
+        },
+        "paymentId": "pay_S7dbnvzbqylBdo",
+        "acceptedAt": "2026-01-24T07:47:25.332Z",
+        "preparingAt": "2026-01-24T07:47:25.399Z",
+        "estimatedPrepTime": 30,
+        "preparedAt": "2026-01-24T07:48:09.107Z",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.15,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.15,
+              "_id": "69747371aca6aa3434e68746"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+  
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260124-1RWSH', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=2&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 14.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 14.25,
+              "_id": "696e16e115cd72f58dae85c1"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "6963b16d5eef8e3f62d4fc33"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "_id": "696e16e115cd72f58dae85bd",
+        "orderNumber": "ORD-20260119-N6I94",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "696100c8c39ff249a7227105",
+                "name": "Maharaja Lassi",
+                "quantity": 1,
+                "unitPrice": 40,
+                "totalPrice": 40,
+                "_id": "696e16e115cd72f58dae85bf"
+              },
+              {
+                "addonId": "696100c8c39ff249a7227106",
+                "name": "Extra Roti (2 pcs)",
+                "quantity": 2,
+                "unitPrice": 25,
+                "totalPrice": 50,
+                "_id": "696e16e115cd72f58dae85c0"
+              }
+            ],
+            "_id": "696e16e115cd72f58dae85be"
+          }
+        ],
+        "subtotal": 270,
+        "grandTotal": 329.25,
+        "amountPaid": 149.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-19T11:34:57.403Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "696e16e115cd72f58dae85c2"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-19T12:54:03.307Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e296b15cd72f58daea451"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-19T12:54:41.221Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e299115cd72f58daea73a"
+          }
+        ],
+        "placedAt": "2026-01-19T11:34:57.403Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-19T11:34:57.408Z",
+        "updatedAt": "2026-01-23T14:02:51.935Z",
+        "__v": 2,
+        "acceptedAt": "2026-01-19T12:54:03.307Z",
+        "preparedAt": "2026-01-19T12:54:41.221Z",
+        "batchId": "696f47563e197be7e9bcea4f",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "696e163715cd72f58dae8061"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260119-N6I94', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=3&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 11.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 11.25,
+              "_id": "6966c68f820784414a6cf1fa"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69621768b8de59c1312d9964"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "isAutoOrder": false,
+        "_id": "6966c68f820784414a6cf1f7",
+        "orderNumber": "ORD-20260113-0CFF5",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "6964fc43071ba5846960bd3d",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "6964fc42071ba5846960bd34",
+                "name": "Raita",
+                "quantity": 1,
+                "unitPrice": 30,
+                "totalPrice": 30,
+                "_id": "6966c68f820784414a6cf1f9"
+              }
+            ],
+            "_id": "6966c68f820784414a6cf1f8"
+          }
+        ],
+        "subtotal": 210,
+        "grandTotal": 266.25,
+        "amountPaid": 86.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "FAILED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:26:23.482Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c68f820784414a6cf1fb"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-14T10:38:01.394Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "69677209ebcaf8447e53ab2d"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-14T10:38:01.484Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "69677209ebcaf8447e53ab2f"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:13.247Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6968a3f1eddf5f6d9a40211a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:30.229Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a402eddf5f6d9a40213b"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:35:59.957Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a6efeddf5f6d9a402338"
+          },
+          {
+            "status": "FAILED",
+            "timestamp": "2026-01-15T08:36:07.230Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "6968a6f7eddf5f6d9a402360"
+          }
+        ],
+        "placedAt": "2026-01-13T22:26:23.482Z",
+        "createdAt": "2026-01-13T22:26:23.486Z",
+        "updatedAt": "2026-01-15T08:36:07.232Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-14T10:38:01.396Z",
+        "preparingAt": "2026-01-14T10:38:01.484Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6967722bebcaf8447e53ab76",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-15T08:35:59.958Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.25,
+              "_id": "6966c3b6820784414a6cf18e"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "proofOfDelivery": {
+          "type": "OTP",
+          "value": "verified",
+          "verifiedAt": "2026-01-14T13:15:11.756Z"
+        },
+        "isAutoOrder": false,
+        "_id": "6966c3b6820784414a6cf18c",
+        "orderNumber": "ORD-20260113-HQ6F9",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "LUNCH",
+        "items": [
+          {
+            "menuItemId": "6964fc42071ba5846960bd39",
+            "name": "Lunch Special Thali",
+            "quantity": 1,
+            "unitPrice": 150,
+            "totalPrice": 150,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "6966c3b6820784414a6cf18d"
+          }
+        ],
+        "subtotal": 150,
+        "grandTotal": 203.25,
+        "amountPaid": 203.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "DELIVERED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:14:14.229Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c3b6820784414a6cf18f"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-13T22:38:44.212Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "6966c974820784414a6cf388"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-13T22:38:44.297Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "6966c974820784414a6cf38a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:11:40.387Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6967960cc43922b56318d1f1"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:12:20.016Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "69679634c43922b56318d229"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:14:59.744Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "696796d3c43922b56318d314"
+          },
+          {
+            "status": "DELIVERED",
+            "timestamp": "2026-01-14T13:15:11.756Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "696796dfc43922b56318d33a"
+          }
+        ],
+        "placedAt": "2026-01-13T22:14:14.229Z",
+        "createdAt": "2026-01-13T22:14:14.232Z",
+        "updatedAt": "2026-01-14T13:15:11.758Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-13T22:38:44.213Z",
+        "preparingAt": "2026-01-13T22:38:44.298Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6966df1417cae2edcdcc9aac",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-14T13:14:59.744Z",
+        "deliveredAt": "2026-01-14T13:15:11.756Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 3,
+      "limit": 20,
+      "total": 42,
+      "pages": 3
+    }
+  },
+  "error": null
+}
+orders.service.ts:58 📦 [OrdersService] Orders received: 2
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260113-0CFF5', kitchenIdType: 'object', isPopulated: false, kitchenName: 'NOT POPULATED'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:31 ========== ROLE-BASED DASHBOARD ==========
+RoleBasedDashboard.tsx:32 User Role: ADMIN
+RoleBasedDashboard.tsx:33 =========================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+api.enhanced.service.ts:185 ╔═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:186 ║ [API REQUEST]
+api.enhanced.service.ts:187 ╠═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:188 ║ Method: GET
+api.enhanced.service.ts:189 ║ URL: https://tiffsy-backend.onrender.com/api/admin/dashboard
+api.enhanced.service.ts:190 ║ Headers: {
+  "Content-Type": "application/json",
+  "Authorization": "Bearer eyJhbGciOiJSUzI1NiIs..."
+}
+api.enhanced.service.ts:194 ║ Body: (none)
+api.enhanced.service.ts:196 ╚═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:212 ╔═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:213 ║ [API RESPONSE]
+api.enhanced.service.ts:214 ╠═══════════════════════════════════════════════════════════
+api.enhanced.service.ts:215 ║ Status: 200 
+api.enhanced.service.ts:216 ║ URL: https://tiffsy-backend.onrender.com/api/admin/dashboard
+api.enhanced.service.ts:217 ║ Response Headers: {
+  "access-control-allow-origin": "*",
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "9c2df250fa47c1ac-BOM",
+  "content-type": "application/json; charset=utf-8",
+  "date": "Sat, 24 Jan 2026 07:51:36 GMT",
+  "etag": "W/\"2176-nL9OZUIb4cXCm/5Xf97J5+Ew68Y\"",
+  "rndr-id": "3ed05a75-35e0-414b",
+  "server": "cloudflare",
+  "vary": "Accept-Encoding",
+  "x-powered-by": "Express",
+  "x-render-origin-server": "Render"
+}
+api.enhanced.service.ts:218 ║ Response Body (Raw): {"success":true,"message":"Dashboard retrieved","data":{"overview":{"totalOrders":16,"totalRevenue":27141.75,"activeCustomers":12,"activeKitchens":5},"today":{"orders":6,"revenue":0,"newCustomers":0},"pendingActions":{"pendingOrders":8,"pendingRefunds":0,"pendingKitchenApprovals":0},"recentActivity":[{"_id":"69747427aca6aa3434e688a2","userId":{"_id":"696100c8c39ff249a72270df","role":"ADMIN","name":"Super Admin"},"userRole":"ADMIN","userName":"Super Admin","action":"UPDATE","entityType":"ORDER","
+api.enhanced.service.ts:223 ║ Response Body (Parsed): {
+  "success": true,
+  "message": "Dashboard retrieved",
+  "data": {
+    "overview": {
+      "totalOrders": 16,
+      "totalRevenue": 27141.75,
+      "activeCustomers": 12,
+      "activeKitchens": 5
+    },
+    "today": {
+      "orders": 6,
+      "revenue": 0,
+      "newCustomers": 0
+    },
+    "pendingActions": {
+      "pendingOrders": 8,
+      "pendingRefunds": 0,
+      "pendingKitchenApprovals": 0
+    },
+    "recentActivity": [
+      {
+        "_id": "69747427aca6aa3434e688a2",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "69747371aca6aa3434e68744",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T07:26:31.631Z",
+        "createdAt": "2026-01-24T07:26:31.633Z"
+      },
+      {
+        "_id": "6974741caca6aa3434e68827",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "69747371aca6aa3434e68744",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T07:26:20.808Z",
+        "createdAt": "2026-01-24T07:26:20.810Z"
+      },
+      {
+        "_id": "69746c5a7e9194612cfcd199",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "696e154215cd72f58dae753e",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T06:53:14.001Z",
+        "createdAt": "2026-01-24T06:53:14.003Z"
+      },
+      {
+        "_id": "69746c507e9194612cfcd0d9",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "696e154215cd72f58dae753e",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-24T06:53:04.773Z",
+        "createdAt": "2026-01-24T06:53:04.775Z"
+      },
+      {
+        "_id": "6973b629e6114e8d10d17c6d",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "6973b5d8e6114e8d10d17ab6",
+        "previousValue": {
+          "status": "ACCEPTED"
+        },
+        "newValue": {
+          "status": "READY"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: ACCEPTED → READY",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "2026-01-23T17:55:53.251Z",
+        "createdAt": "2026-01-23T17:55:53.252Z"
+      },
+      {
+        "_id": "6973b618e6114e8d10d17beb",
+        "userId": {
+          "_id": "696100c8c39ff249a72270df",
+          "role": "ADMIN",
+          "name": "Super Admin"
+        },
+        "userRole": "ADMIN",
+        "userName": "Super Admin",
+        "action": "UPDATE",
+        "entityType": "ORDER",
+        "entityId": "6973b5d8e6114e8d10d17ab6",
+        "previousValue": {
+          "status": "PLACED"
+        },
+        "newValue": {
+          "status": "ACCEPTED"
+        },
+        "changedFields": [
+          "status"
+        ],
+        "reason": "Admin status update: PLACED → ACCEPTED",
+        "source": "ADMIN_PORTAL",
+        "status": "SUCCESS",
+        "performedAt": "
+api.enhanced.service.ts:237 ╚═══════════════════════════════════════════════════════════
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedDashboard.tsx:58 Rendering Admin Dashboard...
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+App.tsx:508 ========== APP.TSX RENDER ==========
+App.tsx:509 isAuthenticated: true
+App.tsx:510 Current Screen: DASHBOARD
+App.tsx:511 ====================================
+RoleBasedOrdersScreen.tsx:30 ========== ROLE-BASED ORDERS SCREEN ==========
+RoleBasedOrdersScreen.tsx:31 User Role: ADMIN
+RoleBasedOrdersScreen.tsx:32 ==============================================
+Sidebar.tsx:49 ========== SIDEBAR: Loading User Role ==========
+Sidebar.tsx:50 Role from storage: ADMIN
+Sidebar.tsx:55 Menu items for role: 12
+Sidebar.tsx:70 ===============================================
+RoleBasedOrdersScreen.tsx:57 Rendering Admin Orders Screen...
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=1&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/stats
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/stats', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/stats {
+  "success": true,
+  "message": "Order statistics",
+  "data": {
+    "totalOrders": 42,
+    "totalRevenue": 34953.75,
+    "totalVouchersUsed": 21,
+    "avgOrderValue": 832.23,
+    "byStatus": {
+      "DELIVERED": 16,
+      "FAILED": 3,
+      "READY": 7,
+      "CANCELLED": 2,
+      "PLACED": 8,
+      "REJECTED": 1,
+      "OUT_FOR_DELIVERY": 2,
+      "ACCEPTED": 3
+    },
+    "byMenuType": {
+      "MEAL_MENU": 42
+    }
+  },
+  "error": null
+}
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=1&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "69747869aae4264b997bc4b7"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "_id": "69747869aae4264b997bc4b5",
+        "orderNumber": "ORD-20260124-1RWSH",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "69747869aae4264b997bc4b6"
+          }
+        ],
+        "subtotal": 180,
+        "grandTotal": 234.75,
+        "amountPaid": 234.75,
+        "paymentStatus": "PAID",
+        "paymentMethod": "NETBANKING",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-24T07:44:41.438Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "69747869aae4264b997bc4b8"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-24T07:47:25.332Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Order accepted by kitchen",
+            "_id": "6974790daae4264b997bcb7c"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-24T07:47:25.399Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "notes": "Preparation started automatically",
+            "_id": "6974790daae4264b997bcb7e"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-24T07:48:09.107Z",
+            "updatedBy": "6964fc42071ba5846960bd2f",
+            "_id": "69747939aae4264b997bcd8b"
+          }
+        ],
+        "placedAt": "2026-01-24T07:44:41.438Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-24T07:44:41.444Z",
+        "updatedAt": "2026-01-24T07:48:09.109Z",
+        "__v": 3,
+        "paymentDetails": {
+          "razorpayOrderId": "order_S7dbaTTKmJAc0U",
+          "razorpayPaymentId": "pay_S7dbnvzbqylBdo",
+          "method": "netbanking",
+          "bank": "BARB_R",
+          "wallet": null,
+          "vpa": null,
+          "card": null
+        },
+        "paymentId": "pay_S7dbnvzbqylBdo",
+        "acceptedAt": "2026-01-24T07:47:25.332Z",
+        "preparingAt": "2026-01-24T07:47:25.399Z",
+        "estimatedPrepTime": 30,
+        "preparedAt": "2026-01-24T07:48:09.107Z",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.15,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.15,
+              "_id": "69747371aca6aa3434e68746"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+  
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260124-1RWSH', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=2&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=2&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 14.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 14.25,
+              "_id": "696e16e115cd72f58dae85c1"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "6963b16d5eef8e3f62d4fc33"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "_id": "696e16e115cd72f58dae85bd",
+        "orderNumber": "ORD-20260119-N6I94",
+        "userId": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "phone": "9644400090",
+          "name": "Bhavaya Bhaiya"
+        },
+        "kitchenId": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "6963a9fa5eef8e3f62d4fa1c",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "696100c8c39ff249a7227110",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "696100c8c39ff249a7227105",
+                "name": "Maharaja Lassi",
+                "quantity": 1,
+                "unitPrice": 40,
+                "totalPrice": 40,
+                "_id": "696e16e115cd72f58dae85bf"
+              },
+              {
+                "addonId": "696100c8c39ff249a7227106",
+                "name": "Extra Roti (2 pcs)",
+                "quantity": 2,
+                "unitPrice": 25,
+                "totalPrice": 50,
+                "_id": "696e16e115cd72f58dae85c0"
+              }
+            ],
+            "_id": "696e16e115cd72f58dae85be"
+          }
+        ],
+        "subtotal": 270,
+        "grandTotal": 329.25,
+        "amountPaid": 149.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "READY",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-19T11:34:57.403Z",
+            "updatedBy": "6963a7385eef8e3f62d4f93e",
+            "_id": "696e16e115cd72f58dae85c2"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-19T12:54:03.307Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e296b15cd72f58daea451"
+          },
+          {
+            "status": "READY",
+            "timestamp": "2026-01-19T12:54:41.221Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "_id": "696e299115cd72f58daea73a"
+          }
+        ],
+        "placedAt": "2026-01-19T11:34:57.403Z",
+        "isAutoOrder": false,
+        "createdAt": "2026-01-19T11:34:57.408Z",
+        "updatedAt": "2026-01-23T14:02:51.935Z",
+        "__v": 2,
+        "acceptedAt": "2026-01-19T12:54:03.307Z",
+        "preparedAt": "2026-01-19T12:54:41.221Z",
+        "batchId": "696f47563e197be7e9bcea4f",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "user": {
+          "_id": "6963a7385eef8e3f62d4f93e",
+          "name": "Bhavaya Bhaiya",
+          "phone": "9644400090",
+          "zone": "Connaught Place",
+          "totalOrders": 38,
+          "ordersPlaced": 8
+        },
+        "kitchen": {
+          "_id": "696100c8c39ff249a72270fd",
+          "name": "Demo Kitchenn",
+          "code": "KIT-TIFSY"
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "Shhssj",
+          "addressLine2": "Zhzbsj",
+          "landmark": "Shsnns",
+          "locality": "Bangaliiidhd",
+          "city": "Nai Dilli",
+          "pincode": "110001",
+          "contactName": "Bhavya",
+          "contactPhone": "9644400090"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 9.75,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 9.75,
+              "_id": "696e163715cd72f58dae8061"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69
+orders.service.ts:58 📦 [OrdersService] Orders received: 20
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260119-N6I94', kitchenIdType: 'object', isPopulated: true, kitchenName: 'Demo Kitchenn'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing
+orders.service.ts:49 🔍 [OrdersService] Fetching orders from: /api/orders/admin/all?page=3&limit=20
+api.service.ts:30 📤 REQUEST: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20
+api.service.ts:41 {type: 'default', status: 200, ok: true, statusText: '', headers: {…}, url: 'https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20', bodyUsed: false, _bodyInit: {…}, _bodyBlob: {…}}
+api.service.ts:59 ✅ RESPONSE: GET https://tiffsy-backend.onrender.com/api/orders/admin/all?page=3&limit=20 {
+  "success": true,
+  "message": "All orders retrieved",
+  "data": {
+    "orders": [
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 11.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 11.25,
+              "_id": "6966c68f820784414a6cf1fa"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [
+            "69621768b8de59c1312d9964"
+          ],
+          "voucherCount": 1,
+          "mainCoursesCovered": 1
+        },
+        "isAutoOrder": false,
+        "_id": "6966c68f820784414a6cf1f7",
+        "orderNumber": "ORD-20260113-0CFF5",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "DINNER",
+        "items": [
+          {
+            "menuItemId": "6964fc43071ba5846960bd3d",
+            "name": "Dinner Deluxe Thali",
+            "quantity": 1,
+            "unitPrice": 180,
+            "totalPrice": 180,
+            "isMainCourse": true,
+            "addons": [
+              {
+                "addonId": "6964fc42071ba5846960bd34",
+                "name": "Raita",
+                "quantity": 1,
+                "unitPrice": 30,
+                "totalPrice": 30,
+                "_id": "6966c68f820784414a6cf1f9"
+              }
+            ],
+            "_id": "6966c68f820784414a6cf1f8"
+          }
+        ],
+        "subtotal": 210,
+        "grandTotal": 266.25,
+        "amountPaid": 86.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "FAILED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:26:23.482Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c68f820784414a6cf1fb"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-14T10:38:01.394Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "69677209ebcaf8447e53ab2d"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-14T10:38:01.484Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "69677209ebcaf8447e53ab2f"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:13.247Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6968a3f1eddf5f6d9a40211a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:23:30.229Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a402eddf5f6d9a40213b"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-15T08:35:59.957Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "6968a6efeddf5f6d9a402338"
+          },
+          {
+            "status": "FAILED",
+            "timestamp": "2026-01-15T08:36:07.230Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "6968a6f7eddf5f6d9a402360"
+          }
+        ],
+        "placedAt": "2026-01-13T22:26:23.482Z",
+        "createdAt": "2026-01-13T22:26:23.486Z",
+        "updatedAt": "2026-01-15T08:36:07.232Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-14T10:38:01.396Z",
+        "preparingAt": "2026-01-14T10:38:01.484Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6967722bebcaf8447e53ab76",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-15T08:35:59.958Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      },
+      {
+        "deliveryAddress": {
+          "addressLine1": "124 appolo building",
+          "addressLine2": "Palasia",
+          "landmark": "",
+          "locality": "Koregaon park",
+          "city": "Indore",
+          "pincode": "110001",
+          "contactName": "Vaishnavi",
+          "contactPhone": "9179621765"
+        },
+        "charges": {
+          "deliveryFee": 30,
+          "serviceFee": 5,
+          "packagingFee": 10,
+          "handlingFee": 0,
+          "taxAmount": 8.25,
+          "taxBreakdown": [
+            {
+              "taxType": "GST",
+              "rate": 5,
+              "amount": 8.25,
+              "_id": "6966c3b6820784414a6cf18e"
+            }
+          ]
+        },
+        "voucherUsage": {
+          "voucherIds": [],
+          "voucherCount": 0,
+          "mainCoursesCovered": 0
+        },
+        "proofOfDelivery": {
+          "type": "OTP",
+          "value": "verified",
+          "verifiedAt": "2026-01-14T13:15:11.756Z"
+        },
+        "isAutoOrder": false,
+        "_id": "6966c3b6820784414a6cf18c",
+        "orderNumber": "ORD-20260113-HQ6F9",
+        "userId": {
+          "_id": "69620926b8de59c1312d98b6",
+          "phone": "9179621765",
+          "name": "Vaishnavi"
+        },
+        "kitchenId": null,
+        "zoneId": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        },
+        "deliveryAddressId": "69660118fa71dbe30b62a30f",
+        "menuType": "MEAL_MENU",
+        "mealWindow": "LUNCH",
+        "items": [
+          {
+            "menuItemId": "6964fc42071ba5846960bd39",
+            "name": "Lunch Special Thali",
+            "quantity": 1,
+            "unitPrice": 150,
+            "totalPrice": 150,
+            "isMainCourse": true,
+            "addons": [],
+            "_id": "6966c3b6820784414a6cf18d"
+          }
+        ],
+        "subtotal": 150,
+        "grandTotal": 203.25,
+        "amountPaid": 203.25,
+        "paymentStatus": "PENDING",
+        "paymentMethod": "UPI",
+        "status": "DELIVERED",
+        "statusTimeline": [
+          {
+            "status": "PLACED",
+            "timestamp": "2026-01-13T22:14:14.229Z",
+            "updatedBy": "69620926b8de59c1312d98b6",
+            "_id": "6966c3b6820784414a6cf18f"
+          },
+          {
+            "status": "ACCEPTED",
+            "timestamp": "2026-01-13T22:38:44.212Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Order accepted by kitchen",
+            "_id": "6966c974820784414a6cf388"
+          },
+          {
+            "status": "PREPARING",
+            "timestamp": "2026-01-13T22:38:44.297Z",
+            "updatedBy": "696100c8c39ff249a72270df",
+            "notes": "Preparation started automatically",
+            "_id": "6966c974820784414a6cf38a"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:11:40.387Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver en route to delivery location",
+            "_id": "6967960cc43922b56318d1f1"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:12:20.016Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "69679634c43922b56318d229"
+          },
+          {
+            "status": "OUT_FOR_DELIVERY",
+            "timestamp": "2026-01-14T13:14:59.744Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "notes": "Driver arrived at delivery location",
+            "_id": "696796d3c43922b56318d314"
+          },
+          {
+            "status": "DELIVERED",
+            "timestamp": "2026-01-14T13:15:11.756Z",
+            "updatedBy": "6964ddeb598dd8980a844e61",
+            "_id": "696796dfc43922b56318d33a"
+          }
+        ],
+        "placedAt": "2026-01-13T22:14:14.229Z",
+        "createdAt": "2026-01-13T22:14:14.232Z",
+        "updatedAt": "2026-01-14T13:15:11.758Z",
+        "__v": 6,
+        "acceptedAt": "2026-01-13T22:38:44.213Z",
+        "preparingAt": "2026-01-13T22:38:44.298Z",
+        "estimatedPrepTime": 30,
+        "batchId": "6966df1417cae2edcdcc9aac",
+        "driverId": "6964ddeb598dd8980a844e61",
+        "outForDeliveryAt": "2026-01-14T13:14:59.744Z",
+        "deliveredAt": "2026-01-14T13:15:11.756Z",
+        "user": {
+          "_id": "69620926b8de59c1312d98b6",
+          "name": "Vaishnavi",
+          "phone": "9179621765",
+          "zone": "Connaught Place",
+          "totalOrders": 4,
+          "ordersPlaced": 0
+        },
+        "zone": {
+          "_id": "696100c8c39ff249a72270f5",
+          "name": "Connaught Place"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 3,
+      "limit": 20,
+      "total": 42,
+      "pages": 3
+    }
+  },
+  "error": null
+}
+orders.service.ts:58 📦 [OrdersService] Orders received: 2
+orders.service.ts:63 🔍 [OrdersService] Sample order kitchenId check: {orderNumber: 'ORD-20260113-0CFF5', kitchenIdType: 'object', isPopulated: false, kitchenName: 'NOT POPULATED'}
+OrdersScreenAdmin.tsx:42 ✨ OrdersScreenAdmin RENDERED - New version with inline status editing

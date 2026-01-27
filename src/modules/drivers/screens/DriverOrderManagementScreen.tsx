@@ -6,12 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { useAlert } from '../../../hooks/useAlert';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { deliveryService } from '../../../services/delivery.service';
 
@@ -75,6 +76,7 @@ interface ActiveBatch {
 type TabType = 'AVAILABLE' | 'ACTIVE' | 'HISTORY';
 
 export const DriverOrderManagementScreen: React.FC = () => {
+  const { showSuccess, showError, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState<TabType>('AVAILABLE');
   const [availableBatches, setAvailableBatches] = useState<AvailableBatch[]>([]);
   const [activeBatch, setActiveBatch] = useState<ActiveBatch | null>(null);
@@ -115,7 +117,7 @@ export const DriverOrderManagementScreen: React.FC = () => {
         // Endpoint not implemented yet
         setAvailableBatches([]);
       } else {
-        Alert.alert('Error', 'Failed to load available batches');
+        showError('Error', 'Failed to load available batches');
       }
     }
   };
@@ -130,7 +132,7 @@ export const DriverOrderManagementScreen: React.FC = () => {
       setActiveBatch(active || null);
     } catch (error: any) {
       console.error('Failed to load active batch:', error);
-      Alert.alert('Error', 'Failed to load active deliveries');
+      showError('Error', 'Failed to load active deliveries');
     }
   };
 
@@ -144,63 +146,56 @@ export const DriverOrderManagementScreen: React.FC = () => {
       setHistoryBatches(completed);
     } catch (error: any) {
       console.error('Failed to load history:', error);
-      Alert.alert('Error', 'Failed to load delivery history');
+      showError('Error', 'Failed to load delivery history');
     }
   };
 
   const handleAcceptBatch = async (batchId: string) => {
-    Alert.alert(
+    showConfirm(
       'Accept Batch',
       'Are you sure you want to accept this batch for delivery?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Accept',
-          onPress: async () => {
-            setIsAccepting(batchId);
-            try {
-              const response = await deliveryService.acceptBatch(batchId);
-              Alert.alert(
-                'Success',
-                `Batch accepted! ${response.data.orders?.length || 0} orders assigned.`
-              );
-              // Switch to active tab
-              setActiveTab('ACTIVE');
-              loadData();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to accept batch');
-            } finally {
-              setIsAccepting(null);
-            }
-          },
-        },
-      ]
+      async () => {
+        setIsAccepting(batchId);
+        try {
+          const response = await deliveryService.acceptBatch(batchId);
+          showSuccess(
+            'Success',
+            `Batch accepted! ${response.data.orders?.length || 0} orders assigned.`
+          );
+          // Switch to active tab
+          setActiveTab('ACTIVE');
+          loadData();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to accept batch');
+        } finally {
+          setIsAccepting(null);
+        }
+      },
+      undefined,
+      { confirmText: 'Accept', cancelText: 'Cancel' }
     );
   };
 
   const handleStartDelivery = async (batchId: string) => {
-    Alert.alert(
+    showConfirm(
       'Start Delivery',
       'Have you picked up all orders from the kitchen?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Start',
-          onPress: async () => {
-            try {
-              await deliveryService.pickupBatch(batchId);
-              Alert.alert('Success', 'Delivery started! You can now deliver orders.');
-              loadActiveBatch();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to start delivery');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await deliveryService.pickupBatch(batchId);
+          showSuccess('Success', 'Delivery started! You can now deliver orders.');
+          loadActiveBatch();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to start delivery');
+        }
+      },
+      undefined,
+      { confirmText: 'Start', cancelText: 'Cancel' }
     );
   };
 
   const handleMarkDelivered = async (orderId: string, orderNumber: string) => {
+    // Note: Alert.prompt is iOS-only. Consider using a custom modal for cross-platform support.
     Alert.prompt(
       'Delivery OTP',
       `Enter the 4-digit OTP from customer to confirm delivery of ${orderNumber}:`,
@@ -210,7 +205,7 @@ export const DriverOrderManagementScreen: React.FC = () => {
           text: 'Confirm',
           onPress: async (otp?: string) => {
             if (!otp || otp.length !== 4) {
-              Alert.alert('Error', 'Please enter a valid 4-digit OTP');
+              showError('Error', 'Please enter a valid 4-digit OTP');
               return;
             }
 
@@ -222,10 +217,10 @@ export const DriverOrderManagementScreen: React.FC = () => {
                   value: otp,
                 },
               });
-              Alert.alert('Success', 'Order marked as delivered!');
+              showSuccess('Success', 'Order marked as delivered!');
               loadActiveBatch();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to mark order as delivered');
+              showError('Error', error.message || 'Failed to mark order as delivered');
             }
           },
         },
@@ -237,6 +232,7 @@ export const DriverOrderManagementScreen: React.FC = () => {
   };
 
   const handleMarkFailed = async (orderId: string, orderNumber: string) => {
+    // Note: Alert.prompt is iOS-only. Consider using a custom modal for cross-platform support.
     Alert.prompt(
       'Order Failed',
       `Why couldn't you deliver ${orderNumber}?`,
@@ -246,7 +242,7 @@ export const DriverOrderManagementScreen: React.FC = () => {
           text: 'Submit',
           onPress: async (reason?: string) => {
             if (!reason || reason.trim().length < 10) {
-              Alert.alert('Error', 'Please provide a detailed reason (min 10 characters)');
+              showError('Error', 'Please provide a detailed reason (min 10 characters)');
               return;
             }
 
@@ -255,10 +251,10 @@ export const DriverOrderManagementScreen: React.FC = () => {
                 status: 'FAILED',
                 failureReason: reason.trim(),
               });
-              Alert.alert('Order Marked Failed', 'The order has been marked as failed.');
+              showSuccess('Order Marked Failed', 'The order has been marked as failed.');
               loadActiveBatch();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to mark order as failed');
+              showError('Error', error.message || 'Failed to mark order as failed');
             }
           },
         },

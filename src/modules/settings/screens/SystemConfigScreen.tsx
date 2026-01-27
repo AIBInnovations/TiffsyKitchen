@@ -6,15 +6,16 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import adminDashboardService, { SystemConfig } from '../../../services/admin-dashboard.service';
 import { Card } from '../../../components/common/Card';
+import { useAlert } from '../../../hooks/useAlert';
 
 const SystemConfigScreen: React.FC = () => {
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useAlert();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['systemConfig'],
@@ -33,10 +34,10 @@ const SystemConfigScreen: React.FC = () => {
     mutationFn: (data: Partial<SystemConfig>) => adminDashboardService.updateSystemConfig(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['systemConfig'] });
-      Alert.alert('Success', 'System configuration updated successfully');
+      showSuccess('Success', 'System configuration updated successfully');
     },
     onError: () => {
-      Alert.alert('Error', 'Failed to update system configuration');
+      showError('Error', 'Failed to update system configuration');
     },
   });
 

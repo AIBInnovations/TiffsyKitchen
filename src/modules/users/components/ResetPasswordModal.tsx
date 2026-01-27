@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
 import { User } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface ResetPasswordModalProps {
   visible: boolean;
@@ -42,6 +42,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,7 +68,7 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
   const handleSubmit = async () => {
     const error = validatePassword();
     if (error) {
-      Alert.alert('Validation Error', error);
+      showWarning('Validation Error', error);
       return;
     }
 
@@ -76,11 +77,11 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     try {
       setLoading(true);
       await adminUsersService.resetPassword(user._id, { newPassword });
-      Alert.alert('Success', 'Password reset successfully');
+      showSuccess('Success', 'Password reset successfully');
       handleClose();
       onSuccess();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to reset password');
+      showError('Error', error.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }

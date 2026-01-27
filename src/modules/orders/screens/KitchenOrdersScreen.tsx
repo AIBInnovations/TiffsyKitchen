@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StatusBar,
-  Alert,
   Modal,
   Platform,
 } from 'react-native';
@@ -24,6 +23,7 @@ import { AcceptOrderModal } from '../components/AcceptOrderModal';
 import { RejectOrderModal } from '../components/RejectOrderModal';
 import { Calendar } from 'react-native-calendars';
 import { isAutoOrder, isAutoAccepted } from '../../../utils/autoAccept';
+import { useAlert } from '../../../hooks/useAlert';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' | 'AUTO_ORDERS' }[] = [
   { label: 'All', value: 'ALL' },
@@ -51,6 +51,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL' | 'AUTO_ORDERS'>('ALL');
   const [selectedMealWindow, setSelectedMealWindow] = useState<'ALL' | 'LUNCH' | 'DINNER'>('ALL');
   const [page, setPage] = useState(1);
@@ -116,14 +117,14 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       // Invalidate and refetch queries
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
 
-      Alert.alert('Success', `Order status updated to ${newStatus}`);
+      showSuccess('Success', `Order status updated to ${newStatus}`);
       setUpdatingOrderId(null);
     },
     onError: (error: any, { orderId }) => {
       console.log('❌ Status update failed:', error);
 
       setUpdatingOrderId(null);
-      Alert.alert(
+      showError(
         'Update Failed',
         error?.response?.data?.error?.message || 'Failed to update order status',
       );
@@ -136,11 +137,11 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       ordersService.acceptOrder(orderId, estimatedPrepTime),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
-      Alert.alert('Success', 'Order accepted successfully');
+      showSuccess('Success', 'Order accepted successfully');
       setPendingAcceptOrderId(null);
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message || 'Failed to accept order. Please try again.',
       );
@@ -153,11 +154,11 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
       ordersService.rejectOrder(orderId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
-      Alert.alert('Success', 'Order rejected successfully');
+      showSuccess('Success', 'Order rejected successfully');
       setPendingRejectOrderId(null);
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Error',
         error?.response?.data?.error?.message || 'Failed to reject order. Please try again.',
       );
@@ -182,13 +183,13 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
-      Alert.alert('Success', `${variables.orderIds.length} order(s) updated to ${variables.status}`);
+      showSuccess('Success', `${variables.orderIds.length} order(s) updated to ${variables.status}`);
       setSelectedOrderIds(new Set());
       setSelectionMode(false);
       setShowBulkStatusModal(false);
     },
     onError: (error: any) => {
-      Alert.alert(
+      showError(
         'Update Failed',
         error?.response?.data?.error?.message || 'Failed to update orders. Please try again.',
       );
@@ -293,25 +294,21 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
 
   const handleBulkStatusUpdate = (status: OrderStatus) => {
     if (selectedOrderIds.size === 0) {
-      Alert.alert('No Selection', 'Please select at least one order');
+      showWarning('No Selection', 'Please select at least one order');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Confirm Bulk Update',
       `Update ${selectedOrderIds.size} order(s) to ${status}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Update',
-          onPress: () => {
-            bulkUpdateStatusMutation.mutate({
-              orderIds: Array.from(selectedOrderIds),
-              status,
-            });
-          },
-        },
-      ]
+      () => {
+        bulkUpdateStatusMutation.mutate({
+          orderIds: Array.from(selectedOrderIds),
+          status,
+        });
+      },
+      undefined,
+      { confirmText: 'Update', cancelText: 'Cancel' }
     );
   };
 

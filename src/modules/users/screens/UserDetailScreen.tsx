@@ -6,13 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   FlatList,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { usersService } from '../../../services/users.service';
 import { Customer, Order, CustomerVoucher } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 const colors = {
   primary: '#FF6B35',
@@ -44,6 +44,7 @@ export const UserDetailScreen: React.FC<UserDetailScreenProps> = ({
   userId,
   onBack,
 }) => {
+  const { showError } = useAlert();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [vouchers, setVouchers] = useState<CustomerVoucher[]>([]);
@@ -73,7 +74,7 @@ export const UserDetailScreen: React.FC<UserDetailScreenProps> = ({
       setVouchers(vouchersData.vouchers || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load customer details');
-      Alert.alert('Error', err.message || 'Failed to load customer details');
+      showError('Error', err.message || 'Failed to load customer details');
     } finally {
       setLoading(false);
       setRefreshing(false);

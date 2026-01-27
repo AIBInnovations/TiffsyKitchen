@@ -3,10 +3,10 @@ import {
   View,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   ToastAndroid,
   Platform,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import {
   MenusByKey,
@@ -57,6 +57,7 @@ const showToast = (message: string) => {
 export const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
   onMenuPress,
 }) => {
+  const { showError } = useAlert();
   // Loading states
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -149,7 +150,7 @@ export const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
       setSelectedDate(new Date());
     } catch (error) {
       console.error('Error loading menu data:', error);
-      Alert.alert('Error', 'Failed to load menu data. Please try again.');
+      showError('Error', 'Failed to load menu data. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import type { Kitchen } from '../../../types/api.types';
@@ -36,25 +36,26 @@ export const RejectKitchenDialog: React.FC<RejectKitchenDialogProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleReject = async () => {
     if (reason.trim().length < 10) {
-      Alert.alert('Invalid Input', 'Rejection reason must be at least 10 characters long.');
+      showWarning('Invalid Input', 'Rejection reason must be at least 10 characters long.');
       return;
     }
 
     try {
       setIsLoading(true);
       await kitchenApprovalService.rejectKitchen(kitchen._id, reason.trim());
-      Alert.alert('Success', 'Kitchen rejected');
+      showSuccess('Success', 'Kitchen rejected');
       setReason('');
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('❌ Error rejecting kitchen:', error);
-      Alert.alert('Error', error.message || 'Failed to reject kitchen');
+      showError('Error', error.message || 'Failed to reject kitchen');
     } finally {
       setIsLoading(false);
     }
@@ -66,20 +67,15 @@ export const RejectKitchenDialog: React.FC<RejectKitchenDialogProps> = ({
 
   const handleCloseModal = () => {
     if (reason.trim() && reason.trim().length > 0) {
-      Alert.alert(
+      showConfirm(
         'Discard Changes?',
         'You have unsaved text. Are you sure you want to close?',
-        [
-          { text: 'Continue Editing', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => {
-              setReason('');
-              onClose();
-            },
-          },
-        ]
+        () => {
+          setReason('');
+          onClose();
+        },
+        undefined,
+        { confirmText: 'Discard', cancelText: 'Continue Editing', isDestructive: true }
       );
     } else {
       setReason('');

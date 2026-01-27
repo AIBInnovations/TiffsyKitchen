@@ -8,12 +8,12 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService, CreateUserRequest } from '../../../services/admin-users.service';
 import { kitchenService } from '../../../services/kitchen.service';
 import { UserRole, Kitchen } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface CreateUserModalProps {
   visible: boolean;
@@ -45,6 +45,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   onSuccess,
   initialRole,
 }) => {
+  const { showSuccess, showError, showWarning } = useAlert();
   const [role, setRole] = useState<UserRole>(initialRole || 'KITCHEN_STAFF');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -69,7 +70,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       const response = await kitchenService.getKitchens({ status: 'ACTIVE' });
       setKitchens(response.kitchens);
     } catch (error: any) {
-      Alert.alert('Error', 'Failed to load kitchens');
+      showError('Error', 'Failed to load kitchens');
     } finally {
       setLoadingKitchens(false);
     }
@@ -109,7 +110,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const handleSubmit = async () => {
     const error = validateForm();
     if (error) {
-      Alert.alert('Validation Error', error);
+      showWarning('Validation Error', error);
       return;
     }
 
@@ -133,12 +134,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       }
 
       await adminUsersService.createUser(data);
-      Alert.alert('Success', 'User created successfully');
+      showSuccess('Success', 'User created successfully');
       resetForm();
       onSuccess();
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create user');
+      showError('Error', error.message || 'Failed to create user');
     } finally {
       setLoading(false);
     }

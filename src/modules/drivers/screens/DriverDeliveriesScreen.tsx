@@ -6,11 +6,11 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { useAlert } from '../../../hooks/useAlert';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { deliveryService } from '../../../services/delivery.service';
 
@@ -56,6 +56,7 @@ interface DriverDeliveriesScreenProps {
 export const DriverDeliveriesScreen: React.FC<DriverDeliveriesScreenProps> = ({ navigation }) => {
   console.log('🚚 DriverDeliveriesScreen loaded - This is the DRIVER screen, not admin!');
 
+  const { showSuccess, showError, showInfo, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState<TabType>('AVAILABLE');
   const [availableBatches, setAvailableBatches] = useState<AvailableBatch[]>([]);
   const [myDeliveries, setMyDeliveries] = useState<MyDelivery[]>([]);
@@ -107,51 +108,41 @@ export const DriverDeliveriesScreen: React.FC<DriverDeliveriesScreenProps> = ({ 
       setMyDeliveries(deliveries || []);
     } catch (error: any) {
       console.error('Failed to load my deliveries:', error);
-      Alert.alert('Error', 'Failed to load your deliveries');
+      showError('Error', 'Failed to load your deliveries');
     }
   };
 
   const handleAcceptBatch = async (batch: AvailableBatch) => {
-    Alert.alert(
+    showConfirm(
       'Accept Delivery Batch',
-      `Accept batch with ${batch.orderCount} orders from ${batch.kitchenId.name}?\n\nPickup: ${batch.pickupAddress}\nZone: ${batch.zoneId.name}${batch.estimatedEarnings ? `\nEarnings: ₹${batch.estimatedEarnings}` : ''}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Accept',
-          style: 'default',
-          onPress: async () => {
-            setIsAccepting(batch._id);
-            try {
-              const response = await deliveryService.acceptBatch(batch._id);
-              Alert.alert(
-                'Batch Accepted!',
-                `You have been assigned ${response.data.orders?.length || batch.orderCount} orders. Please proceed to pick them up from the kitchen.`,
-                [
-                  {
-                    text: 'View Details',
-                    onPress: () => {
-                      setActiveTab('MY_DELIVERIES');
-                      loadMyDeliveries();
-                    },
-                  },
-                ]
-              );
-              loadAvailableBatches();
-            } catch (error: any) {
-              Alert.alert('Failed to Accept', error.message || 'Could not accept this batch. It may have been assigned to another driver.');
-            } finally {
-              setIsAccepting(null);
+      `Accept batch with ${batch.orderCount} orders from ${batch.kitchenId.name}?\n\nPickup: ${batch.pickupAddress}\nZone: ${batch.zoneId.name}${batch.estimatedEarnings ? `\nEarnings: Rs.${batch.estimatedEarnings}` : ''}`,
+      async () => {
+        setIsAccepting(batch._id);
+        try {
+          const response = await deliveryService.acceptBatch(batch._id);
+          showSuccess(
+            'Batch Accepted!',
+            `You have been assigned ${response.data.orders?.length || batch.orderCount} orders. Please proceed to pick them up from the kitchen.`,
+            () => {
+              setActiveTab('MY_DELIVERIES');
+              loadMyDeliveries();
             }
-          },
-        },
-      ]
+          );
+          loadAvailableBatches();
+        } catch (error: any) {
+          showError('Failed to Accept', error.message || 'Could not accept this batch. It may have been assigned to another driver.');
+        } finally {
+          setIsAccepting(null);
+        }
+      },
+      undefined,
+      { confirmText: 'Accept', cancelText: 'Cancel' }
     );
   };
 
   const handleViewDeliveryDetails = (delivery: MyDelivery) => {
     // Navigate to delivery details screen (to be implemented)
-    Alert.alert('View Details', `Delivery ID: ${delivery._id}\nStatus: ${delivery.status}`);
+    showInfo('View Details', `Delivery ID: ${delivery._id}\nStatus: ${delivery.status}`);
   };
 
   const handleRefresh = useCallback(() => {

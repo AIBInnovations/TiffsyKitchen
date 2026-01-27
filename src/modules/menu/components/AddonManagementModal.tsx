@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import { addonService } from '../../../services/addon.service';
 import { menuManagementService } from '../../../services/menu-management.service';
 import { Addon } from '../../../types/api.types';
@@ -33,6 +33,7 @@ export const AddonManagementModal: React.FC<AddonManagementModalProps> = ({
   onSaved,
   onCreateNewAddon,
 }) => {
+  const { showSuccess, showError } = useAlert();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [attachedAddons, setAttachedAddons] = useState<AddonWithSelection[]>([]);
@@ -68,7 +69,7 @@ export const AddonManagementModal: React.FC<AddonManagementModalProps> = ({
       setSelectedAddonIds(initialSelected);
     } catch (error) {
       console.error('Error loading addons:', error);
-      Alert.alert('Error', 'Failed to load add-ons');
+      showError('Error', 'Failed to load add-ons');
     } finally {
       setLoading(false);
     }
@@ -94,12 +95,13 @@ export const AddonManagementModal: React.FC<AddonManagementModalProps> = ({
         Array.from(selectedAddonIds)
       );
 
-      Alert.alert('Success', 'Add-ons updated successfully');
-      onSaved();
-      onClose();
+      showSuccess('Success', 'Add-ons updated successfully', () => {
+        onSaved();
+        onClose();
+      });
     } catch (error) {
       console.error('Error saving addons:', error);
-      Alert.alert('Error', 'Failed to update add-ons');
+      showError('Error', 'Failed to update add-ons');
     } finally {
       setSaving(false);
     }

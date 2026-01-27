@@ -12,13 +12,14 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Order as APIOrder, OrderStatus } from '../../../types/api.types';
 import { ordersService } from '../../../services/orders.service';
 import { colors, spacing } from '../../../theme';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface OrderDetailScreenProps {
   orderId: string;
@@ -44,6 +45,7 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
   const [refreshing, setRefreshing] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
 
   /**
    * Fetch order details
@@ -78,31 +80,27 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
   const handleStatusUpdate = async (newStatus: OrderStatus) => {
     if (!order) return;
 
-    Alert.alert(
+    showConfirm(
       'Update Status',
       `Change order status to ${newStatus.replace(/_/g, ' ')}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Update',
-          onPress: async () => {
-            try {
-              setUpdating(true);
-              // Use ADMIN endpoint which allows ALL statuses
-              const updatedOrder = await ordersService.updateOrderStatusAdmin(orderId, {
-                status: newStatus,
-              });
-              setOrder(updatedOrder);
-              Alert.alert('Success', 'Order status updated successfully');
-            } catch (err: any) {
-              console.error('Error updating status:', err);
-              Alert.alert('Error', err.message || 'Failed to update status');
-            } finally {
-              setUpdating(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          setUpdating(true);
+          // Use ADMIN endpoint which allows ALL statuses
+          const updatedOrder = await ordersService.updateOrderStatusAdmin(orderId, {
+            status: newStatus,
+          });
+          setOrder(updatedOrder);
+          showSuccess('Success', 'Order status updated successfully');
+        } catch (err: any) {
+          console.error('Error updating status:', err);
+          showError('Error', err.message || 'Failed to update status');
+        } finally {
+          setUpdating(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Update', cancelText: 'Cancel' }
     );
   };
 
@@ -110,6 +108,7 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
    * Cancel order
    */
   const handleCancelOrder = () => {
+    // Alert.prompt is iOS-specific for text input, keeping it for cancellation reason
     Alert.prompt(
       'Cancel Order',
       'Please provide a reason for cancellation:',
@@ -119,7 +118,7 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
           text: 'Confirm',
           onPress: async (reason) => {
             if (!reason || !reason.trim()) {
-              Alert.alert('Error', 'Please provide a cancellation reason');
+              showWarning('Error', 'Please provide a cancellation reason');
               return;
             }
 
@@ -127,10 +126,10 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
               setUpdating(true);
               const updatedOrder = await ordersService.cancelOrder(orderId, reason);
               setOrder(updatedOrder);
-              Alert.alert('Success', 'Order cancelled successfully');
+              showSuccess('Success', 'Order cancelled successfully');
             } catch (err: any) {
               console.error('Error cancelling order:', err);
-              Alert.alert('Error', err.message || 'Failed to cancel order');
+              showError('Error', err.message || 'Failed to cancel order');
             } finally {
               setUpdating(false);
             }

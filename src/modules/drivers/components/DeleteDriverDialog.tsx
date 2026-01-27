@@ -6,8 +6,8 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import { adminDriversService } from '../../../services/admin-drivers.service';
@@ -28,29 +28,29 @@ export const DeleteDriverDialog: React.FC<DeleteDriverDialogProps> = ({
 }) => {
   const [confirmed, setConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { showSuccess, showError, showWarning } = useAlert();
 
   const handleDelete = async () => {
     if (!confirmed) {
-      Alert.alert('Confirmation Required', 'Please confirm that you understand this action cannot be undone.');
+      showWarning('Confirmation Required', 'Please confirm that you understand this action cannot be undone.');
       return;
     }
 
     setIsLoading(true);
     try {
       await adminDriversService.deleteDriver(driver._id);
-      Alert.alert('Success', `${driver.name} has been deleted successfully`);
+      showSuccess('Success', `${driver.name} has been deleted successfully`);
       onSuccess();
       handleClose();
     } catch (error: any) {
       // Check if error message contains information about pending deliveries
       if (error.message?.includes('pending deliveries') || error.message?.includes('active deliveries')) {
-        Alert.alert(
+        showError(
           'Cannot Delete Driver',
-          error.message || 'Cannot delete driver with pending deliveries. Please reassign active deliveries first.',
-          [{ text: 'OK' }]
+          error.message || 'Cannot delete driver with pending deliveries. Please reassign active deliveries first.'
         );
       } else {
-        Alert.alert('Error', error.message || 'Failed to delete driver');
+        showError('Error', error.message || 'Failed to delete driver');
       }
     } finally {
       setIsLoading(false);

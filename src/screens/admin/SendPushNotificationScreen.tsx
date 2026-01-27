@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import { Header } from '../../components/common/Header';
@@ -47,6 +47,7 @@ const ROLE_OPTIONS = [
 
 export const SendPushNotificationScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { showSuccess, showError, showWarning } = useAlert();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [targetType, setTargetType] = useState<'ALL_CUSTOMERS' | 'ACTIVE_SUBSCRIBERS' | 'ROLE'>(
@@ -59,7 +60,7 @@ export const SendPushNotificationScreen: React.FC = () => {
 
   const handleSend = async () => {
     if (!canSend) {
-      Alert.alert('Missing Information', 'Please enter both title and message');
+      showWarning('Missing Information', 'Please enter both title and message');
       return;
     }
 
@@ -80,26 +81,21 @@ export const SendPushNotificationScreen: React.FC = () => {
       const response = await notificationService.sendAdminPush(payload);
 
       if (response.success) {
-        Alert.alert(
+        showSuccess(
           'Success',
           `Push notification sent to ${response.data.usersNotified} user(s)!`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setTitle('');
-                setBody('');
-                navigation.goBack();
-              },
-            },
-          ]
+          () => {
+            setTitle('');
+            setBody('');
+            navigation.goBack();
+          }
         );
       } else {
-        Alert.alert('Error', response.message || 'Failed to send notification');
+        showError('Error', response.message || 'Failed to send notification');
       }
     } catch (error: any) {
       console.error('Error sending push notification:', error);
-      Alert.alert('Error', error?.message || 'Failed to send notification. Please try again.');
+      showError('Error', error?.message || 'Failed to send notification. Please try again.');
     } finally {
       setIsLoading(false);
     }

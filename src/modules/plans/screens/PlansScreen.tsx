@@ -8,10 +8,10 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { Plan, PlanFormData, PlanStatusFilter } from '../models/types';
 import { generatePlanId } from '../models/defaultPlans';
 import { PlanCard, PlanEditor } from '../components';
@@ -41,6 +41,8 @@ const statusFilterOptions: { value: PlanStatusFilter; label: string }[] = [
 ];
 
 export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
+  const { showError, showConfirm } = useAlert();
+
   // Data state
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,11 +67,11 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
       setPlans(loadedPlans);
     } catch (error) {
       console.error('Error loading plans:', error);
-      Alert.alert('Error', 'Failed to load plans. Please try again.');
+      showError('Error', 'Failed to load plans. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showError]);
 
   // Refresh handler
   const handleRefresh = useCallback(async () => {
@@ -130,9 +132,9 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
       handleCloseEditor();
     } catch (error) {
       console.error('Error saving plan:', error);
-      Alert.alert('Error', 'Failed to save plan. Please try again.');
+      showError('Error', 'Failed to save plan. Please try again.');
     }
-  }, [plans, editingPlan, handleCloseEditor]);
+  }, [plans, editingPlan, handleCloseEditor, showError]);
 
   // Toggle plan active status
   const handleToggleActive = useCallback(async (planId: string) => {
@@ -141,9 +143,9 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
       setPlans(updatedPlans);
     } catch (error) {
       console.error('Error toggling plan status:', error);
-      Alert.alert('Error', 'Failed to update plan status.');
+      showError('Error', 'Failed to update plan status.');
     }
-  }, [plans]);
+  }, [plans, showError]);
 
   // Duplicate plan
   const handleDuplicate = useCallback(async (planId: string) => {
@@ -160,33 +162,28 @@ export const PlansScreen: React.FC<PlansScreenProps> = ({ onMenuPress }) => {
       }
     } catch (error) {
       console.error('Error duplicating plan:', error);
-      Alert.alert('Error', 'Failed to duplicate plan.');
+      showError('Error', 'Failed to duplicate plan.');
     }
-  }, [plans]);
+  }, [plans, showError]);
 
   // Delete plan
   const handleDelete = useCallback((plan: Plan) => {
-    Alert.alert(
+    showConfirm(
       'Delete plan?',
       `This will remove "${plan.name}" from the list. Existing subscribers are not modeled here; proceed only if you are sure.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const updatedPlans = await deletePlan(plans, plan.id);
-              setPlans(updatedPlans);
-            } catch (error) {
-              console.error('Error deleting plan:', error);
-              Alert.alert('Error', 'Failed to delete plan.');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          const updatedPlans = await deletePlan(plans, plan.id);
+          setPlans(updatedPlans);
+        } catch (error) {
+          console.error('Error deleting plan:', error);
+          showError('Error', 'Failed to delete plan.');
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
-  }, [plans]);
+  }, [plans, showConfirm, showError]);
 
   // Render header
   const renderHeader = () => (

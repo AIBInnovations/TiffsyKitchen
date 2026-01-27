@@ -19,11 +19,11 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useInfiniteScroll } from '../../hooks/useApi';
 import { Order, OrderStatus } from '../../types/api.types';
+import { useAlert } from '../../hooks/useAlert';
 
 const PRIMARY_COLOR = '#F56B4C';
 
@@ -38,6 +38,7 @@ export default function OrdersListScreen({ onMenuPress, onLogout }: OrdersListSc
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
+  const { showInfo } = useAlert();
 
   /**
    * Fetch orders with infinite scroll
@@ -53,7 +54,7 @@ export default function OrdersListScreen({ onMenuPress, onLogout }: OrdersListSc
   );
 
   const handleOrderPress = (orderId: string) => {
-    Alert.alert('Order Details', `Order ID: ${orderId}\n\nNavigation to order details coming soon...`);
+    showInfo('Order Details', `Order ID: ${orderId}\n\nNavigation to order details coming soon...`);
   };
 
   const handleMenuPress = () => {

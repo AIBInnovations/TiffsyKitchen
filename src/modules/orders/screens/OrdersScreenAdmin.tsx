@@ -8,11 +8,10 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   TextInput,
 } from 'react-native';
 // import {useSafeAreaInsets} from 'react-native-safe-area-context'; // Removed
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
@@ -20,6 +19,7 @@ import OrderCardAdminImproved from '../components/OrderCardAdminImproved';
 import OrderStatsCard from '../components/OrderStatsCard';
 import ExpandableKitchenOrderCard from '../components/ExpandableKitchenOrderCard';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
@@ -44,8 +44,8 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   const onMenuPressProp = onMenuPress; // Renaming to avoid lint issues if needed, or just keep as is
   // const insets = useSafeAreaInsets(); // Removed
   const queryClient = useQueryClient();
+  const { showSuccess, showError, showInfo } = useAlert();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
-  const [page, setPage] = useState(1);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -59,20 +59,29 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     queryFn: () => ordersService.getOrderStatistics(),
   });
 
-  // Fetch orders
+  // Fetch orders with infinite query to accumulate pages
   const {
     data: ordersData,
     isLoading: ordersLoading,
     refetch: refetchOrders,
     isFetching,
-  } = useQuery({
-    queryKey: ['orders', selectedStatus, page],
-    queryFn: () =>
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['orders', selectedStatus],
+    queryFn: ({ pageParam = 1 }) =>
       ordersService.getOrders({
         status: selectedStatus === 'ALL' ? undefined : selectedStatus,
-        page,
+        page: pageParam,
         limit: 20,
       }),
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination.page < lastPage.pagination.pages) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
     staleTime: 0, // Always fetch fresh data
     cacheTime: 0, // Don't cache
     refetchOnMount: 'always', // Always refetch when component mounts
@@ -105,14 +114,14 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
 
-      Alert.alert('Success', `Order status updated to ${newStatus}`);
+      showSuccess('Success', `Order status updated to ${newStatus}`);
       setUpdatingOrderId(null);
     },
     onError: (error: any, { orderId }) => {
       console.log('❌ Status update failed:', error);
 
       setUpdatingOrderId(null);
-      Alert.alert(
+      showError(
         'Update Failed',
         error?.response?.data?.error?.message || 'Failed to update order status',
       );
@@ -126,14 +135,14 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
 
   const handleStatusFilter = (status: OrderStatus | 'ALL') => {
     setSelectedStatus(status);
-    setPage(1);
+    // Query resets automatically when selectedStatus changes in queryKey
   };
 
   const handleOrderPress = (orderId: string) => {
     if (navigation) {
       navigation.navigate('OrderDetail', { orderId });
     } else {
-      Alert.alert(
+      showInfo(
         'Order Details',
         `Order ID: ${orderId}\n\nNote: Order detail screen requires React Navigation to be configured.`,
       );
@@ -145,24 +154,25 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   };
 
   const handleLoadMore = () => {
-    if (
-      ordersData &&
-      ordersData.pagination.page < ordersData.pagination.pages &&
-      !isFetching
-    ) {
-      setPage((prev) => prev + 1);
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
   };
 
+  // Flatten all pages into a single orders array
+  const allOrders = useMemo(() => {
+    return ordersData?.pages?.flatMap(page => page.orders) ?? [];
+  }, [ordersData]);
+
   // Group orders by kitchen with search filtering
   const kitchenOrdersGroups = useMemo(() => {
-    if (!ordersData?.orders) return [];
+    if (allOrders.length === 0) return [];
 
     // Filter orders based on search query
-    let filteredOrders = ordersData.orders;
+    let filteredOrders = allOrders;
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filteredOrders = ordersData.orders.filter((order) => {
+      filteredOrders = allOrders.filter((order) => {
         const orderNumber = order.orderNumber?.toLowerCase() || '';
         const customerName = (typeof order.userId === 'string' || !order.userId)
           ? ''
@@ -231,7 +241,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     return Array.from(groupedMap.values()).sort((a, b) =>
       a.kitchenName.localeCompare(b.kitchenName)
     );
-  }, [ordersData, searchQuery]);
+  }, [allOrders, searchQuery]);
 
   const renderStatsSection = () => {
     if (statsLoading || !statsData) {
@@ -356,7 +366,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   };
 
   const renderFooter = () => {
-    if (!isFetching) return null;
+    if (!isFetchingNextPage) return null;
     return (
       <View style={styles.loadingFooter}>
         <ActivityIndicator size="small" color="#007AFF" />
@@ -432,8 +442,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
           onEndReachedThreshold={0.5}
           contentContainerStyle={[
             styles.listContainer,
-            (!ordersData || !ordersData.orders || ordersData.orders.length === 0) &&
-            styles.emptyListContainer,
+            allOrders.length === 0 && styles.emptyListContainer,
           ]}
         />
       </View>

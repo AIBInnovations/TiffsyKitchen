@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -14,11 +13,13 @@ import adminDashboardService, { ReportSegment } from '../../../services/admin-da
 import { Card } from '../../../components/common/Card';
 import { DatePickerModal } from '../../../components/dashboard/DatePickerModal';
 import { format } from 'date-fns';
+import { useAlert } from '../../../hooks/useAlert';
 
 type ReportType = 'ORDERS' | 'REVENUE' | 'VOUCHERS' | 'REFUNDS';
 type SegmentBy = 'KITCHEN' | 'ZONE';
 
 const ReportsScreen: React.FC = () => {
+  const { showSuccess, showError } = useAlert();
   const [reportType, setReportType] = useState<ReportType>('ORDERS');
   const [segmentBy, setSegmentBy] = useState<SegmentBy>('KITCHEN');
   const [dateFrom, setDateFrom] = useState<Date>(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
@@ -74,9 +75,9 @@ const ReportsScreen: React.FC = () => {
         dateTo: format(dateTo, 'yyyy-MM-dd'),
         format: 'CSV',
       });
-      Alert.alert('Success', 'Report exported successfully');
+      showSuccess('Success', 'Report exported successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to export report');
+      showError('Error', 'Failed to export report');
     } finally {
       setIsExporting(false);
     }

@@ -32,6 +32,7 @@ import { Sidebar } from './src/components/common/Sidebar';
 import { AuthProvider } from './src/context/AuthContext';
 import { NavigationProvider, useNavigation } from './src/context/NavigationContext';
 import { InAppNotificationProvider } from './src/context/InAppNotificationContext';
+import { AlertProvider } from './src/context/AlertContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
@@ -513,21 +514,23 @@ function App() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NavigationProvider userRole={userRole}>
-            <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            {isAuthenticated ? (
-              <AuthenticatedContent
-                onMenuPress={handleMenuPress}
-                onLogout={handleLogout}
-                sidebarVisible={sidebarVisible}
-                onCloseSidebar={handleCloseSidebar}
-              />
-            ) : (
-              <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
-            )}
-          </NavigationProvider>
-        </AuthProvider>
+        <AlertProvider>
+          <AuthProvider>
+            <NavigationProvider userRole={userRole}>
+              <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+              {isAuthenticated ? (
+                <AuthenticatedContent
+                  onMenuPress={handleMenuPress}
+                  onLogout={handleLogout}
+                  sidebarVisible={sidebarVisible}
+                  onCloseSidebar={handleCloseSidebar}
+                />
+              ) : (
+                <PhoneAuthScreen onVerificationComplete={handleVerificationComplete} />
+              )}
+            </NavigationProvider>
+          </AuthProvider>
+        </AlertProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

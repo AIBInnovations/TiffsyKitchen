@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
@@ -93,6 +93,7 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
 }) => {
   const { selectedUser, selectUser, clearSelectedUser, updateUserStatus, isLoading } = useUsersStore();
   const [activeTab, setActiveTab] = useState<UserDetailTab>('overview');
+  const { showConfirm, showInfo } = useAlert();
 
   useEffect(() => {
     selectUser(userId);
@@ -100,16 +101,10 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
   }, [userId, selectUser, clearSelectedUser]);
 
   const handleStatusChange = (newStatus: UserStatus) => {
-    Alert.alert(
+    showConfirm(
       'Change Status',
       `Are you sure you want to change user status to ${newStatus}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm',
-          onPress: () => updateUserStatus(userId, newStatus),
-        },
-      ]
+      () => updateUserStatus(userId, newStatus)
     );
   };
 
@@ -199,7 +194,7 @@ export const UserDetailsScreen: React.FC<UserDetailsScreenProps> = ({
             icon="message"
             label="Message"
             color={colors.info}
-            onPress={() => Alert.alert('Coming Soon', 'Messaging feature is coming soon')}
+            onPress={() => showInfo('Coming Soon', 'Messaging feature is coming soon')}
           />
         </View>
       </View>

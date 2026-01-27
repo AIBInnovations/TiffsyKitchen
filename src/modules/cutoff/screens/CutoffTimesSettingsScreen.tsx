@@ -6,12 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   TextInput,
   ToastAndroid,
   Platform,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import {
   CutoffTimesSettings,
   DEFAULT_SETTINGS,
@@ -50,6 +50,8 @@ const showToast = (message: string) => {
 export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps> = ({
   onMenuPress,
 }) => {
+  const { showError, showWarning, showConfirm } = useAlert();
+
   // Loading and saving states
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,7 +87,7 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
       setSavedSettings(loaded);
     } catch (error) {
       console.error('Error loading settings:', error);
-      Alert.alert('Error', 'Failed to load settings. Using defaults.');
+      showError('Error', 'Failed to load settings. Using defaults.');
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +124,7 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
     const validationErrors = validateSettings(settings);
     if (hasValidationErrors(validationErrors)) {
       setErrors(validationErrors);
-      Alert.alert('Validation Error', 'Please fix the errors before saving.');
+      showWarning('Validation Error', 'Please fix the errors before saving.');
       return;
     }
 
@@ -135,11 +137,11 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
         setSavedSettings(updatedSettings);
         showToast('Settings saved successfully');
       } else {
-        Alert.alert('Error', 'Failed to save settings. Please try again.');
+        showError('Error', 'Failed to save settings. Please try again.');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      Alert.alert('Error', 'Failed to save settings. Please try again.');
+      showError('Error', 'Failed to save settings. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -147,20 +149,15 @@ export const CutoffTimesSettingsScreen: React.FC<CutoffTimesSettingsScreenProps>
 
   // Handle reset
   const handleReset = () => {
-    Alert.alert(
+    showConfirm(
       'Reset Settings',
       'Discard unsaved changes and restore last saved settings?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: () => {
-            setSettings(savedSettings);
-            showToast('Settings restored');
-          },
-        },
-      ]
+      () => {
+        setSettings(savedSettings);
+        showToast('Settings restored');
+      },
+      undefined,
+      { confirmText: 'Reset', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

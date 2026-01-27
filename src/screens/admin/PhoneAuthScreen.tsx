@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../hooks/useAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import auth, { FirebaseAuthTypes, signInWithPhoneNumber } from '@react-native-firebase/auth';
@@ -21,6 +21,7 @@ interface PhoneAuthScreenProps {
 
 const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplete }) => {
   const otpInputRefs = useRef<Array<TextInput | null>>([]);
+  const { showSuccess } = useAlert();
 
   // State management
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -91,7 +92,7 @@ const PhoneAuthScreen: React.FC<PhoneAuthScreenProps> = ({ onVerificationComplet
 
       setConfirmation(confirmationResult);
       setShowOtpInput(true);
-      Alert.alert('Success', 'OTP has been sent to your phone number');
+      showSuccess('Success', 'OTP has been sent to your phone number');
     } catch (error: any) {
       console.log('========== FIREBASE OTP ERROR ==========');
       console.log('Status: FAILED');

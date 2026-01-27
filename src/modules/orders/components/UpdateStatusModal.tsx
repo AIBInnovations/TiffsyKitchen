@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing } from '../../../theme';
 import { OrderStatus } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface UpdateStatusModalProps {
   visible: boolean;
@@ -67,6 +67,7 @@ export const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showWarning, showError } = useAlert();
 
   // Get next valid statuses based on current status
   const getNextStatuses = (): OrderStatus[] => {
@@ -81,7 +82,7 @@ export const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
 
   const handleUpdate = async () => {
     if (!selectedStatus) {
-      Alert.alert('Status Required', 'Please select a status to update to');
+      showWarning('Status Required', 'Please select a status to update to');
       return;
     }
 
@@ -90,7 +91,7 @@ export const UpdateStatusModal: React.FC<UpdateStatusModalProps> = ({
       await onUpdate(selectedStatus, notes.trim() || undefined);
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update order status');
+      showError('Error', error.message || 'Failed to update order status');
     } finally {
       setLoading(false);
     }

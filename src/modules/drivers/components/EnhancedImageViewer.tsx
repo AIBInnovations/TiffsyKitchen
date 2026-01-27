@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   Dimensions,
   ScrollView,
-  Alert,
   Platform,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 
@@ -37,6 +37,7 @@ export const EnhancedImageViewer: React.FC<EnhancedImageViewerProps> = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoomLevel, setZoomLevel] = useState(1);
   const scrollViewRef = useRef<ScrollView>(null);
+  const { showInfo } = useAlert();
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.5, 3));
@@ -67,10 +68,9 @@ export const EnhancedImageViewer: React.FC<EnhancedImageViewerProps> = ({
   const handleDownload = () => {
     // Note: In React Native, downloading images requires native module
     // This is a placeholder for download functionality
-    Alert.alert(
+    showInfo(
       'Download',
-      'Image download feature requires native implementation.\n\nOn web, right-click and "Save Image As..."',
-      [{ text: 'OK' }]
+      'Image download feature requires native implementation.\n\nOn web, right-click and "Save Image As..."'
     );
   };
 

@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   TextInput,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
+import { useAlert } from '../../../hooks/useAlert';
 import { spacing } from '../../../theme/spacing';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { Header } from '../../../components/common/Header';
@@ -30,6 +30,7 @@ type ApprovalFilter = '' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export const DriverProfileManagementScreen: React.FC<DriverProfileManagementScreenProps> = ({
   onMenuPress,
 }) => {
+  const { showError } = useAlert();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,12 +97,12 @@ export const DriverProfileManagementScreen: React.FC<DriverProfileManagementScre
       setCurrentPage(response.data.pagination.page);
       setTotalPages(response.data.pagination.pages);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to fetch drivers');
+      showError('Error', error.message || 'Failed to fetch drivers');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, showError]);
 
   const fetchStats = useCallback(async () => {
     try {

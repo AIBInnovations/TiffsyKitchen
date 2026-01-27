@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing, wp, hp, rf, rs } from '../../../theme';
 import { deliveryService } from '../../../services/delivery.service';
@@ -128,6 +128,7 @@ const getStatusColor = (status: BatchStatus): { bg: string; text: string } => {
 };
 
 export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenId }) => {
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -182,7 +183,7 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
       setBatches(fetchedBatches);
     } catch (error: any) {
       console.error('❌ Error loading batches:', error);
-      Alert.alert('Error', error?.message || 'Failed to load batches');
+      showError('Error', error?.message || 'Failed to load batches');
       setBatches([]);
     } finally {
       setIsLoading(false);
@@ -191,85 +192,77 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
   };
 
   const handleAutoBatch = async () => {
-    Alert.alert(
+    showConfirm(
       'Auto-Batch Orders',
       `Create batches for ${selectedMealWindow} orders?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Batch Orders',
-          onPress: async () => {
-            setIsBatching(true);
-            try {
-              // Use kitchen staff endpoint - no kitchenId required
-              const result = await deliveryService.autoBatchMyKitchenOrders({
-                mealWindow: selectedMealWindow,
-              });
+      async () => {
+        setIsBatching(true);
+        try {
+          // Use kitchen staff endpoint - no kitchenId required
+          const result = await deliveryService.autoBatchMyKitchenOrders({
+            mealWindow: selectedMealWindow,
+          });
 
-              // Backend quirk: actual data is in result.error (same as orders endpoint)
-              const responseData = result.error || result.data || result;
-              const batchesCreated = responseData?.batchesCreated ?? 0;
-              const ordersProcessed = responseData?.ordersProcessed ?? 0;
+          // Backend quirk: actual data is in result.error (same as orders endpoint)
+          const responseData = result.error || result.data || result;
+          const batchesCreated = responseData?.batchesCreated ?? 0;
+          const ordersProcessed = responseData?.ordersProcessed ?? 0;
 
-              Alert.alert(
-                'Success',
-                `Created ${batchesCreated} batch(es) with ${ordersProcessed} order(s)`
-              );
+          showSuccess(
+            'Success',
+            `Created ${batchesCreated} batch(es) with ${ordersProcessed} order(s)`
+          );
 
-              await loadBatches();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to create batches');
-            } finally {
-              setIsBatching(false);
-            }
-          },
-        },
-      ]
+          await loadBatches();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to create batches');
+        } finally {
+          setIsBatching(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Batch Orders', cancelText: 'Cancel' }
     );
   };
 
   const handleDispatch = async () => {
     if (!canDispatchMealWindow(selectedMealWindow, operatingHours)) {
-      Alert.alert(
+      showWarning(
         'Cannot Dispatch Yet',
         `${selectedMealWindow} meal window ends in ${getTimeUntilDispatch(selectedMealWindow, operatingHours)}. Dispatch is only allowed after the meal window ends.`
       );
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Dispatch Batches',
       `Dispatch all ${selectedMealWindow} batches to drivers?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Dispatch',
-          onPress: async () => {
-            setIsDispatching(true);
-            try {
-              // Use kitchen staff endpoint - no kitchenId required
-              const result = await deliveryService.dispatchMyKitchenBatches({
-                mealWindow: selectedMealWindow,
-              });
+      async () => {
+        setIsDispatching(true);
+        try {
+          // Use kitchen staff endpoint - no kitchenId required
+          const result = await deliveryService.dispatchMyKitchenBatches({
+            mealWindow: selectedMealWindow,
+          });
 
-              // Backend quirk: actual data is in result.error (same as orders endpoint)
-              const responseData = result.error || result.data || result;
-              const batchesDispatched = responseData?.batchesDispatched ?? 0;
+          // Backend quirk: actual data is in result.error (same as orders endpoint)
+          const responseData = result.error || result.data || result;
+          const batchesDispatched = responseData?.batchesDispatched ?? 0;
 
-              Alert.alert(
-                'Success',
-                `Dispatched ${batchesDispatched} batch(es) to drivers`
-              );
+          showSuccess(
+            'Success',
+            `Dispatched ${batchesDispatched} batch(es) to drivers`
+          );
 
-              await loadBatches();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to dispatch batches');
-            } finally {
-              setIsDispatching(false);
-            }
-          },
-        },
-      ]
+          await loadBatches();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to dispatch batches');
+        } finally {
+          setIsDispatching(false);
+        }
+      },
+      undefined,
+      { confirmText: 'Dispatch', cancelText: 'Cancel' }
     );
   };
 

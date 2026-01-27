@@ -15,13 +15,13 @@ import {
   TextInput,
   Image,
   Switch,
-  Alert,
   RefreshControl,
   ActivityIndicator,
   StatusBar,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { menuService } from '../../../services/menu.service';
 import { MenuItem, MealType, FoodType } from '../../../types/api.types';
 import { colors, spacing } from '../../../theme';
@@ -40,6 +40,7 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
   onAddItem,
   onEditItem,
 }) => {
+  const { showSuccess, showError, showConfirm } = useAlert();
   const insets = useSafeAreaInsets();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +113,7 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
       );
     } catch (err: any) {
       console.error('Error toggling availability:', err);
-      Alert.alert('Error', 'Failed to update availability');
+      showError('Error', 'Failed to update availability');
     }
   };
 
@@ -120,26 +121,21 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
    * Delete menu item
    */
   const handleDeleteItem = (item: MenuItem) => {
-    Alert.alert(
+    showConfirm(
       'Delete Menu Item',
       `Are you sure you want to delete "${item.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await menuService.deleteMenuItem(item._id);
-              setMenuItems((prev) => prev.filter((i) => i._id !== item._id));
-              Alert.alert('Success', 'Menu item deleted');
-            } catch (err: any) {
-              console.error('Error deleting item:', err);
-              Alert.alert('Error', 'Failed to delete item');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await menuService.deleteMenuItem(item._id);
+          setMenuItems((prev) => prev.filter((i) => i._id !== item._id));
+          showSuccess('Success', 'Menu item deleted');
+        } catch (err: any) {
+          console.error('Error deleting item:', err);
+          showError('Error', 'Failed to delete item');
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 

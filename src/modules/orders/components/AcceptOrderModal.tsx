@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing } from '../../../theme';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface AcceptOrderModalProps {
   visible: boolean;
@@ -27,17 +27,18 @@ export const AcceptOrderModal: React.FC<AcceptOrderModalProps> = ({
 }) => {
   const [estimatedPrepTime, setEstimatedPrepTime] = useState('30');
   const [loading, setLoading] = useState(false);
+  const { showWarning, showError } = useAlert();
 
   const handleAccept = async () => {
     const prepTime = parseInt(estimatedPrepTime, 10);
 
     if (isNaN(prepTime) || prepTime <= 0) {
-      Alert.alert('Invalid Input', 'Please enter a valid preparation time in minutes');
+      showWarning('Invalid Input', 'Please enter a valid preparation time in minutes');
       return;
     }
 
     if (prepTime > 180) {
-      Alert.alert('Invalid Input', 'Preparation time cannot exceed 180 minutes (3 hours)');
+      showWarning('Invalid Input', 'Preparation time cannot exceed 180 minutes (3 hours)');
       return;
     }
 
@@ -46,7 +47,7 @@ export const AcceptOrderModal: React.FC<AcceptOrderModalProps> = ({
       await onAccept(prepTime);
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to accept order');
+      showError('Error', error.message || 'Failed to accept order');
     } finally {
       setLoading(false);
     }

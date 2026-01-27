@@ -6,16 +6,17 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Slider from '@react-native-community/slider';
 import adminDashboardService, { DeliveryConfig } from '../../../services/admin-dashboard.service';
 import { Card } from '../../../components/common/Card';
+import { useAlert } from '../../../hooks/useAlert';
 
 const DeliveryConfigScreen: React.FC = () => {
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useAlert();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['deliveryConfig'],
@@ -38,10 +39,10 @@ const DeliveryConfigScreen: React.FC = () => {
     mutationFn: (data: Partial<DeliveryConfig>) => adminDashboardService.updateDeliveryConfig(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['deliveryConfig'] });
-      Alert.alert('Success', 'Delivery configuration updated successfully');
+      showSuccess('Success', 'Delivery configuration updated successfully');
     },
     onError: () => {
-      Alert.alert('Error', 'Failed to update delivery configuration');
+      showError('Error', 'Failed to update delivery configuration');
     },
   });
 

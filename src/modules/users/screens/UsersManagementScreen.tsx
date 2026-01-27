@@ -8,7 +8,6 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   StatusBar,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -17,6 +16,7 @@ import { adminUsersService } from '../../../services/admin-users.service';
 import { vouchersService } from '../../../services/vouchers.service';
 import { User, UserRole, UserStatus } from '../../../types/api.types';
 import { UserCard } from '../components/UserCard';
+import { useAlert } from '../../../hooks/useAlert';
 
 const colors = {
   primary: '#FF6B35',
@@ -49,6 +49,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   onUserPress,
   onCreateUserPress,
 }) => {
+  const { showError } = useAlert();
   const insets = useSafeAreaInsets();
   const [users, setUsers] = useState<(User & { availableVouchers?: number; hasActiveSubscription?: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,7 +179,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
       console.log('========================================');
       setError(err.message || 'Failed to load users');
       setUsers([]);
-      Alert.alert('Error', err.message || 'Failed to load users');
+      showError('Error', err.message || 'Failed to load users');
     } finally {
       setLoading(false);
       setRefreshing(false);

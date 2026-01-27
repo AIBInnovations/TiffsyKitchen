@@ -7,12 +7,13 @@ import {
   TextInput,
   TouchableOpacity,
   Switch,
-  Alert,
   ActivityIndicator,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { menuManagementService } from '../../../services/menu-management.service';
 import {
   MenuItem,
@@ -42,6 +43,7 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
   onNavigateToAddonManagement,
   userRole,
 }) => {
+  const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const insets = useSafeAreaInsets();
   const isEditMode = !!itemId;
 
@@ -96,7 +98,7 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
       setIsFeatured(loadedItem.isFeatured);
     } catch (error) {
       console.error('Error loading menu item:', error);
-      Alert.alert('Error', 'Failed to load menu item');
+      showError('Error', 'Failed to load menu item');
     } finally {
       setLoading(false);
     }
@@ -104,22 +106,22 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
 
   const validateForm = (): boolean => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Name is required');
+      showWarning('Validation Error', 'Name is required');
       return false;
     }
 
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      Alert.alert('Validation Error', 'Valid price is required');
+      showWarning('Validation Error', 'Valid price is required');
       return false;
     }
 
     if (discountedPrice && Number(discountedPrice) >= Number(price)) {
-      Alert.alert('Validation Error', 'Discounted price must be less than regular price');
+      showWarning('Validation Error', 'Discounted price must be less than regular price');
       return false;
     }
 
     if (menuType === 'MEAL_MENU' && !mealWindow) {
-      Alert.alert('Validation Error', 'Meal window is required for Meal Menu items');
+      showWarning('Validation Error', 'Meal window is required for Meal Menu items');
       return false;
     }
 
@@ -154,47 +156,47 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
 
       if (isEditMode && itemId) {
         await menuManagementService.updateMenuItem(itemId, data);
-        Alert.alert('Success', 'Menu item updated successfully');
+        showSuccess('Success', 'Menu item updated successfully', () => {
+          onSaved();
+          onBack();
+        });
       } else {
         const newItem = await menuManagementService.createMenuItem(data as CreateMenuItemRequest);
-        Alert.alert('Success', 'Menu item created successfully');
+        showSuccess('Success', 'Menu item created successfully', () => {
+          onSaved();
+          onBack();
+        });
       }
-
-      onSaved();
-      onBack();
     } catch (error: any) {
       console.error('Error saving menu item:', error);
-      Alert.alert('Error', error.message || 'Failed to save menu item');
+      showError('Error', error.message || 'Failed to save menu item');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Menu Item',
       'Are you sure you want to delete this item?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await menuManagementService.deleteMenuItem(itemId!);
-              Alert.alert('Success', 'Menu item deleted');
-              onSaved();
-              onBack();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete menu item');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await menuManagementService.deleteMenuItem(itemId!);
+          showSuccess('Success', 'Menu item deleted', () => {
+            onSaved();
+            onBack();
+          });
+        } catch (error) {
+          showError('Error', 'Failed to delete menu item');
+        }
+      },
+      undefined,
+      { confirmText: 'Delete', cancelText: 'Cancel', isDestructive: true }
     );
   };
 
   const handleDisable = () => {
+    // Alert.prompt is iOS-only, kept for the prompt functionality
     Alert.prompt(
       'Disable Menu Item',
       'Please provide a reason for disabling this item:',
@@ -202,11 +204,12 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
         if (reason && reason.trim()) {
           try {
             await menuManagementService.disableMenuItem(itemId!, reason.trim());
-            Alert.alert('Success', 'Menu item disabled');
-            onSaved();
-            loadMenuItem();
+            showSuccess('Success', 'Menu item disabled', () => {
+              onSaved();
+              loadMenuItem();
+            });
           } catch (error) {
-            Alert.alert('Error', 'Failed to disable menu item');
+            showError('Error', 'Failed to disable menu item');
           }
         }
       }
@@ -216,11 +219,12 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
   const handleEnable = async () => {
     try {
       await menuManagementService.enableMenuItem(itemId!);
-      Alert.alert('Success', 'Menu item enabled');
-      onSaved();
-      loadMenuItem();
+      showSuccess('Success', 'Menu item enabled', () => {
+        onSaved();
+        loadMenuItem();
+      });
     } catch (error) {
-      Alert.alert('Error', 'Failed to enable menu item');
+      showError('Error', 'Failed to enable menu item');
     }
   };
 

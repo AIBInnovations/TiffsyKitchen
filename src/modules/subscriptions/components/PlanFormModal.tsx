@@ -14,10 +14,10 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SubscriptionPlan, CreatePlanRequest, PlanStatus } from '../../../types/subscription.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 interface PlanFormModalProps {
   visible: boolean;
@@ -31,6 +31,7 @@ const DURATION_OPTIONS = [7, 14, 30, 60];
 const VOUCHERS_PER_DAY_OPTIONS = [1, 2, 3, 4];
 
 export const PlanFormModal: React.FC<PlanFormModalProps> = ({ visible, onClose, onSubmit, plan }) => {
+  const { showWarning, showError } = useAlert();
   const isEditMode = !!plan;
 
   // Form state
@@ -101,33 +102,33 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ visible, onClose, 
 
   const validateForm = (): boolean => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Plan name is required');
+      showWarning('Validation Error', 'Plan name is required');
       return false;
     }
 
     const priceNum = parseFloat(price);
     if (!price || isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Validation Error', 'Valid price is required');
+      showWarning('Validation Error', 'Valid price is required');
       return false;
     }
 
     if (originalPrice) {
       const originalPriceNum = parseFloat(originalPrice);
       if (isNaN(originalPriceNum) || originalPriceNum <= priceNum) {
-        Alert.alert('Validation Error', 'Original price must be greater than price');
+        showWarning('Validation Error', 'Original price must be greater than price');
         return false;
       }
     }
 
     const displayOrderNum = parseInt(displayOrder);
     if (!displayOrder || isNaN(displayOrderNum) || displayOrderNum < 1) {
-      Alert.alert('Validation Error', 'Valid display order is required');
+      showWarning('Validation Error', 'Valid display order is required');
       return false;
     }
 
     const filteredFeatures = features.filter((f) => f.trim() !== '');
     if (filteredFeatures.length === 0) {
-      Alert.alert('Validation Error', 'At least one feature is required');
+      showWarning('Validation Error', 'At least one feature is required');
       return false;
     }
 
@@ -164,7 +165,7 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ visible, onClose, 
       resetForm();
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to save plan');
+      showError('Error', error.message || 'Failed to save plan');
     } finally {
       setLoading(false);
     }

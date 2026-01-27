@@ -4,11 +4,11 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Alert,
   LayoutAnimation,
   UIManager,
   Platform,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import {
   KitchenStatus,
   KitchenTab,
@@ -68,6 +68,7 @@ interface KitchenManagementScreenProps {
 export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = ({
   onMenuPress,
 }) => {
+  const { showSuccess, showError, showInfo } = useAlert();
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
 
@@ -112,7 +113,7 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
       }
     } catch (error) {
       console.error('Error loading kitchen data:', error);
-      Alert.alert('Error', 'Failed to load kitchen data. Please try again.');
+      showError('Error', 'Failed to load kitchen data. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -147,18 +148,18 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
   // Handle pause orders toggle
   const handleTogglePauseOrders = useCallback(() => {
     setPauseNewOrders((prev) => !prev);
-    Alert.alert(
+    showInfo(
       pauseNewOrders ? 'Orders Resumed' : 'Orders Paused',
       pauseNewOrders
         ? 'New orders are now being accepted.'
         : 'New orders are temporarily paused.'
     );
-  }, [pauseNewOrders]);
+  }, [pauseNewOrders, showInfo]);
 
   // Handle download summary
   const handleDownloadSummary = useCallback(() => {
-    Alert.alert('Download Started', 'Daily summary is being prepared for download.');
-  }, []);
+    showInfo('Download Started', 'Daily summary is being prepared for download.');
+  }, [showInfo]);
 
   // Handle batch status change
   const handleBatchStatusChange = useCallback(async (
@@ -171,9 +172,9 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
       setDeliveryBatches(updatedBatches);
     } catch (error) {
       console.error('Error updating batch status:', error);
-      Alert.alert('Error', 'Failed to update batch status.');
+      showError('Error', 'Failed to update batch status.');
     }
-  }, []);
+  }, [showError]);
 
   // Handle staff update
   const handleStaffUpdate = useCallback(async (updatedMember: StaffMember) => {
@@ -185,9 +186,9 @@ export const KitchenManagementScreen: React.FC<KitchenManagementScreenProps> = (
       setStaffMembers(updatedStaff);
     } catch (error) {
       console.error('Error updating staff member:', error);
-      Alert.alert('Error', 'Failed to update staff member.');
+      showError('Error', 'Failed to update staff member.');
     }
-  }, [staffMembers]);
+  }, [staffMembers, showError]);
 
   // Handle capacity change
   const handleCapacityChange = useCallback((newSettings: CapacitySettings) => {

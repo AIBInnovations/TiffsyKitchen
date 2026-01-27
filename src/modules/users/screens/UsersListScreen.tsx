@@ -8,11 +8,11 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { usersService } from '../../../services/users.service';
 import { Customer } from '../../../types/api.types';
+import { useAlert } from '../../../hooks/useAlert';
 
 const colors = {
   primary: '#FF6B35',
@@ -44,6 +44,7 @@ export const UsersListScreen: React.FC<UsersListScreenProps> = ({
   onMenuPress,
   onUserPress,
 }) => {
+  const { showError } = useAlert();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,7 +76,7 @@ export const UsersListScreen: React.FC<UsersListScreenProps> = ({
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load customers');
-      Alert.alert('Error', err.message || 'Failed to load customers');
+      showError('Error', err.message || 'Failed to load customers');
     } finally {
       setLoading(false);
       setRefreshing(false);

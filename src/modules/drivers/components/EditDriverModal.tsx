@@ -7,8 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import { adminDriversService } from '../../../services/admin-drivers.service';
@@ -31,6 +31,7 @@ export const EditDriverModal: React.FC<EditDriverModalProps> = ({
   const [email, setEmail] = useState(driver.email || '');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const { showSuccess, showError, showInfo } = useAlert();
 
   const validateForm = (): boolean => {
     const newErrors: { name?: string; email?: string } = {};
@@ -72,17 +73,17 @@ export const EditDriverModal: React.FC<EditDriverModalProps> = ({
       }
 
       if (Object.keys(updates).length === 0) {
-        Alert.alert('No Changes', 'No changes were made to the profile.');
+        showInfo('No Changes', 'No changes were made to the profile.');
         onClose();
         return;
       }
 
       const response = await adminDriversService.updateDriver(driver._id, updates);
-      Alert.alert('Success', 'Profile updated successfully');
+      showSuccess('Success', 'Profile updated successfully');
       onSuccess(response.data.user);
       onClose();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update profile');
+      showError('Error', error.message || 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }

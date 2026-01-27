@@ -1,7 +1,8 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import { Platform } from 'react-native';
+import { Platform, Vibration } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiService } from './api.enhanced.service';
+import { createNotificationChannels, displayNotification, requestNotificationPermission } from './notificationChannels.service';
 
 const FCM_TOKEN_KEY = 'fcm_token';
 const DEVICE_ID_KEY = 'device_id';
@@ -34,49 +35,13 @@ class FCMService {
   private onNotificationCallback: ((notification: InAppNotification) => void) | null = null;
 
   /**
-   * Request notification permission (iOS)
-   */
-  async requestPermission(): Promise<boolean> {
-    try {
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
-        console.log('FCM: Notification permission granted');
-      } else {
-        console.log('FCM: Notification permission denied');
-      }
-
-      return enabled;
-    } catch (error) {
-      console.error('FCM: Error requesting permission:', error);
-      return false;
-    }
-  }
-
-  /**
    * Get FCM token
    */
   async getToken(): Promise<string | null> {
     try {
-      // Check if permission is granted (iOS only)
-      if (Platform.OS === 'ios') {
-        const hasPermission = await this.requestPermission();
-        if (!hasPermission) {
-          console.log('FCM: No permission granted');
-          return null;
-        }
-      }
-
-      // Get FCM token
       const token = await messaging().getToken();
       console.log('FCM: Token retrieved:', token.substring(0, 20) + '...');
-
-      // Save token locally
       await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
-
       return token;
     } catch (error) {
       console.error('FCM: Error getting token:', error);
@@ -90,13 +55,10 @@ class FCMService {
   async getDeviceId(): Promise<string> {
     try {
       let deviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
-
       if (!deviceId) {
-        // Generate UUID-like device ID
         deviceId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
         await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
       }
-
       return deviceId;
     } catch (error) {
       console.error('FCM: Error getting device ID:', error);
@@ -124,44 +86,24 @@ class FCMService {
         deviceId,
       };
 
-      console.log('FCM: Registering token with backend...');
-      console.log('FCM: Device Type:', deviceType);
+      console.log('==========================================');
+      console.log('📝 FCM: REGISTERING TOKEN WITH BACKEND');
+      console.log('==========================================');
+      console.log('Device Type:', deviceType);
+      console.log('Device ID:', deviceId);
+      console.log('Token (first 30 chars):', token.substring(0, 30) + '...');
 
       const response = await apiService.post('/api/auth/fcm-token', payload);
 
       if (response.success) {
-        console.log('FCM: Token registered successfully');
+        console.log('✅ FCM: TOKEN REGISTERED SUCCESSFULLY');
         return true;
       } else {
-        console.error('FCM: Token registration failed:', response.message);
+        console.error('❌ FCM: TOKEN REGISTRATION FAILED:', response.message);
         return false;
       }
     } catch (error: any) {
-      console.error('FCM: Error registering token');
-      console.error('FCM: Error type:', typeof error);
-      console.error('FCM: Error message:', error?.message);
-      console.error('FCM: Error success:', error?.success);
-      console.error('FCM: Error data:', error?.data);
-      console.error('FCM: Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-
-      // Check if it's a network or endpoint issue
-      if (error?.message?.includes('JSON Parse error') || error?.message?.includes('Unexpected character')) {
-        console.warn('⚠️  ============================================');
-        console.warn('⚠️  FCM: Backend endpoint not implemented yet');
-        console.warn('⚠️  ============================================');
-        console.warn('⚠️  The /api/auth/fcm-token endpoint needs to be implemented on the backend.');
-        console.warn('⚠️  The app will continue to work normally for all other features.');
-        console.warn('⚠️  Push notifications will work once backend is ready.');
-        console.warn('⚠️  See FCM_ERROR_HANDLING_FIX.md for details.');
-        console.warn('⚠️  ============================================');
-      } else if (error?.message === 'Server error' || error?.success === false) {
-        console.warn('⚠️  ============================================');
-        console.warn('⚠️  FCM: Backend returned error:', error?.message);
-        console.warn('⚠️  This is a backend issue that needs investigation');
-        console.warn('⚠️  The app will continue to work for other features');
-        console.warn('⚠️  ============================================');
-      }
-
+      console.error('FCM: Error registering token:', error?.message);
       return false;
     }
   }
@@ -178,49 +120,14 @@ class FCMService {
       }
 
       console.log('FCM: Removing token from backend...');
-
-      // Use query parameter instead of body for DELETE request
       const response = await apiService.delete(`/api/auth/fcm-token?fcmToken=${encodeURIComponent(token)}`);
 
-      if (response.success) {
-        console.log('FCM: Token removed successfully from backend');
-        await AsyncStorage.removeItem(FCM_TOKEN_KEY);
-        return true;
-      } else {
-        console.warn('⚠️  FCM: Backend returned error when removing token:', response.message);
-        console.warn('⚠️  FCM: This may indicate the backend endpoint has an issue');
-        console.warn('⚠️  FCM: Clearing local token anyway for clean logout');
-
-        // Clear local token even if backend fails
-        await AsyncStorage.removeItem(FCM_TOKEN_KEY);
-        return true; // Consider it successful locally
-      }
+      await AsyncStorage.removeItem(FCM_TOKEN_KEY);
+      return response.success || true;
     } catch (error: any) {
-      console.error('FCM: Error removing token:', error);
-
-      // Check for specific backend errors
-      if (error?.message === 'Server error' || error?.message?.includes('Server error')) {
-        console.warn('⚠️  ============================================');
-        console.warn('⚠️  FCM: Backend encountered an error removing token');
-        console.warn('⚠️  Backend message:', error?.message);
-        console.warn('⚠️  This is a backend issue, not a frontend issue');
-        console.warn('⚠️  Clearing local token for clean logout anyway');
-        console.warn('⚠️  ============================================');
-      } else if (error?.message?.includes('JSON Parse error') || error?.message?.includes('Unexpected character')) {
-        console.warn('⚠️  ============================================');
-        console.warn('⚠️  FCM: Backend endpoint may not be fully implemented');
-        console.warn('⚠️  ============================================');
-      }
-
-      // Even if removal fails, clear local token
-      try {
-        await AsyncStorage.removeItem(FCM_TOKEN_KEY);
-        console.log('FCM: Local token cleared despite backend error');
-      } catch (e) {
-        console.error('FCM: Failed to clear local token:', e);
-      }
-
-      return true; // Consider it successful locally since we cleared the token
+      console.error('FCM: Error removing token:', error?.message);
+      await AsyncStorage.removeItem(FCM_TOKEN_KEY);
+      return true;
     }
   }
 
@@ -230,19 +137,40 @@ class FCMService {
   setupForegroundListener(callback: (notification: InAppNotification) => void): void {
     this.onNotificationCallback = callback;
 
-    // Listen for foreground messages
     this.unsubscribeForeground = messaging().onMessage(
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('FCM: Foreground notification received:', remoteMessage);
+        console.log('==========================================');
+        console.log('🔔 FOREGROUND NOTIFICATION RECEIVED');
+        console.log('==========================================');
+        console.log('Title:', remoteMessage.notification?.title);
+        console.log('Body:', remoteMessage.notification?.body);
+        console.log('Type:', remoteMessage.data?.type);
 
+        const title = remoteMessage.notification?.title || 'Notification';
+        const body = remoteMessage.notification?.body || '';
+        const notificationType = remoteMessage.data?.type as string | undefined;
+
+        // Display notification using notifee
+        try {
+          await displayNotification(title, body, remoteMessage.data || {}, notificationType);
+        } catch (error) {
+          console.error('FCM: Error displaying notification:', error);
+        }
+
+        // Trigger vibration
+        try {
+          Vibration.vibrate([0, 300, 250, 300]);
+        } catch (error) {
+          console.error('FCM: Error triggering vibration:', error);
+        }
+
+        // Pass to in-app callback
         if (remoteMessage.notification && this.onNotificationCallback) {
-          const notification: InAppNotification = {
-            title: remoteMessage.notification.title || 'Notification',
-            body: remoteMessage.notification.body || '',
+          this.onNotificationCallback({
+            title,
+            body,
             data: remoteMessage.data as NotificationData,
-          };
-
-          this.onNotificationCallback(notification);
+          });
         }
       }
     );
@@ -254,9 +182,8 @@ class FCMService {
   setupBackgroundHandler(): void {
     messaging().setBackgroundMessageHandler(
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('FCM: Background notification received:', remoteMessage);
-        // Background notifications are handled by the system
-        // You can perform background tasks here if needed
+        console.log('FCM: Background notification received');
+        console.log('Type:', remoteMessage.data?.type);
       }
     );
   }
@@ -266,12 +193,8 @@ class FCMService {
    */
   setupTokenRefreshListener(): void {
     this.unsubscribeTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
-      console.log('FCM: Token refreshed:', newToken.substring(0, 20) + '...');
-
-      // Save new token locally
+      console.log('FCM: Token refreshed');
       await AsyncStorage.setItem(FCM_TOKEN_KEY, newToken);
-
-      // Register new token with backend
       await this.registerToken();
     });
   }
@@ -281,20 +204,41 @@ class FCMService {
    */
   async initialize(): Promise<void> {
     try {
-      console.log('FCM: Initializing service...');
+      console.log('==========================================');
+      console.log('🚀 FCM: INITIALIZING SERVICE...');
+      console.log('==========================================');
 
-      // Setup background handler (must be called at the top level)
+      // Step 1: Request notification permission (native Android)
+      console.log('Step 1: Requesting notification permission...');
+      const hasPermission = await requestNotificationPermission();
+
+      if (!hasPermission) {
+        console.warn('⚠️ Notification permission NOT granted');
+        console.warn('User needs to enable notifications in settings');
+      }
+
+      // Step 2: Setup notification channels (notifee)
+      console.log('Step 2: Setting up notification channels...');
+      await createNotificationChannels();
+
+      // Step 3: Setup background handler
+      console.log('Step 3: Setting up background handler...');
       this.setupBackgroundHandler();
 
-      // Setup token refresh listener
+      // Step 4: Setup token refresh listener
+      console.log('Step 4: Setting up token refresh listener...');
       this.setupTokenRefreshListener();
 
-      // Register token with backend
+      // Step 5: Register token with backend
+      console.log('Step 5: Registering FCM token...');
       await this.registerToken();
 
-      console.log('FCM: Service initialized successfully');
+      console.log('==========================================');
+      console.log('✅ FCM: SERVICE INITIALIZED');
+      console.log('Permission:', hasPermission ? 'GRANTED' : 'DENIED');
+      console.log('==========================================');
     } catch (error) {
-      console.error('FCM: Error initializing service:', error);
+      console.error('❌ FCM: ERROR INITIALIZING:', error);
     }
   }
 
@@ -306,25 +250,19 @@ class FCMService {
       this.unsubscribeTokenRefresh();
       this.unsubscribeTokenRefresh = null;
     }
-
     if (this.unsubscribeForeground) {
       this.unsubscribeForeground();
       this.unsubscribeForeground = null;
     }
-
     this.onNotificationCallback = null;
   }
 
   /**
-   * Handle notification tap (when app is opened from notification)
+   * Get initial notification (app opened from notification)
    */
   async getInitialNotification(): Promise<FirebaseMessagingTypes.RemoteMessage | null> {
     try {
-      const remoteMessage = await messaging().getInitialNotification();
-      if (remoteMessage) {
-        console.log('FCM: App opened from notification:', remoteMessage);
-      }
-      return remoteMessage;
+      return await messaging().getInitialNotification();
     } catch (error) {
       console.error('FCM: Error getting initial notification:', error);
       return null;
@@ -332,13 +270,13 @@ class FCMService {
   }
 
   /**
-   * Setup notification open listener (when app is in background)
+   * Setup notification open listener
    */
   setupNotificationOpenListener(
     callback: (notification: FirebaseMessagingTypes.RemoteMessage) => void
   ): () => void {
     return messaging().onNotificationOpenedApp((remoteMessage) => {
-      console.log('FCM: Notification opened app:', remoteMessage);
+      console.log('FCM: Notification opened app');
       callback(remoteMessage);
     });
   }

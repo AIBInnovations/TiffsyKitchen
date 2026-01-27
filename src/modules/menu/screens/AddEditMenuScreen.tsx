@@ -15,10 +15,10 @@ import {
   TouchableOpacity,
   Image,
   Switch,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 // import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { menuService } from '../../../services/menu.service';
 import { MenuItem, MealType, FoodType, SpiceLevel } from '../../../types/api.types';
@@ -35,6 +35,7 @@ export const AddEditMenuScreen: React.FC<AddEditMenuScreenProps> = ({
   onBack,
   onSuccess,
 }) => {
+  const { showSuccess, showError, showWarning, showInfo, showConfirm } = useAlert();
   const isEditMode = !!item;
 
   // Form state
@@ -63,25 +64,23 @@ export const AddEditMenuScreen: React.FC<AddEditMenuScreenProps> = ({
    * Handle image picker
    */
   const handleImagePicker = () => {
-    Alert.alert('Select Image', 'Choose an option', [
-      {
-        text: 'Camera',
-        onPress: () => {
-          // Uncomment when react-native-image-picker is installed
-          // launchCamera({ mediaType: 'photo', quality: 0.8 }, handleImageResponse);
-          Alert.alert('Camera', 'Install react-native-image-picker first');
-        },
+    showConfirm(
+      'Select Image',
+      'Would you like to use the Camera or Gallery?',
+      () => {
+        // Camera option
+        // Uncomment when react-native-image-picker is installed
+        // launchCamera({ mediaType: 'photo', quality: 0.8 }, handleImageResponse);
+        showInfo('Camera', 'Install react-native-image-picker first');
       },
-      {
-        text: 'Gallery',
-        onPress: () => {
-          // Uncomment when react-native-image-picker is installed
-          // launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, handleImageResponse);
-          Alert.alert('Gallery', 'Install react-native-image-picker first');
-        },
+      () => {
+        // Gallery option (on cancel)
+        // Uncomment when react-native-image-picker is installed
+        // launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, handleImageResponse);
+        showInfo('Gallery', 'Install react-native-image-picker first');
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+      { confirmText: 'Camera', cancelText: 'Gallery' }
+    );
   };
 
   /**
@@ -93,7 +92,7 @@ export const AddEditMenuScreen: React.FC<AddEditMenuScreenProps> = ({
     }
 
     if (response.errorMessage) {
-      Alert.alert('Error', response.errorMessage);
+      showError('Error', response.errorMessage);
       return;
     }
 
@@ -137,7 +136,7 @@ export const AddEditMenuScreen: React.FC<AddEditMenuScreenProps> = ({
    */
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fill all required fields');
+      showWarning('Validation Error', 'Please fill all required fields');
       return;
     }
 
@@ -174,16 +173,14 @@ export const AddEditMenuScreen: React.FC<AddEditMenuScreenProps> = ({
 
       if (isEditMode && item) {
         await menuService.updateMenuItem(item._id, formData);
-        Alert.alert('Success', 'Menu item updated successfully');
+        showSuccess('Success', 'Menu item updated successfully', onSuccess);
       } else {
         await menuService.createMenuItem(formData);
-        Alert.alert('Success', 'Menu item created successfully');
+        showSuccess('Success', 'Menu item created successfully', onSuccess);
       }
-
-      onSuccess();
     } catch (err: any) {
       console.error('Error submitting form:', err);
-      Alert.alert('Error', err.message || 'Failed to save menu item');
+      showError('Error', err.message || 'Failed to save menu item');
     } finally {
       setSubmitting(false);
     }

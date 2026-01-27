@@ -7,11 +7,11 @@ import {
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { menuManagementService } from '../../../services/menu-management.service';
 import { MenuItem } from '../../../types/api.types';
 import { MenuItemCard } from '../components/MenuItemCard';
@@ -31,6 +31,7 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
   onBack,
   onNavigateToDetail,
 }) => {
+  const { showSuccess, showError, showConfirm } = useAlert();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,7 +43,7 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
       setDisabledItems(items);
     } catch (error) {
       console.error('Error fetching disabled items:', error);
-      Alert.alert('Error', 'Failed to load disabled items');
+      showError('Error', 'Failed to load disabled items');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -59,25 +60,20 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
   };
 
   const handleEnableItem = (item: MenuItem) => {
-    Alert.alert(
+    showConfirm(
       'Enable Menu Item',
       `Are you sure you want to re-enable "${item.name}"? It will become visible to customers again.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Enable',
-          onPress: async () => {
-            try {
-              await menuManagementService.enableMenuItem(item._id);
-              Alert.alert('Success', 'Menu item enabled successfully');
-              fetchDisabledItems();
-            } catch (error) {
-              console.error('Error enabling item:', error);
-              Alert.alert('Error', 'Failed to enable menu item');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await menuManagementService.enableMenuItem(item._id);
+          showSuccess('Success', 'Menu item enabled successfully', fetchDisabledItems);
+        } catch (error) {
+          console.error('Error enabling item:', error);
+          showError('Error', 'Failed to enable menu item');
+        }
+      },
+      undefined,
+      { confirmText: 'Enable', cancelText: 'Cancel' }
     );
   };
 

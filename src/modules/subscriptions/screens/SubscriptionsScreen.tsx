@@ -13,12 +13,12 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  Alert,
   StatusBar,
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useAlert } from '../../../hooks/useAlert';
 import { colors } from '../../../theme/colors';
 import { SubscriptionPlanCard } from '../components/SubscriptionPlanCard';
 import { SubscriptionCard } from '../components/SubscriptionCard';
@@ -57,6 +57,7 @@ interface SubscriptionsScreenProps {
 export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenuPress }) => {
   console.log('SubscriptionsScreen: Component rendering');
   const insets = useSafeAreaInsets();
+  const { showSuccess, showError, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState<TabType>('plans');
 
   // Plans state
@@ -104,12 +105,12 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
       setPlans(filteredPlans);
     } catch (error: any) {
       console.error('Error fetching plans:', error);
-      Alert.alert('Error', error.message || 'Failed to load plans');
+      showError('Error', error.message || 'Failed to load plans');
     } finally {
       setPlansLoading(false);
       setPlansRefreshing(false);
     }
-  }, [planStatusFilter]);
+  }, [planStatusFilter, showError]);
 
   // Fetch subscriptions
   const fetchSubscriptions = useCallback(async (isRefresh = false) => {
@@ -125,12 +126,12 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
       const response = await getAllSubscriptions(filters);
       setSubscriptions(response.subscriptions);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load subscriptions');
+      showError('Error', error.message || 'Failed to load subscriptions');
     } finally {
       setSubscriptionsLoading(false);
       setSubscriptionsRefreshing(false);
     }
-  }, [subscriptionStatusFilter]);
+  }, [subscriptionStatusFilter, showError]);
 
   // Load data when component mounts or tab changes
   useEffect(() => {
@@ -158,10 +159,10 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
   const handleSavePlan = async (planData: CreatePlanRequest) => {
     if (selectedPlan) {
       await updatePlan(selectedPlan._id, planData);
-      Alert.alert('Success', 'Plan updated successfully');
+      showSuccess('Success', 'Plan updated successfully');
     } else {
       await createPlan(planData);
-      Alert.alert('Success', 'Plan created successfully');
+      showSuccess('Success', 'Plan created successfully');
     }
     fetchPlans();
   };
@@ -206,43 +207,38 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
   const handleActivatePlan = async (planId: string) => {
     try {
       await activatePlan(planId);
-      Alert.alert('Success', 'Plan activated successfully');
+      showSuccess('Success', 'Plan activated successfully');
       fetchPlans();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to activate plan');
+      showError('Error', error.message || 'Failed to activate plan');
     }
   };
 
   const handleDeactivatePlan = async (planId: string) => {
     try {
       await deactivatePlan(planId);
-      Alert.alert('Success', 'Plan deactivated successfully');
+      showSuccess('Success', 'Plan deactivated successfully');
       fetchPlans();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to deactivate plan');
+      showError('Error', error.message || 'Failed to deactivate plan');
     }
   };
 
   const handleArchivePlan = async (planId: string) => {
-    Alert.alert(
+    showConfirm(
       'Confirm Archive',
       'This action is permanent. The plan cannot be reactivated.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Archive',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await archivePlan(planId);
-              Alert.alert('Success', 'Plan archived successfully');
-              fetchPlans();
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to archive plan');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await archivePlan(planId);
+          showSuccess('Success', 'Plan archived successfully');
+          fetchPlans();
+        } catch (error: any) {
+          showError('Error', error.message || 'Failed to archive plan');
+        }
+      },
+      undefined,
+      { confirmText: 'Archive', cancelText: 'Cancel', isDestructive: true }
     );
   };
 
@@ -255,7 +251,7 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
       const detail = await getSubscriptionById(subscription._id);
       setSelectedSubscription(detail);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to load subscription details');
+      showError('Error', error.message || 'Failed to load subscription details');
       setShowSubscriptionDetail(false);
     } finally {
       setSubscriptionDetailLoading(false);
@@ -268,7 +264,7 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
 
     try {
       await cancelSubscription(selectedSubscription._id, cancelData);
-      Alert.alert('Success', 'Subscription cancelled successfully');
+      showSuccess('Success', 'Subscription cancelled successfully');
       setShowCancelModal(false);
       setShowSubscriptionDetail(false);
       fetchSubscriptions();

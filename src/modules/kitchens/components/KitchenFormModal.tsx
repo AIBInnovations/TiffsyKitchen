@@ -8,10 +8,10 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   Platform,
   ToastAndroid,
 } from 'react-native';
+import { useAlert } from '../../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Kitchen, KitchenType, Zone } from '../../../types/api.types';
 import { colors } from '../../../theme/colors';
@@ -67,6 +67,7 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const { showError } = useAlert();
   const [loading, setLoading] = useState(false);
   const [zonePickerVisible, setZonePickerVisible] = useState(false);
   const [formData, setFormData] = useState<KitchenFormState>({
@@ -387,7 +388,7 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
     if (Platform.OS === 'android') {
       ToastAndroid.show(message, ToastAndroid.SHORT);
     } else {
-      Alert.alert(type === 'success' ? 'Success' : 'Error', message);
+      showError(type === 'success' ? 'Success' : 'Error', message);
     }
   };
 
