@@ -182,8 +182,32 @@ class FCMService {
   setupBackgroundHandler(): void {
     messaging().setBackgroundMessageHandler(
       async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
-        console.log('FCM: Background notification received');
+        console.log('==========================================');
+        console.log('🔔 BACKGROUND NOTIFICATION RECEIVED');
+        console.log('==========================================');
+        console.log('Title:', remoteMessage.notification?.title);
+        console.log('Body:', remoteMessage.notification?.body);
         console.log('Type:', remoteMessage.data?.type);
+
+        try {
+          const title = remoteMessage.notification?.title || 'Notification';
+          const body = remoteMessage.notification?.body || '';
+          const notificationType = remoteMessage.data?.type as string | undefined;
+
+          // Display notification using notifee
+          await displayNotification(title, body, remoteMessage.data || {}, notificationType);
+
+          console.log('✅ Background notification displayed');
+
+          // Trigger vibration
+          try {
+            Vibration.vibrate([0, 300, 250, 300]);
+          } catch (vibrationError) {
+            console.error('FCM: Error triggering vibration:', vibrationError);
+          }
+        } catch (error) {
+          console.error('❌ Error displaying background notification:', error);
+        }
       }
     );
   }

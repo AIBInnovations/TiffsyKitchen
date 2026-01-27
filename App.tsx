@@ -37,6 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from './src/services/auth.service';
 import { apiService } from './src/services/api.enhanced.service';
 import { fcmService } from './src/services/fcm.service';
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { User } from './src/types/api.types';
 import { UserRole } from './src/types/user';
@@ -55,6 +56,43 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Handle notification tap navigation
+const handleNotificationTapNavigation = (
+  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+  navigate: (screen: string) => void
+) => {
+  try {
+    const notificationType = remoteMessage.data?.type as string | undefined;
+    const screen = remoteMessage.data?.screen;
+
+    console.log('==========================================');
+    console.log('🎯 HANDLING NOTIFICATION TAP');
+    console.log('==========================================');
+    console.log('Type:', notificationType);
+    console.log('Order ID:', remoteMessage.data?.orderId);
+    console.log('Requested Screen:', screen);
+
+    // Navigate to appropriate screen based on notification type
+    if (screen) {
+      // Use screen from notification if provided
+      navigate(screen as string);
+    } else if (notificationType?.includes('ORDER')) {
+      // Navigate to Orders screen for order-related notifications
+      navigate('Orders');
+    } else if (notificationType?.includes('BATCH') || notificationType?.includes('DELIVERY')) {
+      // Navigate to Batch/Delivery screen
+      navigate('BatchManagement');
+    } else {
+      // Default to Dashboard
+      navigate('Dashboard');
+    }
+
+    console.log('✅ Navigation triggered');
+  } catch (error) {
+    console.error('Error handling notification tap:', error);
+  }
+};
 
 // Placeholder component for unimplemented screens
 const PlaceholderScreen: React.FC<{
@@ -149,6 +187,42 @@ const MainContent: React.FC<{
   useEffect(() => {
     checkLatestNotification();
   }, []);
+
+  // Setup notification tap handlers
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    const setupHandlers = async () => {
+      try {
+        // Handle notification tap when app was closed
+        const initialNotification = await fcmService.getInitialNotification();
+        if (initialNotification) {
+          console.log('📬 App opened from notification (closed state)');
+          console.log('Notification type:', initialNotification.data?.type);
+          console.log('Order ID:', initialNotification.data?.orderId);
+          handleNotificationTapNavigation(initialNotification, navigate);
+        }
+
+        // Handle notification tap when app is in background
+        unsubscribe = fcmService.setupNotificationOpenListener((remoteMessage) => {
+          console.log('📬 App opened from notification (background state)');
+          console.log('Notification type:', remoteMessage.data?.type);
+          console.log('Order ID:', remoteMessage.data?.orderId);
+          handleNotificationTapNavigation(remoteMessage, navigate);
+        });
+      } catch (error) {
+        console.error('Error setting up notification handlers:', error);
+      }
+    };
+
+    setupHandlers();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const backAction = () => {
