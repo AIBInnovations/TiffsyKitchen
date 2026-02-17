@@ -22,6 +22,7 @@ interface BatchHistoryScreenProps {
   route?: any;
   kitchenId?: string;
   kitchenName?: string;
+  isAdmin?: boolean;
   onBack?: () => void;
 }
 
@@ -56,6 +57,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   route,
   kitchenId: propKitchenId,
   kitchenName: propKitchenName,
+  isAdmin = true,
   onBack,
 }) => {
   const { showError } = useAlert();
@@ -112,7 +114,15 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
       if (selectedStatus !== 'ALL') params.status = selectedStatus;
       if (selectedMealWindow !== 'ALL') params.mealWindow = selectedMealWindow;
 
-      const result = await deliveryService.getBatches(params);
+      let result;
+      if (isAdmin) {
+        result = await deliveryService.getBatches(params);
+      } else {
+        const kitchenParams: any = { page: params.page, limit: params.limit };
+        if (params.status) kitchenParams.status = params.status;
+        if (params.mealWindow) kitchenParams.mealWindow = params.mealWindow;
+        result = await deliveryService.getMyKitchenBatches(kitchenParams);
+      }
       const newBatches = result.data?.batches || [];
 
       if (reset) {

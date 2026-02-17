@@ -95,6 +95,7 @@ const DeliveryManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
       <BatchHistoryScreen
         kitchenId={kitchenId}
         kitchenName={kitchenName || undefined}
+        isAdmin={isAdmin}
         onBack={() => setShowBatchHistory(false)}
       />
     );

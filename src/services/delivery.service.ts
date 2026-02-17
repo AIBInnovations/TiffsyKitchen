@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import { Delivery, DeliveryStats } from '../types/delivery';
+import { Delivery } from '../types/delivery';
 
 class DeliveryService {
   async getDeliveries(status?: string): Promise<Delivery[]> {
@@ -35,11 +35,6 @@ class DeliveryService {
     location: { latitude: number; longitude: number }
   ): Promise<void> {
     await apiService.post(`/deliveries/${deliveryId}/location`, location);
-  }
-
-  async getDeliveryStats(period?: string): Promise<DeliveryStats> {
-    const query = period ? `?period=${period}` : '';
-    return apiService.get<DeliveryStats>(`/deliveries/stats${query}`);
   }
 
   async getDriverEarnings(period?: string): Promise<{
@@ -222,25 +217,28 @@ class DeliveryService {
     data: {
       totalBatches: number;
       totalOrders: number;
-      successfulDeliveries: number;
-      failedDeliveries: number;
+      totalDeliveries: number;
+      totalFailed: number;
       successRate: number;
-      avgDeliveriesPerBatch: number;
+      byStatus?: Array<{
+        _id: string;
+        count: number;
+        orders: number;
+      }>;
       byZone?: Array<{
-        zone: { _id: string; name: string };
+        _id: string;
+        zone: string;
         batches: number;
         orders: number;
-        successful: number;
-        failed: number;
+        deliveries: number;
         successRate: number;
       }>;
       byDriver?: Array<{
         driver: { _id: string; name: string; phone: string };
         batches: number;
         orders: number;
-        successful: number;
-        failed: number;
         successRate: number;
+        failed: number;
       }>;
     };
     error: null;

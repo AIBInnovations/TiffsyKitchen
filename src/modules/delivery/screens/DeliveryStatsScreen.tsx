@@ -21,12 +21,35 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
   const [selectedRange, setSelectedRange] = useState(0);
   const dateRange = DATE_RANGES[selectedRange].getValue();
 
-  const { data, isLoading } = useQuery({
+  console.log('[DeliveryStats] Screen render, selectedRange:', selectedRange, 'dateRange:', dateRange);
+
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['deliveryStats', selectedRange],
-    queryFn: () => deliveryService.getDeliveryStats(dateRange as any),
+    queryFn: async () => {
+      console.log('[DeliveryStats] queryFn executing with dateRange:', JSON.stringify(dateRange));
+      try {
+        const result = await deliveryService.getDeliveryStats(dateRange as any);
+        console.log('[DeliveryStats] queryFn result:', JSON.stringify(result, null, 2));
+        return result;
+      } catch (err: any) {
+        console.error('[DeliveryStats] queryFn ERROR:', err);
+        console.error('[DeliveryStats] error message:', err?.message);
+        console.error('[DeliveryStats] error response:', JSON.stringify(err?.response, null, 2));
+        throw err;
+      }
+    },
   });
 
-  const stats = data?.data || data?.error;
+  console.log('[DeliveryStats] Query state:', { isLoading, isError, hasData: !!data });
+  if (isError) {
+    console.error('[DeliveryStats] Query error:', error);
+  }
+  if (data) {
+    console.log('[DeliveryStats] data:', JSON.stringify(data, null, 2));
+    console.log('[DeliveryStats] data?.data:', JSON.stringify(data?.data, null, 2));
+  }
+
+  const stats = data?.data;
 
   return (
     <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
@@ -39,7 +62,7 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
       </View>
 
       {/* Date Range Selector */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 py-3">
+      <View className="px-4 py-3 flex-row">
         {DATE_RANGES.map((range, index) => (
           <TouchableOpacity
             key={range.label}
@@ -53,11 +76,19 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
       {isLoading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#F56B4C" />
+        </View>
+      ) : isError ? (
+        <View className="flex-1 justify-center items-center p-4">
+          <Icon name="error-outline" size={48} color="#EF4444" />
+          <Text className="text-red-600 text-lg font-semibold mt-2">Failed to load stats</Text>
+          <Text className="text-gray-500 text-sm mt-1 text-center">
+            {(error as any)?.message || JSON.stringify(error)}
+          </Text>
         </View>
       ) : stats ? (
         <ScrollView className="flex-1">
@@ -72,9 +103,9 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
             </View>
             <View className="w-1/2 pl-2 mb-3">
               <Card className="p-4 items-center">
-                <Icon name="local-shipping" size={24} color="#8b5cf6" />
-                <Text className="text-2xl font-bold text-gray-800 mt-1">{stats.totalOrders || stats.totalDeliveries || 0}</Text>
-                <Text className="text-xs text-gray-500">Total Deliveries</Text>
+                <Icon name="receipt-long" size={24} color="#8b5cf6" />
+                <Text className="text-2xl font-bold text-gray-800 mt-1">{stats.totalOrders || 0}</Text>
+                <Text className="text-xs text-gray-500">Total Orders</Text>
               </Card>
             </View>
             <View className="w-1/2 pr-2 mb-3">
@@ -87,14 +118,77 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
             <View className="w-1/2 pl-2 mb-3">
               <Card className="p-4 items-center">
                 <Icon name="cancel" size={24} color="#dc2626" />
-                <Text className="text-2xl font-bold text-red-600 mt-1">{stats.failedDeliveries || stats.totalFailed || 0}</Text>
+                <Text className="text-2xl font-bold text-red-600 mt-1">{stats.totalFailed || 0}</Text>
                 <Text className="text-xs text-gray-500">Failed</Text>
               </Card>
             </View>
           </View>
 
+          {/* By Status */}
+          {(stats.byStatus?.length ?? 0) > 0 && (
+            <View className="px-4 pb-4">
+              <Card className="p-4">
+                <View className="flex-row items-center mb-4">
+                  <Icon name="pie-chart" size={24} color="#F56B4C" />
+                  <Text className="text-lg font-semibold text-gray-800 ml-2">By Status</Text>
+                </View>
+
+                {stats.byStatus!.map((item: any, index: number) => {
+                  const statusColors: Record<string, string> = {
+                    COLLECTING: '#f59e0b',
+                    READY_FOR_DISPATCH: '#3b82f6',
+                    DISPATCHED: '#8b5cf6',
+                    IN_PROGRESS: '#06b6d4',
+                    COMPLETED: '#16a34a',
+                    PARTIAL_COMPLETE: '#84cc16',
+                    CANCELLED: '#ef4444',
+                  };
+                  const statusLabels: Record<string, string> = {
+                    COLLECTING: 'Collecting',
+                    READY_FOR_DISPATCH: 'Ready for Dispatch',
+                    DISPATCHED: 'Dispatched',
+                    IN_PROGRESS: 'In Progress',
+                    COMPLETED: 'Completed',
+                    PARTIAL_COMPLETE: 'Partial Complete',
+                    CANCELLED: 'Cancelled',
+                  };
+                  const pct = stats.totalBatches > 0
+                    ? Math.round((item.count / stats.totalBatches) * 100)
+                    : 0;
+                  return (
+                    <View key={item._id || index} className="mb-3">
+                      <View className="flex-row items-center justify-between mb-1">
+                        <View className="flex-row items-center">
+                          <View
+                            className="w-3 h-3 rounded-full mr-2"
+                            style={{ backgroundColor: statusColors[item._id] || '#9ca3af' }}
+                          />
+                          <Text className="text-sm font-medium text-gray-700">
+                            {statusLabels[item._id] || item._id}
+                          </Text>
+                        </View>
+                        <Text className="text-sm text-gray-500">
+                          {item.count} batches · {item.orders} orders
+                        </Text>
+                      </View>
+                      <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <View
+                          className="h-2 rounded-full"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: statusColors[item._id] || '#9ca3af',
+                          }}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </Card>
+            </View>
+          )}
+
           {/* By Zone */}
-          {stats.byZone?.length > 0 && (
+          {(stats.byZone?.length ?? 0) > 0 && (
             <View className="px-4 pb-4">
               <Card className="p-4">
                 <View className="flex-row items-center mb-4">
@@ -102,24 +196,20 @@ const DeliveryStatsScreen: React.FC<Props> = ({ onMenuPress }) => {
                   <Text className="text-lg font-semibold text-gray-800 ml-2">By Zone</Text>
                 </View>
 
-                {stats.byZone.map((zone: any, index: number) => (
-                  <View key={zone._id || index} className="mb-3">
-                    <View className="flex-row items-center justify-between mb-1">
+                {stats.byZone!.map((zone: any, index: number) => (
+                  <View key={zone._id || index} className="flex-row items-center justify-between py-2 border-b border-gray-100">
+                    <View className="flex-1">
                       <Text className="text-sm font-medium text-gray-700">
-                        {zone.zone?.name || zone.zone || zone._id}
+                        {zone.zone || 'Unknown'}
                       </Text>
-                      <Text className="text-sm text-gray-500">
-                        {zone.orders || zone.deliveries || 0} deliveries · {zone.successRate || 0}%
+                      <Text className="text-xs text-gray-500">
+                        {zone.batches || 0} batches · {zone.orders || 0} orders
                       </Text>
                     </View>
-                    <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <View
-                        className="h-2 rounded-full"
-                        style={{
-                          width: `${zone.successRate || 0}%`,
-                          backgroundColor: (zone.successRate || 0) >= 95 ? '#16a34a' : (zone.successRate || 0) >= 85 ? '#eab308' : '#dc2626',
-                        }}
-                      />
+                    <View className="items-end">
+                      <Text className="text-sm font-semibold text-gray-800">
+                        {zone.deliveries || 0} delivered
+                      </Text>
                     </View>
                   </View>
                 ))}
