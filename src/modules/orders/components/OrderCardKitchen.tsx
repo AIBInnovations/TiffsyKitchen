@@ -28,6 +28,7 @@ interface OrderCardKitchenProps {
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
     PLACED: '#007AFF',
+    SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
     REJECTED: '#FF3B30',
     PREPARING: '#FFCC00',
@@ -44,6 +45,7 @@ const getStatusColor = (status: OrderStatus): string => {
 const getStatusIcon = (status: OrderStatus): string => {
   const icons: Record<OrderStatus, string> = {
     PLACED: 'receipt',
+    SCHEDULED: 'event',
     ACCEPTED: 'check-circle',
     PREPARING: 'restaurant',
     READY: 'done-all',
@@ -60,6 +62,7 @@ const getStatusIcon = (status: OrderStatus): string => {
 const formatStatusText = (status: OrderStatus): string => {
   const formatted: Record<OrderStatus, string> = {
     PLACED: 'Placed',
+    SCHEDULED: 'Scheduled',
     ACCEPTED: 'Accepted',
     PREPARING: 'Preparing',
     READY: 'Ready',
@@ -116,6 +119,7 @@ const isAutoOrder = (order: Order | any): boolean => {
 const getKitchenStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
   const statusFlow: Record<OrderStatus, OrderStatus[]> = {
     PLACED: ['ACCEPTED', 'REJECTED'],
+    SCHEDULED: [], // Managed by cron
     ACCEPTED: ['PREPARING'],
     REJECTED: [], // Terminal - cannot change
     PREPARING: ['READY'],

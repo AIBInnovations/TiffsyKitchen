@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import adminDashboardService from '../../services/admin-dashboard.service';
 import { Card } from '../../components/common/Card';
 import { format } from 'date-fns';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -27,7 +27,6 @@ const EnhancedDashboardScreen: React.FC<EnhancedDashboardScreenProps> = ({
   onMenuPress,
   onNavigate,
 }) => {
-  const insets = useSafeAreaInsets();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'orders' | 'delivery' | 'vouchers' | 'refunds'>('overview');
 
   // Fetch all dashboard data
@@ -604,19 +603,21 @@ const EnhancedDashboardScreen: React.FC<EnhancedDashboardScreenProps> = ({
 
   if (dashboardLoading && !dashboard) {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#F56B4C" />
-        <Text className="text-gray-600 mt-4">Loading dashboard...</Text>
-      </View>
+      <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
+        <View className="flex-1 justify-center items-center bg-gray-50">
+          <ActivityIndicator size="large" color="#F56B4C" />
+          <Text className="text-gray-600 mt-4">Loading dashboard...</Text>
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Header */}
       <View
         className="bg-[#F56B4C] px-4 pb-3 flex-row items-center justify-between"
-        style={{ paddingTop: insets.top + 8 }}
+        style={{ paddingTop: 8 }}
       >
         <TouchableOpacity onPress={onMenuPress} className="p-1">
           <Icon name="menu" size={26} color="#ffffff" />
@@ -668,7 +669,7 @@ const EnhancedDashboardScreen: React.FC<EnhancedDashboardScreenProps> = ({
         {selectedTab === 'vouchers' && renderVouchers()}
         {selectedTab === 'refunds' && renderRefunds()}
       </ScrollView>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

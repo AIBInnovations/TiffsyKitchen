@@ -20,16 +20,6 @@ import { orderBatchService } from '../../../services/order-batch.service';
 import { apiService } from '../../../services/api.enhanced.service';
 import { authService } from '../../../services/auth.service';
 
-type TabType = 'BATCHES' | 'OPERATIONS';
-
-type OrderStatus =
-  | 'ALL'
-  | 'ACTIVE'
-  | 'OUT_FOR_DELIVERY'
-  | 'DELIVERED'
-  | 'FAILED'
-  | 'CANCELLED';
-
 type BatchStatus =
   | 'ALL'
   | 'COLLECTING'
@@ -74,7 +64,6 @@ interface DriverOrdersBatchesScreenProps {
 
 export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps> = ({ onMenuPress }) => {
   const { showSuccess, showError, showWarning, showConfirm } = useAlert();
-  const [activeTab, setActiveTab] = useState<TabType>('BATCHES');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -86,37 +75,26 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
   const [expandedBatchIds, setExpandedBatchIds] = useState<Set<string>>(new Set());
   const [loadingBatchIds, setLoadingBatchIds] = useState<Set<string>>(new Set());
 
-  // Operations state
-  const [isAutoBatching, setIsAutoBatching] = useState(false);
-  const [isDispatching, setIsDispatching] = useState(false);
-  const [selectedMealWindow, setSelectedMealWindow] = useState<'LUNCH' | 'DINNER'>('LUNCH');
-
   // Reassignment & Cancellation state
   const [selectedBatchForAction, setSelectedBatchForAction] = useState<Batch | null>(null);
   const [showReassignModal, setShowReassignModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [reassignReason, setReassignReason] = useState('');
-  const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Driver selection state
-  const [reassignStep, setReassignStep] = useState<1 | 2 | 3>(1); // 1: Reason, 2: Select Driver, 3: Confirm
+  const [reassignStep, setReassignStep] = useState<1 | 2>(1); // 1: Select Driver, 2: Confirm
   const [availableDrivers, setAvailableDrivers] = useState<any[]>([]);
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
   const [loadingDrivers, setLoadingDrivers] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, [activeTab, batchStatus]);
+  }, [batchStatus]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      switch (activeTab) {
-        case 'BATCHES':
-          await loadBatches();
-          break;
-      }
+      await loadBatches();
     } catch (error: any) {
       console.error('Failed to load data:', error);
 
@@ -171,7 +149,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
     setExpandedBatchIds(new Set());
     setLoadingBatchIds(new Set());
     loadData();
-  }, [activeTab, batchStatus]);
+  }, [batchStatus]);
 
   const toggleBatchExpansion = async (batchId: string) => {
     const isExpanded = expandedBatchIds.has(batchId);
@@ -233,72 +211,21 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
     }
   };
 
-  const handleAutoBatch = async () => {
-    showConfirm(
-      'Trigger Auto-Batch',
-      `This will group all READY orders into batches for ${selectedMealWindow}. Continue?`,
-      async () => {
-        setIsAutoBatching(true);
-        try {
-          const response = await orderBatchService.triggerAutoBatch({
-            mealWindow: selectedMealWindow,
-          });
-
-          if (response.success) {
-            showSuccess(
-              'Success',
-              `Created ${response.data.batchesCreated} batches, updated ${response.data.batchesUpdated} batches, processed ${response.data.ordersProcessed} orders`
-            );
-            loadBatches();
-          }
-        } catch (error: any) {
-          showError('Error', error.message || 'Failed to auto-batch orders');
-        } finally {
-          setIsAutoBatching(false);
-        }
-      },
-      undefined,
-      { confirmText: 'Confirm', cancelText: 'Cancel' }
-    );
-  };
-
-  const handleDispatch = async () => {
-    showConfirm(
-      'Dispatch Batches',
-      `This will make all COLLECTING batches available for driver acceptance for ${selectedMealWindow}. Continue?`,
-      async () => {
-        setIsDispatching(true);
-        try {
-          const response = await orderBatchService.dispatchBatches({
-            mealWindow: selectedMealWindow,
-          });
-
-          if (response.success) {
-            showSuccess(
-              'Success',
-              `Dispatched ${response.data.batchesDispatched} batches`
-            );
-            loadBatches();
-          }
-        } catch (error: any) {
-          showError('Error', error.message || 'Failed to dispatch batches');
-        } finally {
-          setIsDispatching(false);
-        }
-      },
-      undefined,
-      { confirmText: 'Confirm', cancelText: 'Cancel' }
-    );
-  };
-
   // Handler to open reassignment modal
-  const handleReassignBatch = (batch: Batch) => {
+  const handleReassignBatch = async (batch: Batch) => {
     setSelectedBatchForAction(batch);
-    setReassignReason('');
     setReassignStep(1);
     setSelectedDriverId(null);
     setAvailableDrivers([]);
     setShowReassignModal(true);
+
+    // Immediately fetch available drivers
+    const zoneId = batch.zoneId
+      ? (typeof batch.zoneId === 'string' ? batch.zoneId : (batch.zoneId as any)._id)
+      : undefined;
+    if (zoneId) {
+      await fetchAvailableDrivers(zoneId);
+    }
   };
 
   // Fetch available drivers for reassignment
@@ -312,8 +239,19 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
       if (response.success && response.data?.users) {
         const drivers = response.data.users;
 
-        // Filter drivers who serve this zone (if zonesServed field exists)
+        // Get current driver ID to exclude from the list
+        const currentDriverId = selectedBatchForAction?.driverId
+          ? (typeof selectedBatchForAction.driverId === 'string'
+              ? selectedBatchForAction.driverId
+              : (selectedBatchForAction.driverId as any)._id)
+          : null;
+
+        // Filter drivers who serve this zone and exclude the current driver
         const filteredDrivers = drivers.filter((driver: any) => {
+          // Exclude the currently assigned driver
+          if (currentDriverId && driver._id === currentDriverId) {
+            return false;
+          }
           // If driver has zonesServed array, check if it includes this zone
           if (driver.zonesServed && Array.isArray(driver.zonesServed)) {
             return driver.zonesServed.some((zone: any) =>
@@ -338,62 +276,33 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
   // Handler to open cancellation dialog
   const handleCancelBatch = (batch: Batch) => {
     setSelectedBatchForAction(batch);
-    setCancelReason('');
     setShowCancelDialog(true);
   };
 
   // Handle step navigation in reassignment flow
   const handleReassignNext = async () => {
     if (reassignStep === 1) {
-      // Validate reason and move to driver selection
-      if (!reassignReason.trim() || reassignReason.trim().length < 10) {
-        showWarning('Validation Error', 'Please provide a reason (minimum 10 characters)');
-        return;
-      }
-
-      // Fetch available drivers for this batch's zone
-      if (selectedBatchForAction?.zoneId) {
-        const zoneId = typeof selectedBatchForAction.zoneId === 'string'
-          ? selectedBatchForAction.zoneId
-          : selectedBatchForAction.zoneId._id;
-
-        await fetchAvailableDrivers(zoneId);
-      }
-
-      setReassignStep(2);
-    } else if (reassignStep === 2) {
       // Validate driver selection and move to confirmation
       if (!selectedDriverId) {
         showWarning('Validation Error', 'Please select a driver');
         return;
       }
-      setReassignStep(3);
+      setReassignStep(2);
     }
   };
 
   const handleReassignBack = () => {
     if (reassignStep > 1) {
-      setReassignStep((prev) => (prev - 1) as 1 | 2 | 3);
+      setReassignStep((prev) => (prev - 1) as 1 | 2);
     }
   };
 
   // Submit final reassignment
   const submitReassignment = async () => {
-    if (!selectedBatchForAction || !selectedDriverId || !reassignReason.trim()) {
+    if (!selectedBatchForAction || !selectedDriverId) {
       showError('Error', 'Missing required information');
       return;
     }
-
-    // Debug logging
-    console.log('🔄 Reassignment Debug:', {
-      batchId: selectedBatchForAction._id,
-      batchNumber: selectedBatchForAction.batchNumber,
-      selectedDriverId: selectedDriverId,
-      selectedDriverIdType: typeof selectedDriverId,
-      reason: reassignReason.trim(),
-      availableDriversCount: availableDrivers.length,
-      selectedDriver: availableDrivers.find(d => d._id === selectedDriverId),
-    });
 
     showConfirm(
       'Confirm Reassignment',
@@ -401,19 +310,11 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
       async () => {
         setIsProcessing(true);
         try {
-          console.log('📤 Sending reassignment request with:', {
-            batchId: selectedBatchForAction._id,
-            newDriverId: selectedDriverId,
-            reason: reassignReason.trim(),
-          });
-
           const response = await orderBatchService.reassignBatch(
             selectedBatchForAction._id,
             selectedDriverId,
-            reassignReason.trim()
+            'Admin reassignment'
           );
-
-          console.log('✅ Reassignment response:', response);
 
           if (response.success) {
             showSuccess(
@@ -422,7 +323,6 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
             );
             setShowReassignModal(false);
             setSelectedBatchForAction(null);
-            setReassignReason('');
             setSelectedDriverId(null);
             setReassignStep(1);
             loadBatches(); // Refresh data
@@ -441,27 +341,26 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
 
   // Submit cancellation
   const submitCancellation = async () => {
-    if (!selectedBatchForAction || !cancelReason.trim() || cancelReason.trim().length < 10) {
-      showWarning('Validation Error', 'Please provide a cancellation reason (minimum 10 characters)');
+    if (!selectedBatchForAction) {
+      showError('Error', 'No batch selected');
       return;
     }
 
     showConfirm(
       'Confirm Cancellation',
-      `Cancel batch ${selectedBatchForAction.batchNumber}?\n\nThis will:\n- Remove driver assignment\n- Return ${selectedBatchForAction.orderCount} orders to READY status\n- Notify driver and customers`,
+      `Cancel batch ${selectedBatchForAction.batchNumber}?\n\nThis will:\n- Cancel all ${selectedBatchForAction.orderCount} orders in this batch\n- Remove driver assignment\n- Notify driver and customers`,
       async () => {
         setIsProcessing(true);
         try {
           const response = await orderBatchService.cancelBatch(
             selectedBatchForAction._id,
-            cancelReason.trim()
+            'Admin cancellation'
           );
 
           if (response.success) {
             showSuccess('Success', `Batch ${selectedBatchForAction.batchNumber} cancelled successfully`);
             setShowCancelDialog(false);
             setSelectedBatchForAction(null);
-            setCancelReason('');
             loadBatches(); // Refresh data
           }
         } catch (error: any) {
@@ -897,116 +796,6 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
     </View>
   );
 
-  const renderOperationsTab = () => (
-    <ScrollView
-      style={styles.tabContent}
-      contentContainerStyle={styles.operationsContent}
-      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-    >
-      {/* Meal Window Selector */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Select Meal Window</Text>
-        <View style={styles.mealWindowSelector}>
-          <TouchableOpacity
-            style={[
-              styles.mealWindowButton,
-              selectedMealWindow === 'LUNCH' && styles.mealWindowButtonActive,
-            ]}
-            onPress={() => setSelectedMealWindow('LUNCH')}
-          >
-            <MaterialIcons
-              name="wb-sunny"
-              size={24}
-              color={selectedMealWindow === 'LUNCH' ? colors.white : colors.warning}
-            />
-            <Text
-              style={[
-                styles.mealWindowButtonText,
-                selectedMealWindow === 'LUNCH' && styles.mealWindowButtonTextActive,
-              ]}
-            >
-              LUNCH
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.mealWindowButton,
-              selectedMealWindow === 'DINNER' && styles.mealWindowButtonActive,
-            ]}
-            onPress={() => setSelectedMealWindow('DINNER')}
-          >
-            <MaterialIcons
-              name="nights-stay"
-              size={24}
-              color={selectedMealWindow === 'DINNER' ? colors.white : colors.info}
-            />
-            <Text
-              style={[
-                styles.mealWindowButtonText,
-                selectedMealWindow === 'DINNER' && styles.mealWindowButtonTextActive,
-              ]}
-            >
-              DINNER
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Auto-Batch Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <MaterialIcons name="auto-awesome" size={24} color={colors.primary} />
-          <Text style={styles.sectionTitle}>Auto-Batch Orders</Text>
-        </View>
-        <Text style={styles.sectionDescription}>
-          Group all READY orders into delivery batches by kitchen, zone, and meal window
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.primaryButton, isAutoBatching && styles.primaryButtonDisabled]}
-          onPress={handleAutoBatch}
-          disabled={isAutoBatching}
-        >
-          {isAutoBatching ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <>
-              <MaterialIcons name="refresh" size={20} color={colors.white} />
-              <Text style={styles.primaryButtonText}>Trigger Auto-Batch</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Dispatch Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <MaterialIcons name="send" size={24} color={colors.info} />
-          <Text style={styles.sectionTitle}>Dispatch Batches</Text>
-        </View>
-        <Text style={styles.sectionDescription}>
-          Make COLLECTING batches available for driver acceptance (after meal window cutoff)
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.secondaryButton, isDispatching && styles.secondaryButtonDisabled]}
-          onPress={handleDispatch}
-          disabled={isDispatching}
-        >
-          {isDispatching ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <>
-              <MaterialIcons name="local-shipping" size={20} color={colors.white} />
-              <Text style={styles.secondaryButtonText}>Dispatch Batches</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-  );
-
   const getStatusColor = (status: string) => {
     const colors_map: Record<string, any> = {
       PLACED: { backgroundColor: '#e0e7ff' },
@@ -1038,7 +827,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
   return (
     <SafeAreaScreen>
       <Header
-        title="Driver Orders & Batch Management"
+        title="Driver Batches & Orders"
         onMenuPress={onMenuPress}
         rightComponent={
           <TouchableOpacity onPress={handleRefresh}>
@@ -1048,38 +837,6 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
       />
 
       <View style={styles.container}>
-
-        {/* Tabs */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'BATCHES' && styles.tabActive]}
-            onPress={() => setActiveTab('BATCHES')}
-          >
-            <MaterialIcons
-              name="local-shipping"
-              size={20}
-              color={activeTab === 'BATCHES' ? colors.primary : colors.textSecondary}
-            />
-            <Text style={[styles.tabText, activeTab === 'BATCHES' && styles.tabTextActive]}>
-              Batches & Orders
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'OPERATIONS' && styles.tabActive]}
-            onPress={() => setActiveTab('OPERATIONS')}
-          >
-            <MaterialIcons
-              name="settings"
-              size={20}
-              color={activeTab === 'OPERATIONS' ? colors.primary : colors.textSecondary}
-            />
-            <Text style={[styles.tabText, activeTab === 'OPERATIONS' && styles.tabTextActive]}>
-              Operations
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Content */}
         {isLoading && !isRefreshing ? (
           <View style={styles.loadingContainer}>
@@ -1087,10 +844,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
             <Text style={styles.loadingText}>Loading...</Text>
           </View>
         ) : (
-          <>
-            {activeTab === 'BATCHES' && renderBatchesTab()}
-            {activeTab === 'OPERATIONS' && renderOperationsTab()}
-          </>
+          renderBatchesTab()
         )}
 
         {/* Reassignment Modal */}
@@ -1105,9 +859,11 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
               {/* Header with Step Indicator */}
               <View style={styles.modalHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.modalTitle}>Reassign Batch - Step {reassignStep}/3</Text>
+                  <Text style={styles.modalTitle} numberOfLines={1}>
+                    {reassignStep === 1 ? 'Select Driver' : 'Confirm Reassignment'}
+                  </Text>
                   <View style={styles.stepIndicator}>
-                    {[1, 2, 3].map((step) => (
+                    {[1, 2].map((step) => (
                       <View
                         key={step}
                         style={[
@@ -1126,74 +882,27 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
               <ScrollView style={styles.modalBody}>
                 {selectedBatchForAction && (
                   <>
-                    {/* Step 1: Enter Reason */}
+                    {/* Step 1: Select Driver */}
                     {reassignStep === 1 && (
                       <>
-                        <View style={styles.modalSection}>
-                          <Text style={styles.modalLabel}>Batch Number</Text>
-                          <Text style={styles.modalValue}>{selectedBatchForAction.batchNumber}</Text>
+                        {/* Batch info summary */}
+                        <View style={styles.batchInfoSummary}>
+                          <View style={styles.batchInfoRow}>
+                            <Text style={styles.batchInfoLabel}>Batch</Text>
+                            <Text style={styles.batchInfoValue}>{selectedBatchForAction.batchNumber}</Text>
+                          </View>
+                          <View style={styles.batchInfoRow}>
+                            <Text style={styles.batchInfoLabel}>Current Driver</Text>
+                            <Text style={styles.batchInfoValue}>
+                              {selectedBatchForAction.driverId?.name || 'Not assigned'}
+                            </Text>
+                          </View>
+                          <View style={styles.batchInfoRow}>
+                            <Text style={styles.batchInfoLabel}>Orders</Text>
+                            <Text style={styles.batchInfoValue}>{selectedBatchForAction.orderCount}</Text>
+                          </View>
                         </View>
 
-                        <View style={styles.modalSection}>
-                          <Text style={styles.modalLabel}>Current Driver</Text>
-                          <Text style={styles.modalValue}>
-                            {selectedBatchForAction.driverId?.name || 'Not assigned'}
-                          </Text>
-                        </View>
-
-                        <View style={styles.modalSection}>
-                          <Text style={styles.modalLabel}>Kitchen & Zone</Text>
-                          <Text style={styles.modalValue}>
-                            {selectedBatchForAction.kitchenId?.name} - {selectedBatchForAction.zoneId?.name}
-                          </Text>
-                        </View>
-
-                        <View style={styles.modalSection}>
-                          <Text style={styles.modalLabel}>Order Count</Text>
-                          <Text style={styles.modalValue}>{selectedBatchForAction.orderCount} orders</Text>
-                        </View>
-
-                        <View style={styles.modalSection}>
-                          <Text style={styles.modalLabelRequired}>Reason for Reassignment *</Text>
-                          <TextInput
-                            style={styles.modalTextArea}
-                            value={reassignReason}
-                            onChangeText={setReassignReason}
-                            placeholder="Enter reason (minimum 10 characters)..."
-                            placeholderTextColor={colors.textMuted}
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                          />
-                          <Text style={styles.characterCount}>
-                            {reassignReason.length} / 10 minimum
-                          </Text>
-                        </View>
-
-                        <View style={styles.quickReasonsContainer}>
-                          <Text style={styles.quickReasonsLabel}>Quick Select:</Text>
-                          {[
-                            'Driver unavailable - personal emergency',
-                            'Vehicle breakdown',
-                            'Driver sick/injured',
-                            'Workload balancing',
-                          ].map((reason, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              style={styles.quickReasonChip}
-                              onPress={() => setReassignReason(reason)}
-                            >
-                              <Text style={styles.quickReasonText}>{reason}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </>
-                    )}
-
-                    {/* Step 2: Select Driver */}
-                    {reassignStep === 2 && (
-                      <>
-                        <Text style={styles.modalSectionTitle}>Select New Driver</Text>
                         <Text style={styles.modalSectionSubtitle}>
                           Choose an available driver for this batch
                         </Text>
@@ -1253,10 +962,9 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
                       </>
                     )}
 
-                    {/* Step 3: Confirmation */}
-                    {reassignStep === 3 && (
+                    {/* Step 2: Confirmation */}
+                    {reassignStep === 2 && (
                       <>
-                        <Text style={styles.modalSectionTitle}>Confirm Reassignment</Text>
                         <Text style={styles.modalSectionSubtitle}>
                           Please review the changes before confirming
                         </Text>
@@ -1284,10 +992,6 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
                               {selectedBatchForAction.orderCount} orders
                             </Text>
                           </View>
-                          <View style={styles.confirmationRow}>
-                            <Text style={styles.confirmationLabel}>Reason:</Text>
-                            <Text style={styles.confirmationValueMultiline}>{reassignReason}</Text>
-                          </View>
                         </View>
 
                         <View style={[styles.warningBox, { backgroundColor: colors.warningLight }]}>
@@ -1304,7 +1008,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
               </ScrollView>
 
               <View style={styles.modalFooter}>
-                {reassignStep > 1 && (
+                {reassignStep === 2 && (
                   <TouchableOpacity style={styles.modalButtonSecondary} onPress={handleReassignBack}>
                     <MaterialIcons name="arrow-back" size={18} color={colors.textSecondary} />
                     <Text style={styles.modalButtonSecondaryText}>Back</Text>
@@ -1316,21 +1020,14 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
                 >
                   <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
                 </TouchableOpacity>
-                {reassignStep < 3 ? (
+                {reassignStep === 1 ? (
                   <TouchableOpacity
                     style={[
                       styles.modalButtonPrimary,
-                      ((reassignStep === 1 && reassignReason.trim().length < 10) ||
-                        (reassignStep === 2 && !selectedDriverId) ||
-                        loadingDrivers) &&
-                        styles.modalButtonDisabled,
+                      (!selectedDriverId || loadingDrivers) && styles.modalButtonDisabled,
                     ]}
                     onPress={handleReassignNext}
-                    disabled={
-                      (reassignStep === 1 && reassignReason.trim().length < 10) ||
-                      (reassignStep === 2 && !selectedDriverId) ||
-                      loadingDrivers
-                    }
+                    disabled={!selectedDriverId || loadingDrivers}
                   >
                     <Text style={styles.modalButtonPrimaryText}>Next</Text>
                     <MaterialIcons name="arrow-forward" size={18} color={colors.white} />
@@ -1346,7 +1043,7 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
                     ) : (
                       <>
                         <MaterialIcons name="check" size={18} color={colors.white} />
-                        <Text style={styles.modalButtonPrimaryText}>Confirm Reassignment</Text>
+                        <Text style={styles.modalButtonPrimaryText}>Confirm</Text>
                       </>
                     )}
                   </TouchableOpacity>
@@ -1381,71 +1078,37 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
               <ScrollView style={styles.modalBody}>
                 {selectedBatchForAction && (
                   <>
-                    <View style={styles.modalSection}>
-                      <Text style={styles.modalLabel}>Batch Number</Text>
-                      <Text style={styles.modalValue}>{selectedBatchForAction.batchNumber}</Text>
-                    </View>
-
-                    <View style={styles.modalSection}>
-                      <Text style={styles.modalLabel}>Kitchen & Zone</Text>
-                      <Text style={styles.modalValue}>
-                        {selectedBatchForAction.kitchenId?.name} - {selectedBatchForAction.zoneId?.name}
-                      </Text>
-                    </View>
-
-                    <View style={styles.modalSection}>
-                      <Text style={styles.modalLabel}>Driver</Text>
-                      <Text style={styles.modalValue}>
-                        {selectedBatchForAction.driverId?.name || 'Not assigned'}
-                      </Text>
-                    </View>
-
-                    <View style={styles.modalSection}>
-                      <Text style={styles.modalLabel}>Orders Affected</Text>
-                      <Text style={styles.modalValue}>{selectedBatchForAction.orderCount} orders</Text>
+                    <View style={styles.batchInfoSummary}>
+                      <View style={styles.batchInfoRow}>
+                        <Text style={styles.batchInfoLabel}>Batch</Text>
+                        <Text style={styles.batchInfoValue}>{selectedBatchForAction.batchNumber}</Text>
+                      </View>
+                      <View style={styles.batchInfoRow}>
+                        <Text style={styles.batchInfoLabel}>Kitchen & Zone</Text>
+                        <Text style={styles.batchInfoValue}>
+                          {selectedBatchForAction.kitchenId?.name} - {selectedBatchForAction.zoneId?.name}
+                        </Text>
+                      </View>
+                      <View style={styles.batchInfoRow}>
+                        <Text style={styles.batchInfoLabel}>Driver</Text>
+                        <Text style={styles.batchInfoValue}>
+                          {selectedBatchForAction.driverId?.name || 'Not assigned'}
+                        </Text>
+                      </View>
+                      <View style={styles.batchInfoRow}>
+                        <Text style={styles.batchInfoLabel}>Orders Affected</Text>
+                        <Text style={[styles.batchInfoValue, { color: colors.error }]}>
+                          {selectedBatchForAction.orderCount} orders
+                        </Text>
+                      </View>
                     </View>
 
                     <View style={[styles.warningBox, { backgroundColor: colors.errorLight }]}>
                       <MaterialIcons name="info" size={20} color={colors.error} />
                       <Text style={styles.warningText}>
-                        Canceling this batch will remove driver assignment, return orders to READY status,
+                        Canceling this batch will cancel all orders, remove driver assignment,
                         and notify all parties. This action cannot be undone.
                       </Text>
-                    </View>
-
-                    <View style={styles.modalSection}>
-                      <Text style={styles.modalLabelRequired}>Cancellation Reason *</Text>
-                      <TextInput
-                        style={styles.modalTextArea}
-                        value={cancelReason}
-                        onChangeText={setCancelReason}
-                        placeholder="Enter cancellation reason (minimum 10 characters)..."
-                        placeholderTextColor={colors.textMuted}
-                        multiline
-                        numberOfLines={4}
-                        textAlignVertical="top"
-                      />
-                      <Text style={styles.characterCount}>
-                        {cancelReason.length} / 10 minimum
-                      </Text>
-                    </View>
-
-                    <View style={styles.quickReasonsContainer}>
-                      <Text style={styles.quickReasonsLabel}>Quick Select:</Text>
-                      {[
-                        'Kitchen closed unexpectedly',
-                        'Weather emergency',
-                        'No drivers available',
-                        'Zone delivery suspended',
-                      ].map((reason, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={styles.quickReasonChip}
-                          onPress={() => setCancelReason(reason)}
-                        >
-                          <Text style={styles.quickReasonText}>{reason}</Text>
-                        </TouchableOpacity>
-                      ))}
                     </View>
                   </>
                 )}
@@ -1461,15 +1124,15 @@ export const DriverOrdersBatchesScreen: React.FC<DriverOrdersBatchesScreenProps>
                 <TouchableOpacity
                   style={[
                     styles.modalButtonDanger,
-                    (cancelReason.trim().length < 10 || isProcessing) && styles.modalButtonDisabled,
+                    isProcessing && styles.modalButtonDisabled,
                   ]}
                   onPress={submitCancellation}
-                  disabled={cancelReason.trim().length < 10 || isProcessing}
+                  disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <ActivityIndicator size="small" color={colors.white} />
                   ) : (
-                    <Text style={styles.modalButtonPrimaryText}>Confirm Cancellation</Text>
+                    <Text style={styles.modalButtonPrimaryText}>Cancel Batch</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -1485,33 +1148,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    gap: 6,
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  tabTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
@@ -1674,100 +1310,6 @@ const styles = StyleSheet.create({
   paginationText: {
     fontSize: 14,
     color: colors.textSecondary,
-  },
-  operationsContent: {
-    padding: 16,
-    gap: 24,
-  },
-  section: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginBottom: 16,
-    lineHeight: 18,
-  },
-  mealWindowSelector: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  mealWindowButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.border,
-    gap: 8,
-  },
-  mealWindowButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  mealWindowButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  mealWindowButtonTextActive: {
-    color: colors.white,
-  },
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 8,
-    gap: 8,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.white,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.info,
-    paddingVertical: 14,
-    borderRadius: 8,
-    gap: 8,
-  },
-  secondaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  secondaryButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.white,
   },
   batchTitleRow: {
     flexDirection: 'row',
@@ -1969,10 +1511,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.textPrimary,
-    flex: 1,
   },
   modalBody: {
     padding: 20,
@@ -1992,6 +1533,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: 6,
+  },
+  batchInfoSummary: {
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  batchInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  batchInfoLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+    width: 110,
+  },
+  batchInfoValue: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'right',
   },
   modalValue: {
     fontSize: 15,

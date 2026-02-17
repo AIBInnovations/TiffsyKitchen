@@ -100,6 +100,38 @@ export interface AdminPushResponse {
   data: {
     targetType: string;
     usersNotified: number;
+    sentCount?: number;
+  };
+}
+
+export interface RecipientCountResponse {
+  success: boolean;
+  data: {
+    count: number;
+  };
+}
+
+export interface BroadcastNotification {
+  _id: string;
+  title: string;
+  body: string;
+  targetType: string;
+  targetRole?: string;
+  recipientCount: number;
+  sentByName: string;
+  createdAt: string;
+}
+
+export interface NotificationHistoryResponse {
+  success: boolean;
+  data: {
+    broadcasts: BroadcastNotification[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
   };
 }
 
@@ -179,6 +211,43 @@ class NotificationService {
    */
   async sendAdminPush(payload: AdminPushPayload): Promise<AdminPushResponse> {
     return apiService.post<AdminPushResponse>('/api/admin/push-notification', payload);
+  }
+
+  /**
+   * Get recipient count for a notification target (Admin only)
+   */
+  async getRecipientCount(
+    targetType: string,
+    targetRole?: string
+  ): Promise<RecipientCountResponse> {
+    const params = new URLSearchParams({ targetType });
+    if (targetRole) {
+      params.append('targetRole', targetRole);
+    }
+    return apiService.get<RecipientCountResponse>(
+      `/api/admin/notifications/recipient-count?${params.toString()}`
+    );
+  }
+
+  /**
+   * Get notification broadcast history (Admin only)
+   */
+  async getNotificationHistory(params: {
+    page?: number;
+    limit?: number;
+    targetType?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<NotificationHistoryResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.append('page', (params.page || 1).toString());
+    searchParams.append('limit', (params.limit || 20).toString());
+    if (params.targetType) searchParams.append('targetType', params.targetType);
+    if (params.dateFrom) searchParams.append('dateFrom', params.dateFrom);
+    if (params.dateTo) searchParams.append('dateTo', params.dateTo);
+    return apiService.get<NotificationHistoryResponse>(
+      `/api/admin/notifications/history?${searchParams.toString()}`
+    );
   }
 }
 

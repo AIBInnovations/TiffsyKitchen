@@ -13,7 +13,7 @@ export const MenuHeader: React.FC<MenuHeaderProps> = ({ onMenuPress }) => {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
       <View style={styles.container}>
         <View style={[styles.titleRow, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>

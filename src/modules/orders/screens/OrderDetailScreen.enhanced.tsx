@@ -146,6 +146,7 @@ export const OrderDetailScreenEnhanced: React.FC<OrderDetailScreenProps> = ({
   const getStatusColor = (status: OrderStatus): string => {
     const statusColors: Record<OrderStatus, string> = {
       PLACED: '#3b82f6',
+      SCHEDULED: '#6366f1',
       ACCEPTED: '#10b981',
       REJECTED: '#ef4444',
       PREPARING: '#f59e0b',

@@ -8,9 +8,8 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { adminUsersService } from '../../../services/admin-users.service';
 import { vouchersService } from '../../../services/vouchers.service';
@@ -19,7 +18,7 @@ import { UserCard } from '../components/UserCard';
 import { useAlert } from '../../../hooks/useAlert';
 
 const colors = {
-  primary: '#FF6B35',
+  primary: '#F56B4C',
   success: '#10b981',
   gray: '#6b7280',
   lightGray: '#f3f4f6',
@@ -50,7 +49,6 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
   onCreateUserPress,
 }) => {
   const { showError } = useAlert();
-  const insets = useSafeAreaInsets();
   const [users, setUsers] = useState<(User & { availableVouchers?: number; hasActiveSubscription?: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -282,9 +280,8 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor={colors.lightGray} backgroundColor={colors.lightGray}>
+        <View style={[styles.header, {paddingTop: 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcons name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -295,17 +292,16 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading users...</Text>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   const canAddUser = activeRoleTab !== 'ALL' && activeRoleTab !== 'CUSTOMER';
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor={colors.lightGray} backgroundColor={colors.lightGray}>
       {/* Header */}
-      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <View style={[styles.header, {paddingTop: 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -406,7 +402,7 @@ export const UsersManagementScreen: React.FC<UsersManagementScreenProps> = ({
           ListEmptyComponent={renderEmptyState}
         />
       )}
-    </View>
+    </SafeAreaScreen>
   );
 };
 

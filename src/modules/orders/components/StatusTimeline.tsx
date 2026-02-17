@@ -57,6 +57,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({
   const getStatusColor = (status: OrderStatus): string => {
     const colors: Record<OrderStatus, string> = {
       PLACED: '#007AFF',
+      SCHEDULED: '#6366f1',
       ACCEPTED: '#00C7BE',
       REJECTED: '#FF3B30',
       PREPARING: '#FFCC00',
@@ -73,6 +74,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({
   const formatStatusText = (status: OrderStatus): string => {
     const formatted: Record<OrderStatus, string> = {
       PLACED: 'Placed',
+      SCHEDULED: 'Scheduled',
       ACCEPTED: 'Accepted',
       PREPARING: 'Preparing',
       READY: 'Ready',
@@ -186,6 +188,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({
         const getStatusIcon = (st: OrderStatus): string => {
           const icons: Record<OrderStatus, string> = {
             PLACED: 'receipt',
+            SCHEDULED: 'event',
             ACCEPTED: 'check-circle',
             PREPARING: 'restaurant',
             READY: 'done-all',

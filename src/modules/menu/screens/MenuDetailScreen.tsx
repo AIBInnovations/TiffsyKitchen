@@ -8,10 +8,9 @@ import {
   TouchableOpacity,
   Switch,
   ActivityIndicator,
-  StatusBar,
   Alert,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAlert } from '../../../hooks/useAlert';
 import { menuManagementService } from '../../../services/menu-management.service';
@@ -44,7 +43,6 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
   userRole,
 }) => {
   const { showSuccess, showError, showWarning, showConfirm } = useAlert();
-  const insets = useSafeAreaInsets();
   const isEditMode = !!itemId;
 
   const [loading, setLoading] = useState(isEditMode);
@@ -248,9 +246,8 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" animated={true} />
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
+      <View style={[styles.header, { paddingTop: 8 }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -532,7 +529,7 @@ export const MenuDetailScreen: React.FC<MenuDetailScreenProps> = ({
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

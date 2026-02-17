@@ -69,3 +69,134 @@ export interface DriverEarnings {
   tips: number;
   bonuses: number;
 }
+
+// ─── Batch & Delivery Management Types ───
+
+export type BatchStatus =
+  | 'COLLECTING'
+  | 'READY_FOR_DISPATCH'
+  | 'DISPATCHED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'PARTIAL_COMPLETE'
+  | 'CANCELLED';
+
+export type AssignmentMode = 'SELF_ACCEPT' | 'AUTO_ASSIGNMENT' | 'SMART_BROADCAST' | 'MANUAL';
+
+export interface Batch {
+  _id: string;
+  batchNumber: string;
+  status: BatchStatus;
+  kitchenId: { _id: string; name: string };
+  zoneId: { _id: string; name: string };
+  mealWindow: 'LUNCH' | 'DINNER';
+  batchDate: string;
+  orderIds: string[];
+  driverId: { _id: string; name: string; phone: string } | null;
+  driverAssignedAt: string | null;
+  routeOptimization: {
+    algorithm: string;
+    totalDistanceMeters: number;
+    totalDurationSeconds: number;
+    improvementPercent: number;
+    optimizedAt: string;
+    fifoDistanceMeters: number;
+  } | null;
+  optimizedSequence: Array<{
+    orderId: string;
+    sequenceNumber: number;
+    estimatedArrival: string;
+    estimatedDurationFromPrevSeconds: number;
+    distanceFromPrevMeters: number;
+    coordinates: { latitude: number; longitude: number };
+  }>;
+  assignmentStrategy: {
+    mode: AssignmentMode;
+    assignedScore: number;
+    broadcastedTo: Array<{
+      driverId: string;
+      broadcastedAt: string;
+      respondedAt: string | null;
+      response: 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
+      score: number;
+    }>;
+    manualAssignedBy: string | null;
+    manualAssignmentReason: string | null;
+  };
+  windowEndTime: string;
+  dispatchedAt: string | null;
+  pickedUpAt: string | null;
+  completedAt: string | null;
+  totalDelivered: number;
+  totalFailed: number;
+  createdAt: string;
+}
+
+export interface BatchTracking {
+  batchId: string;
+  batchNumber: string;
+  batchStatus: string;
+  kitchenId: string;
+  driver: {
+    driverId: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    updatedAt: string;
+    driverStatus: string;
+  } | null;
+  routeOptimization: {
+    algorithm: string;
+    totalDistanceMeters: number;
+    totalDurationSeconds: number;
+    improvementPercent: number;
+    optimizedAt: string;
+  } | null;
+  totalOrders: number;
+  deliveredCount: number;
+  failedCount: number;
+  deliveries: Array<{
+    orderId: string;
+    orderNumber: string;
+    orderStatus: string;
+    deliveryStatus: string | null;
+    coordinates: { latitude: number; longitude: number } | null;
+    distanceFromDriverMeters: number | null;
+    etaSeconds: number | null;
+    etaStatus: 'EARLY' | 'ON_TIME' | 'LATE' | 'CRITICAL' | null;
+    sequence: {
+      sequenceNumber: number;
+      totalInBatch: number;
+      source: 'OPTIMIZED' | 'MANUAL';
+    } | null;
+  }>;
+}
+
+export interface RoutePlanningConfig {
+  enabled: boolean;
+  useOsrm: boolean;
+  osrmServerUrl: string;
+  clusteringEpsilonMeters: number;
+  maxOrdersPerBatch: number;
+  optimizationAlgorithm: 'auto' | 'brute_force' | 'two_opt' | 'nearest_neighbor';
+  etaRecalcIntervalSeconds: number;
+  haversineRoadFactor: number;
+  osrmTimeoutMs: number;
+  cacheExpiryMinutes: number;
+}
+
+export interface DriverAssignmentConfig {
+  enabled: boolean;
+  mode: AssignmentMode;
+  broadcastDriverCount: number;
+  broadcastTimeoutSeconds: number;
+  scoringWeights: {
+    proximity: number;
+    completionRate: number;
+    activeLoad: number;
+    recency: number;
+  };
+  maxDriverSearchRadiusMeters: number;
+  autoReassignOnTimeout: boolean;
+  manualAssignmentEnabled: boolean;
+}

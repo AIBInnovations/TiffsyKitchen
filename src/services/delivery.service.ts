@@ -130,6 +130,7 @@ class DeliveryService {
   async getMyKitchenBatches(params?: {
     status?: string;
     mealWindow?: 'LUNCH' | 'DINNER';
+    date?: string;
     dateFrom?: string;
     dateTo?: string;
     page?: number;
@@ -139,6 +140,12 @@ class DeliveryService {
     message: string;
     data: {
       batches: any[];
+      summary?: {
+        collecting: number;
+        dispatched: number;
+        inProgress: number;
+        completed: number;
+      };
       pagination: {
         page: number;
         limit: number;
@@ -148,9 +155,16 @@ class DeliveryService {
     };
     error: null;
   }> {
+    const queryParams = { ...params };
+    // Convert single date to dateFrom/dateTo range
+    if (queryParams?.date && !queryParams.dateFrom && !queryParams.dateTo) {
+      queryParams.dateFrom = queryParams.date;
+      queryParams.dateTo = queryParams.date;
+      delete queryParams.date;
+    }
     const query = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
+    if (queryParams) {
+      Object.entries(queryParams).forEach(([key, value]) => {
         if (value !== undefined) {
           query.append(key, value.toString());
         }
@@ -326,9 +340,88 @@ class DeliveryService {
     data: {
       batch: any;
       orders: any[];
+      assignments?: any[];
     };
   }> {
     return apiService.get(`/api/delivery/batches/${batchId}`);
+  }
+
+  /**
+   * Get live tracking data for a batch
+   */
+  async getBatchTracking(batchId: string): Promise<{
+    success: boolean;
+    data: any;
+  }> {
+    return apiService.get(`/api/delivery/batches/${batchId}/tracking`);
+  }
+
+  /**
+   * Send kitchen reminder about pending orders
+   */
+  async sendKitchenReminder(data: {
+    mealWindow?: 'LUNCH' | 'DINNER';
+    kitchenId?: string;
+  }): Promise<{
+    success: boolean;
+    data: {
+      kitchensNotified: number;
+      details: Array<{
+        kitchenId: string;
+        kitchenName: string;
+        orderCount: number;
+        staffNotified: number;
+      }>;
+    };
+  }> {
+    return apiService.post('/api/delivery/kitchen-reminder', data);
+  }
+
+  /**
+   * Reassign a batch to a different driver
+   */
+  async reassignBatchDriver(batchId: string, data: {
+    driverId: string;
+    reason: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: { batch: any };
+  }> {
+    return apiService.patch(`/api/delivery/batches/${batchId}/reassign`, data);
+  }
+
+  /**
+   * Admin dispatch a batch to a specific driver (one-step)
+   * Works for COLLECTING or READY_FOR_DISPATCH batches
+   */
+  async dispatchBatchToDriver(batchId: string, data: {
+    driverId: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: { batch: any; orders: any[]; pickupAddress: any };
+  }> {
+    return apiService.patch(`/api/delivery/batches/${batchId}/dispatch-to-driver`, data);
+  }
+
+  /**
+   * Cancel a batch
+   */
+  async cancelBatch(batchId: string, data: {
+    reason: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return apiService.patch(`/api/delivery/batches/${batchId}/cancel`, data);
+  }
+
+  /**
+   * Get available drivers for reassignment
+   */
+  async getAvailableDrivers(): Promise<any> {
+    return apiService.get('/api/admin/users?role=DRIVER&status=ACTIVE');
   }
 }
 

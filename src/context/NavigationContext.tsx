@@ -27,7 +27,16 @@ export type ScreenName =
   | 'Notifications'
   | 'SendMenuAnnouncement'
   | 'SendBatchReminder'
-  | 'SendPushNotification';
+  | 'SendPushNotification'
+  | 'DeliverySettingsHub'
+  | 'RoutePlanningConfig'
+  | 'DriverAssignmentConfig'
+  | 'DeliveryActions'
+  | 'DeliveryManagement'
+  | 'BatchMonitoring'
+  | 'BatchDetail'
+  | 'DeliveryStats'
+  | 'CronManagement';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,9 @@ import { Header } from '../../../components/common/Header';
 import { kitchenStaffService } from '../../../services/kitchen-staff.service';
 import { useInAppNotifications } from '../../../context/InAppNotificationContext';
 import { useNavigation } from '../../../context/NavigationContext';
+import KitchenOrdersScreen from '../../orders/screens/KitchenOrdersScreen';
+import { MenuManagementExample } from '../../menu/MenuManagementExample';
+import { BatchManagementTab } from '../../kitchen/components/BatchManagementTab';
 
 interface KitchenDashboardScreenProps {
   onMenuPress: () => void;
@@ -42,6 +45,7 @@ export const KitchenDashboardScreen: React.FC<KitchenDashboardScreenProps> = ({
 }) => {
   const { unreadCount } = useInAppNotifications();
   const { navigate } = useNavigation();
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
 
   const handleNotificationPress = () => {
     navigate('Notifications');
@@ -67,9 +71,46 @@ export const KitchenDashboardScreen: React.FC<KitchenDashboardScreenProps> = ({
         }
       />
 
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabBarContent}
+        >
+          {TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[
+                styles.tab,
+                activeTab === tab.id && styles.tabActive,
+              ]}
+              onPress={() => setActiveTab(tab.id)}
+            >
+              <MaterialIcons
+                name={tab.icon}
+                size={20}
+                color={activeTab === tab.id ? colors.primary : colors.gray600}
+              />
+              <Text
+                style={[
+                  styles.tabLabel,
+                  activeTab === tab.id && styles.tabLabelActive,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       <View style={styles.container}>
-        {/* Dashboard Content */}
-        <OverviewTab />
+        {activeTab === 'overview' && <OverviewTab />}
+        {activeTab === 'orders' && <OrdersTab />}
+        {activeTab === 'menu' && <MenuTab />}
+        {activeTab === 'batches' && <BatchesTab />}
+        {activeTab === 'profile' && <ProfileTab />}
       </View>
     </SafeAreaScreen>
   );
@@ -243,59 +284,38 @@ const OverviewTab: React.FC = () => {
 
 // Orders Tab Component
 const OrdersTab: React.FC = () => {
-  // This is a placeholder - ideally we'd integrate KitchenOrdersScreen here
-  // For now, we'll show a simple message
-  return (
-    <View style={styles.tabPlaceholder}>
-      <MaterialIcons name="receipt-long" size={64} color={colors.gray400} />
-      <Text style={styles.tabPlaceholderTitle}>Orders Management</Text>
-      <Text style={styles.tabPlaceholderText}>
-        View and manage your kitchen orders here.{'\n\n'}
-        This tab will integrate with the existing KitchenOrdersScreen to show:
-        {'\n'}• Pending orders to accept
-        {'\n'}• Orders in preparation
-        {'\n'}• Ready for pickup orders
-        {'\n'}• Order history
-      </Text>
-    </View>
-  );
+  return <KitchenOrdersScreen />;
 };
 
 // Menu Tab Component
-const MenuTab: React.FC<{ onMenuPress: () => void }> = ({ onMenuPress }) => {
-  // This is a placeholder - ideally we'd integrate MenuManagementMain here
+const MenuTab: React.FC = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ['myKitchenStatus'],
+    queryFn: () => kitchenStaffService.getMyKitchenStatus(),
+  });
+
+  const kitchenId = data?.data?.kitchen?._id;
+
+  if (isLoading || !kitchenId) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Loading kitchen info...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.tabPlaceholder}>
-      <MaterialIcons name="restaurant-menu" size={64} color={colors.gray400} />
-      <Text style={styles.tabPlaceholderTitle}>Menu Management</Text>
-      <Text style={styles.tabPlaceholderText}>
-        Manage your kitchen menu items here.{'\n\n'}
-        This tab will integrate with the existing MenuManagementMain to show:
-        {'\n'}• Add/Edit menu items
-        {'\n'}• Toggle item availability
-        {'\n'}• Set prices and addons
-        {'\n'}• Meal menu vs On-demand items
-      </Text>
-    </View>
+    <MenuManagementExample
+      kitchenId={kitchenId}
+      userRole="KITCHEN_STAFF"
+    />
   );
 };
 
 // Batches Tab Component
 const BatchesTab: React.FC = () => {
-  return (
-    <View style={styles.tabPlaceholder}>
-      <MaterialIcons name="local-shipping" size={64} color={colors.gray400} />
-      <Text style={styles.tabPlaceholderTitle}>Batch Management</Text>
-      <Text style={styles.tabPlaceholderText}>
-        View delivery batches for your kitchen.{'\n\n'}
-        Features:
-        {'\n'}• View batches by meal window
-        {'\n'}• Track batch status
-        {'\n'}• See assigned drivers
-        {'\n'}• Monitor delivery progress
-      </Text>
-    </View>
-  );
+  return <BatchManagementTab />;
 };
 
 // Profile Tab Component
@@ -496,24 +516,34 @@ const styles = StyleSheet.create({
   tabScrollContent: {
     padding: 16,
   },
-  tabPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
+  tabBar: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  tabBarContent: {
+    paddingHorizontal: 12,
+  },
+  tab: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 32,
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  tabPlaceholderTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.gray900,
-    marginTop: 16,
-    marginBottom: 8,
+  tabActive: {
+    borderBottomColor: colors.primary,
   },
-  tabPlaceholderText: {
-    fontSize: 14,
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '500',
     color: colors.gray600,
-    textAlign: 'center',
-    lineHeight: 22,
+  },
+  tabLabelActive: {
+    fontWeight: '600',
+    color: colors.primary,
   },
   welcomeSection: {
     marginBottom: 24,

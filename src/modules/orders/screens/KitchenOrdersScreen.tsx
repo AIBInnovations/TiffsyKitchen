@@ -12,7 +12,7 @@ import {
   Modal,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
@@ -49,7 +49,6 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   onMenuPress,
   navigation,
 }) => {
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL' | 'AUTO_ORDERS'>('ALL');
@@ -371,12 +370,14 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
-
+    <SafeAreaScreen
+      topBackgroundColor="#F56B4C"
+      bottomBackgroundColor="#f9fafb"
+      backgroundColor="#f9fafb"
+    >
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={[styles.header, { paddingTop: 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -610,7 +611,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -13,6 +13,7 @@ import {Order, OrderStatus, MenuType} from '../../../types/api.types';
 import {formatDistanceToNow} from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AutoAcceptBadge from './AutoAcceptBadge';
+import {OrderSourceBadge} from './OrderSourceBadge';
 
 interface OrderCardAdminImprovedProps {
   order: Order;
@@ -24,6 +25,7 @@ interface OrderCardAdminImprovedProps {
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
     PLACED: '#007AFF',
+    SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
     REJECTED: '#FF3B30',
     PREPARING: '#FFCC00',
@@ -40,6 +42,7 @@ const getStatusColor = (status: OrderStatus): string => {
 const getStatusIcon = (status: OrderStatus): string => {
   const icons: Record<OrderStatus, string> = {
     PLACED: 'receipt',
+    SCHEDULED: 'event',
     ACCEPTED: 'check-circle',
     PREPARING: 'restaurant',
     READY: 'done-all',
@@ -56,6 +59,7 @@ const getStatusIcon = (status: OrderStatus): string => {
 const formatStatusText = (status: OrderStatus): string => {
   const formatted: Record<OrderStatus, string> = {
     PLACED: 'Placed',
+    SCHEDULED: 'Scheduled',
     ACCEPTED: 'Accepted',
     PREPARING: 'Preparing',
     READY: 'Ready',
@@ -87,6 +91,7 @@ const formatTimeAgo = (date: string): string => {
 const getQuickStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
   const statusFlow: Record<OrderStatus, OrderStatus[]> = {
     PLACED: ['ACCEPTED', 'REJECTED'],
+    SCHEDULED: [], // Managed by cron, not manually changeable
     ACCEPTED: ['READY'],
     REJECTED: [], // Terminal - cannot change
     PREPARING: ['READY'], // Fallback: PREPARING not accepted by backend
@@ -216,8 +221,75 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
           </Text>
         </View>
 
+        {/* Items Summary */}
+        {order.items && order.items.length > 0 && (
+          <View style={styles.itemsSummary}>
+            <Icon name="fastfood" size={14} color="#6b7280" style={styles.compactIcon} />
+            <Text style={styles.itemsSummaryText} numberOfLines={2}>
+              {order.items.map(item => `${item.name} x${item.quantity}`).join(', ')}
+            </Text>
+          </View>
+        )}
+
+        {/* Delivery Address */}
+        {order.deliveryAddress && (
+          <View style={styles.compactInfoRow}>
+            <Icon name="location-on" size={16} color="#6b7280" style={styles.compactIcon} />
+            <Text style={styles.compactText} numberOfLines={2}>
+              {[
+                order.deliveryAddress.addressLine1,
+                order.deliveryAddress.locality,
+                order.deliveryAddress.pincode,
+              ].filter(Boolean).join(', ')}
+            </Text>
+          </View>
+        )}
+
+        {/* Zone Info */}
+        {order.zoneId && typeof order.zoneId === 'object' && (
+          <View style={styles.compactInfoRow}>
+            <Icon name="map" size={16} color="#6b7280" style={styles.compactIcon} />
+            <Text style={styles.compactText} numberOfLines={1}>
+              {order.zoneId.name} - {order.zoneId.pincode}
+            </Text>
+          </View>
+        )}
+
+        {/* Estimated Delivery Time */}
+        {order.estimatedDeliveryTime && (
+          <View style={styles.compactInfoRow}>
+            <Icon name="schedule" size={16} color="#6b7280" style={styles.compactIcon} />
+            <Text style={styles.compactText} numberOfLines={1}>
+              ETA: {new Date(order.estimatedDeliveryTime).toLocaleString('en-IN', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+              })}
+            </Text>
+          </View>
+        )}
+
+        {/* Special Instructions */}
+        {order.specialInstructions && (
+          <View style={styles.specialInstructionsRow}>
+            <Icon name="note" size={14} color="#d97706" style={styles.compactIcon} />
+            <Text style={styles.specialInstructionsText} numberOfLines={2}>
+              {order.specialInstructions}
+            </Text>
+          </View>
+        )}
+
+        {/* Cancellation Info */}
+        {order.status === 'CANCELLED' && order.cancellationReason && (
+          <View style={styles.cancellationRow}>
+            <Icon name="info" size={14} color="#dc2626" style={styles.compactIcon} />
+            <Text style={styles.cancellationText} numberOfLines={2}>
+              {order.cancelledBy ? `By ${order.cancelledBy}: ` : ''}{order.cancellationReason}
+            </Text>
+          </View>
+        )}
+
         {/* Tags Row */}
         <View style={styles.tagsRow}>
+          <OrderSourceBadge orderSource={order.orderSource} />
           <View
             style={[
               styles.tag,
@@ -243,6 +315,29 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
             </View>
           )}
 
+          {/* Payment Status Tag */}
+          {order.paymentStatus && (
+            <View style={[styles.tag, {
+              borderColor: order.paymentStatus === 'PAID' ? '#16a34a' : order.paymentStatus === 'FAILED' ? '#dc2626' : '#d97706',
+              backgroundColor: order.paymentStatus === 'PAID' ? '#dcfce7' : order.paymentStatus === 'FAILED' ? '#fef2f2' : '#fefce8',
+            }]}>
+              <Text style={[styles.tagText, {
+                color: order.paymentStatus === 'PAID' ? '#16a34a' : order.paymentStatus === 'FAILED' ? '#dc2626' : '#d97706',
+              }]}>
+                {order.paymentStatus}
+              </Text>
+            </View>
+          )}
+
+          {/* Payment Method Tag */}
+          {order.paymentMethod && (
+            <View style={[styles.tag, { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }]}>
+              <Text style={[styles.tagText, { color: '#6b7280' }]}>
+                {order.paymentMethod}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.itemCountBadge}>
             <Text style={styles.itemCountText} numberOfLines={1}>
               {order.itemCount || order.items?.length || 0} items
@@ -258,13 +353,24 @@ const OrderCardAdminImproved: React.FC<OrderCardAdminImprovedProps> = ({
               ₹{(order.grandTotal || 0).toFixed(2)}
             </Text>
           </View>
-          {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
-            <View style={styles.voucherBadge}>
-              <Text style={styles.voucherText} numberOfLines={1}>
-                {order.voucherUsage.voucherCount}V
-              </Text>
-            </View>
-          )}
+          <View style={styles.footerRight}>
+            {order.discount && order.discount.discountAmount > 0 && (
+              <View style={styles.discountBadge}>
+                <Icon name="local-offer" size={10} color="#16a34a" />
+                <Text style={styles.discountText} numberOfLines={1}>
+                  -{'\u20B9'}{order.discount.discountAmount.toFixed(0)}
+                  {order.discount.couponCode ? ` (${order.discount.couponCode})` : ''}
+                </Text>
+              </View>
+            )}
+            {order.voucherUsage && order.voucherUsage.voucherCount > 0 && (
+              <View style={styles.voucherBadge}>
+                <Text style={styles.voucherText} numberOfLines={1}>
+                  {order.voucherUsage.voucherCount}V
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -443,6 +549,54 @@ const styles = StyleSheet.create({
     padding: 4,
     marginLeft: 4,
   },
+  itemsSummary: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    paddingVertical: 1,
+  },
+  itemsSummaryText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#6b7280',
+    lineHeight: 17,
+    fontStyle: 'italic',
+  },
+  specialInstructionsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    backgroundColor: '#fffbeb',
+    padding: 8,
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#d97706',
+  },
+  specialInstructionsText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#92400e',
+    lineHeight: 17,
+  },
+  cancellationRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    backgroundColor: '#fef2f2',
+    padding: 8,
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#dc2626',
+  },
+  cancellationText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#991b1b',
+    lineHeight: 17,
+  },
   tagsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -513,6 +667,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     letterSpacing: -0.5,
+  },
+  footerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
+  },
+  discountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#16a34a',
+    gap: 3,
+  },
+  discountText: {
+    fontSize: 10,
+    color: '#16a34a',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   voucherBadge: {
     backgroundColor: '#d1fae5',

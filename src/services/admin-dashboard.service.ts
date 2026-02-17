@@ -1,4 +1,4 @@
-import enhancedApiService from './api.enhanced.service';
+import { apiService as enhancedApiService } from './api.enhanced.service';
 
 export interface DashboardOverview {
   totalOrders: number;
@@ -157,9 +157,52 @@ export interface SystemConfig {
     rate: number;
     enabled: boolean;
   }>;
+  autoOrder?: {
+    lunchCronTime: string;
+    dinnerCronTime: string;
+    enabled: boolean;
+    autoAcceptOrders: boolean;
+    addonPaymentWindowMinutes: number;
+  };
+  scheduledMeals?: {
+    enabled: boolean;
+    maxScheduledMeals: number;
+    maxScheduleDaysAhead: number;
+  };
   refund: {
     maxRetries: number;
     autoProcessDelay: number;
+  };
+  branding?: {
+    tiffsyLabel: string;
+    badges: string[];
+  };
+  routePlanning?: {
+    enabled: boolean;
+    useOsrm: boolean;
+    osrmServerUrl: string;
+    clusteringEpsilonMeters: number;
+    maxOrdersPerBatch: number;
+    optimizationAlgorithm: string;
+    etaRecalcIntervalSeconds: number;
+    haversineRoadFactor: number;
+    osrmTimeoutMs: number;
+    cacheExpiryMinutes: number;
+  };
+  driverAssignment?: {
+    enabled: boolean;
+    mode: string;
+    broadcastDriverCount: number;
+    broadcastTimeoutSeconds: number;
+    scoringWeights: {
+      proximity: number;
+      completionRate: number;
+      activeLoad: number;
+      recency: number;
+    };
+    maxDriverSearchRadiusMeters: number;
+    autoReassignOnTimeout: boolean;
+    manualAssignmentEnabled: boolean;
   };
 }
 
@@ -289,16 +332,39 @@ class AdminDashboardService {
    * Get system configuration
    */
   async getSystemConfig(): Promise<SystemConfig> {
-    const response = await enhancedApiService.get<{ data: { config: SystemConfig } }>('/api/admin/config');
-    return response.data.config;
+    console.log('[AdminDashboardService] getSystemConfig called');
+    try {
+      const response = await enhancedApiService.get<{ config: SystemConfig }>('/api/admin/config');
+      console.log('[AdminDashboardService] getSystemConfig raw response:', JSON.stringify(response, null, 2));
+      console.log('[AdminDashboardService] response.data:', JSON.stringify(response.data, null, 2));
+      const config = response.data?.config;
+      console.log('[AdminDashboardService] extracted config:', JSON.stringify(config, null, 2));
+      console.log('[AdminDashboardService] routePlanning:', JSON.stringify(config?.routePlanning, null, 2));
+      return config;
+    } catch (error: any) {
+      console.error('[AdminDashboardService] getSystemConfig ERROR:', error);
+      console.error('[AdminDashboardService] error message:', error?.message);
+      throw error;
+    }
   }
 
   /**
    * Update system configuration
    */
   async updateSystemConfig(config: Partial<SystemConfig>): Promise<SystemConfig> {
-    const response = await enhancedApiService.put<{ data: { config: SystemConfig } }>('/api/admin/config', config);
-    return response.data.config;
+    console.log('[AdminDashboardService] updateSystemConfig called with:', JSON.stringify(config, null, 2));
+    try {
+      const response = await enhancedApiService.put<{ config: SystemConfig }>('/api/admin/config', config);
+      console.log('[AdminDashboardService] updateSystemConfig raw response:', JSON.stringify(response, null, 2));
+      console.log('[AdminDashboardService] response.data:', JSON.stringify(response.data, null, 2));
+      const updatedConfig = response.data?.config;
+      console.log('[AdminDashboardService] updated config:', JSON.stringify(updatedConfig, null, 2));
+      return updatedConfig;
+    } catch (error: any) {
+      console.error('[AdminDashboardService] updateSystemConfig ERROR:', error);
+      console.error('[AdminDashboardService] error message:', error?.message);
+      throw error;
+    }
   }
 
   /**

@@ -9,9 +9,8 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
 import { menuManagementService } from '../../../services/menu-management.service';
@@ -35,7 +34,6 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
   onBack,
   userRole,
 }) => {
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -275,10 +273,9 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" animated={true} />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Top Header with Back Button */}
-      <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.topHeader, { paddingTop: 8 }]}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={styles.backButton}>
             <Icon name="arrow-back" size={24} color="#ffffff" />
@@ -304,7 +301,7 @@ export const MenuListScreenNew: React.FC<MenuListScreenNewProps> = ({
         }
         ListEmptyComponent={renderEmpty}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

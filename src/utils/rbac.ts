@@ -8,6 +8,21 @@
 import { UserRole } from '../types/user';
 import { ScreenName } from '../context/NavigationContext';
 
+// Menu group definitions
+export type MenuGroup = 'Kitchen' | 'Delivery' | 'Drivers' | 'System';
+
+export interface MenuGroupConfig {
+  label: string;
+  icon: string;
+}
+
+export const MENU_GROUP_CONFIG: Record<MenuGroup, MenuGroupConfig> = {
+  Kitchen: { label: 'Kitchen', icon: 'restaurant' },
+  Delivery: { label: 'Delivery', icon: 'local-shipping' },
+  Drivers: { label: 'Drivers', icon: 'directions-car' },
+  System: { label: 'System', icon: 'settings' },
+};
+
 // Define menu items structure
 export interface MenuItem {
   id: string;
@@ -15,100 +30,161 @@ export interface MenuItem {
   icon: string;
   screen: ScreenName;
   roles: UserRole[]; // Which roles can access this screen
+  group?: MenuGroup; // Optional group — ungrouped items show at top level
 }
 
 // All menu items with their role permissions
 export const ALL_MENU_ITEMS: MenuItem[] = [
+  // --- Top-level (no group) ---
   {
     id: '1',
     label: 'Dashboard',
     icon: 'dashboard',
     screen: 'Dashboard',
-    roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can access dashboard (but different data)
+    roles: ['ADMIN', 'KITCHEN_STAFF'],
   },
   {
     id: '2',
     label: 'Orders',
     icon: 'inventory-2',
     screen: 'Orders',
-    roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can manage orders
+    roles: ['ADMIN', 'KITCHEN_STAFF'],
   },
-  {
-    id: '3',
-    label: 'Batches',
-    icon: 'local-shipping',
-    screen: 'BatchManagement',
-    roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can view batches
-  },
+
+  // --- Kitchen group ---
   {
     id: '4',
     label: 'Menu',
     icon: 'restaurant-menu',
     screen: 'MenuManagement',
-    roles: ['ADMIN', 'KITCHEN_STAFF'], // Both can manage menu
+    roles: ['ADMIN', 'KITCHEN_STAFF'],
+    group: 'Kitchen',
   },
   {
     id: '5',
     label: 'Kitchen Profile',
     icon: 'store',
     screen: 'KitchenProfile',
-    roles: ['KITCHEN_STAFF'], // Kitchen staff can view their kitchen profile
-  },
-  {
-    id: '6',
-    label: 'Zones',
-    icon: 'location-on',
-    screen: 'Zones',
-    roles: ['ADMIN'], // Admin only
-  },
-  {
-    id: '7',
-    label: 'Users',
-    icon: 'people',
-    screen: 'Users',
-    roles: ['ADMIN'], // Admin only
-  },
-  {
-    id: '8',
-    label: 'Plans',
-    icon: 'credit-card',
-    screen: 'Subscriptions',
-    roles: ['ADMIN'], // Admin only
+    roles: ['KITCHEN_STAFF'],
+    group: 'Kitchen',
   },
   {
     id: '9',
     label: 'Kitchen Management',
     icon: 'store',
     screen: 'Kitchens',
-    roles: ['ADMIN'], // Admin only
+    roles: ['ADMIN'],
+    group: 'Kitchen',
   },
   {
     id: '10',
     label: 'Kitchen Approvals',
     icon: 'approval',
     screen: 'KitchenApprovals',
-    roles: ['ADMIN'], // Admin only
+    roles: ['ADMIN'],
+    group: 'Kitchen',
   },
+
+  // --- Delivery group ---
+  {
+    id: '3',
+    label: 'Delivery Management',
+    icon: 'local-shipping',
+    screen: 'DeliveryManagement',
+    roles: ['ADMIN', 'KITCHEN_STAFF'],
+    group: 'Delivery',
+  },
+  {
+    id: '14',
+    label: 'Delivery Settings',
+    icon: 'settings',
+    screen: 'DeliverySettingsHub',
+    roles: ['ADMIN'],
+    group: 'Delivery',
+  },
+  {
+    id: '16',
+    label: 'Batch Monitoring',
+    icon: 'monitor',
+    screen: 'BatchMonitoring',
+    roles: ['ADMIN'],
+    group: 'Delivery',
+  },
+  {
+    id: '17',
+    label: 'Delivery Stats',
+    icon: 'bar-chart',
+    screen: 'DeliveryStats',
+    roles: ['ADMIN'],
+    group: 'Delivery',
+  },
+
+  // --- Drivers group ---
   {
     id: '11',
     label: 'Driver Approvals',
     icon: 'directions-car',
     screen: 'DriverApprovals',
-    roles: ['ADMIN'], // Admin only
+    roles: ['ADMIN'],
+    group: 'Drivers',
   },
   {
     id: '12',
     label: 'Driver Management',
     icon: 'account-box',
     screen: 'DriverProfileManagement',
-    roles: ['ADMIN'], // Admin only
+    roles: ['ADMIN'],
+    group: 'Drivers',
   },
   {
     id: '13',
     label: 'Driver Orders',
     icon: 'local-shipping',
     screen: 'DriverOrdersBatches',
-    roles: ['ADMIN'], // Admin only
+    roles: ['ADMIN'],
+    group: 'Drivers',
+  },
+
+  // --- System group ---
+  {
+    id: '6',
+    label: 'Zones',
+    icon: 'location-on',
+    screen: 'Zones',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
+    id: '7',
+    label: 'Users',
+    icon: 'people',
+    screen: 'Users',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
+    id: '8',
+    label: 'Plans',
+    icon: 'credit-card',
+    screen: 'Subscriptions',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
+    id: '18',
+    label: 'Cron Jobs',
+    icon: 'schedule',
+    screen: 'CronManagement',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
+    id: '19',
+    label: 'Push Notifications',
+    icon: 'notifications',
+    screen: 'SendPushNotification',
+    roles: ['ADMIN'],
+    group: 'System',
   },
 ];
 

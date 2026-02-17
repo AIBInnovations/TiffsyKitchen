@@ -9,9 +9,8 @@ import {
   TextInput,
   ActivityIndicator,
   Switch,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAlert } from '../../../hooks/useAlert';
 import { addonService } from '../../../services/addon.service';
@@ -34,7 +33,6 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
   onBack,
 }) => {
   const { showSuccess, showError, showInfo, showConfirm } = useAlert();
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [addons, setAddons] = useState<AddonWithUsage[]>([]);
@@ -236,10 +234,9 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Top Header with Back Button */}
-      <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.topHeader, { paddingTop: 8 }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -263,7 +260,7 @@ export const AddonLibraryScreen: React.FC<AddonLibraryScreenProps> = ({
         }
         ListEmptyComponent={renderEmpty}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

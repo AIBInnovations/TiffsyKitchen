@@ -14,9 +14,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -36,7 +35,6 @@ interface MenuManagementMainProps {
 export const MenuManagementMain: React.FC<MenuManagementMainProps> = ({
   onMenuPress,
 }) => {
-  const insets = useSafeAreaInsets();
   const [selectedKitchen, setSelectedKitchen] = useState<Kitchen | null>(null);
   const [kitchens, setKitchens] = useState<Kitchen[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,10 +89,9 @@ export const MenuManagementMain: React.FC<MenuManagementMainProps> = ({
 
   // Show kitchen selection
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: 8 }]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <Icon name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -174,7 +171,7 @@ export const MenuManagementMain: React.FC<MenuManagementMainProps> = ({
           />
         )}
       </View>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

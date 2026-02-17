@@ -46,8 +46,11 @@ export type RefundReason =
   | 'ADMIN_INITIATED'
   | 'OTHER';
 
+export type OrderSource = 'DIRECT' | 'SCHEDULED' | 'AUTO_ORDER';
+
 export type OrderStatus =
   | 'PLACED'
+  | 'SCHEDULED'
   | 'ACCEPTED'
   | 'REJECTED'
   | 'PREPARING'
@@ -579,13 +582,16 @@ export interface Order {
     voucherIds?: string[];
     voucherCount: number;
     mainCoursesCovered: number;
+    voucherCoverage?: number;
   };
   amountPaid: number;
   paymentStatus: PaymentStatus;
   paymentMethod?: string;
   paymentId?: string;
   acceptedAt?: string; // Timestamp when auto-accepted
-  isAutoOrder?: boolean; // Subscription-based auto-order flag
+  orderSource?: OrderSource; // DIRECT, SCHEDULED, or AUTO_ORDER
+  isAutoOrder?: boolean; // Subscription-based auto-order flag (legacy)
+  isScheduledMeal?: boolean; // Scheduled meal flag (legacy)
   autoAccepted?: boolean; // Response field from order creation
   status: OrderStatus;
   statusTimeline: StatusEntry[];

@@ -101,6 +101,20 @@ export interface Subscription {
   cancelledAt?: string;
   cancelledBy?: string;
   cancellationReason?: string;
+  autoOrderingEnabled?: boolean;
+  defaultKitchenId?: string;
+  defaultAddressId?: string;
+  weeklySchedule?: Record<string, { lunch: boolean; dinner: boolean }>;
+  skippedSlots?: Array<{
+    date: string;
+    mealWindow: 'LUNCH' | 'DINNER';
+    reason?: string;
+    skippedAt?: string;
+  }>;
+  defaultAddons?: Array<{
+    addonId: string;
+    quantity: number;
+  }>;
   createdAt: string;
 }
 

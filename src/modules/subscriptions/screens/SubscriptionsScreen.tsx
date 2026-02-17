@@ -13,10 +13,9 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
   Modal,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAlert } from '../../../hooks/useAlert';
 import { colors } from '../../../theme/colors';
@@ -56,7 +55,6 @@ interface SubscriptionsScreenProps {
 
 export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenuPress }) => {
   console.log('SubscriptionsScreen: Component rendering');
-  const insets = useSafeAreaInsets();
   const { showSuccess, showError, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState<TabType>('plans');
 
@@ -406,10 +404,13 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen
+      topBackgroundColor={PRIMARY_COLOR}
+      bottomBackgroundColor="#f9fafb"
+      backgroundColor="#f9fafb"
+    >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: 8 }]}>
         {onMenuPress && (
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
@@ -531,7 +532,7 @@ export const SubscriptionsScreen: React.FC<SubscriptionsScreenProps> = ({ onMenu
           </View>
         </TouchableOpacity>
       </Modal>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

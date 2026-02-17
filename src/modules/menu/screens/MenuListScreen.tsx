@@ -17,9 +17,8 @@ import {
   Switch,
   RefreshControl,
   ActivityIndicator,
-  StatusBar,
 } from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useAlert } from '../../../hooks/useAlert';
 import { menuService } from '../../../services/menu.service';
@@ -41,7 +40,6 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
   onEditItem,
 }) => {
   const { showSuccess, showError, showConfirm } = useAlert();
-  const insets = useSafeAreaInsets();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -258,9 +256,8 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
    */
   if (loading) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <SafeAreaScreen topBackgroundColor="#ffffff" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb" darkIcon>
+        <View style={[styles.header, {paddingTop: 8}]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcons name="menu" size={24} color="#1f2937" />
           </TouchableOpacity>
@@ -270,7 +267,7 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading menu items...</Text>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
@@ -299,10 +296,9 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <SafeAreaScreen topBackgroundColor="#ffffff" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb" darkIcon>
       {/* Header */}
-      <View style={[styles.header, {paddingTop: insets.top + 8}]}>
+      <View style={[styles.header, {paddingTop: 8}]}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
           <MaterialIcons name="menu" size={24} color="#1f2937" />
         </TouchableOpacity>
@@ -417,7 +413,7 @@ export const MenuListScreen: React.FC<MenuListScreenProps> = ({
           </View>
         }
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -45,6 +45,17 @@ import { mapBackendRoleToAppRole } from './src/utils/rbac';
 import { PermissionGuard } from './src/components/common/PermissionGuard';
 import { NotificationPopup } from './src/components/notifications';
 import { useInAppNotifications } from './src/context/InAppNotificationContext';
+import {
+  DeliverySettingsHubScreen,
+  RoutePlanningConfigScreen,
+  DriverAssignmentConfigScreen,
+  DeliveryActionsScreen,
+  BatchMonitoringScreen,
+  BatchDetailScreen,
+  DeliveryStatsScreen,
+  DeliveryManagementScreen,
+} from './src/modules/delivery';
+import { CronManagementScreen } from './src/modules/cron';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -81,8 +92,8 @@ const handleNotificationTapNavigation = (
       // Navigate to Orders screen for order-related notifications
       navigate('Orders');
     } else if (notificationType?.includes('BATCH') || notificationType?.includes('DELIVERY')) {
-      // Navigate to Batch/Delivery screen
-      navigate('BatchManagement');
+      // Navigate to Delivery Management screen
+      navigate('DeliveryManagement');
     } else {
       // Default to Dashboard
       navigate('Dashboard');
@@ -175,6 +186,7 @@ const MainContent: React.FC<{
 }> = ({ onMenuPress, onLogout }) => {
   const { currentScreen, goBack, navigate } = useNavigation();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const { checkLatestNotification } = useInAppNotifications();
 
@@ -230,6 +242,11 @@ const MainContent: React.FC<{
         setSelectedUserId(null);
         return true;
       }
+      if (currentScreen === 'BatchDetail' && selectedBatchId) {
+        setSelectedBatchId(null);
+        goBack();
+        return true;
+      }
       return false;
     };
 
@@ -239,7 +256,7 @@ const MainContent: React.FC<{
     );
 
     return () => backHandler.remove();
-  }, [currentScreen, selectedUserId]);
+  }, [currentScreen, selectedUserId, selectedBatchId]);
 
   const handleUserPress = (user: User) => {
     setSelectedUserId(user._id);
@@ -355,8 +372,19 @@ const MainContent: React.FC<{
     case 'KitchenProfile':
       return <KitchenProfileScreen onMenuPress={onMenuPress} />;
 
+    case 'DeliveryManagement':
+      return <DeliveryManagementScreen onMenuPress={onMenuPress} />;
+
     case 'BatchManagement':
-      return <RoleBasedBatchesScreen onMenuPress={onMenuPress} />;
+      return (
+        <RoleBasedBatchesScreen
+          onMenuPress={onMenuPress}
+          onBatchSelect={(batchId) => {
+            setSelectedBatchId(batchId);
+            navigate('BatchDetail');
+          }}
+        />
+      );
 
     case 'Notifications':
       return <NotificationsScreen />;
@@ -379,6 +407,74 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} screenName="SendPushNotification" onMenuPress={onMenuPress}>
           <SendPushNotificationScreen />
+        </PermissionGuard>
+      );
+
+    case 'DeliverySettingsHub':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DeliverySettingsHubScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'RoutePlanningConfig':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <RoutePlanningConfigScreen />
+        </PermissionGuard>
+      );
+
+    case 'DriverAssignmentConfig':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DriverAssignmentConfigScreen />
+        </PermissionGuard>
+      );
+
+    case 'DeliveryActions':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DeliveryActionsScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'BatchMonitoring':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <BatchMonitoringScreen
+            onMenuPress={onMenuPress}
+            onBatchSelect={(batchId) => {
+              setSelectedBatchId(batchId);
+              navigate('BatchDetail');
+            }}
+          />
+        </PermissionGuard>
+      );
+
+    case 'BatchDetail':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN', 'KITCHEN_STAFF']} onMenuPress={onMenuPress}>
+          <BatchDetailScreen
+            batchId={selectedBatchId!}
+            onBack={() => {
+              setSelectedBatchId(null);
+              goBack();
+            }}
+          />
+        </PermissionGuard>
+      );
+
+    case 'DeliveryStats':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DeliveryStatsScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'CronManagement':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <CronManagementScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 

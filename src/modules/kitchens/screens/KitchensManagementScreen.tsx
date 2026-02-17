@@ -10,9 +10,8 @@ import {
   Alert,
   Platform,
   ToastAndroid,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -36,7 +35,6 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
   onMenuPress,
   navigation,
 }) => {
-  const insets = useSafeAreaInsets();
   const [kitchens, setKitchens] = useState<Kitchen[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -412,7 +410,7 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
 
   if (loading && kitchens.length === 0) {
     return (
-      <View style={styles.container}>
+      <SafeAreaScreen topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background} backgroundColor={colors.background}>
         {onMenuPress && (
           <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
@@ -430,13 +428,13 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading kitchens...</Text>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   if (error && kitchens.length === 0) {
     return (
-      <View style={styles.container}>
+      <SafeAreaScreen topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background} backgroundColor={colors.background}>
         {onMenuPress && (
           <View style={styles.header}>
             <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
@@ -461,15 +459,14 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background} backgroundColor={colors.background}>
       {onMenuPress && (
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={[styles.header, { paddingTop: 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <MaterialIcon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -517,7 +514,7 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
         }}
         onSave={handleSaveKitchen}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -15,6 +15,7 @@ import { spacing } from '../../../theme/spacing';
 import { deliveryService } from '../../../services/delivery.service';
 import { MealWindow } from '../../../types/api.types';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
+import BatchDetailScreen from '../../../modules/delivery/screens/BatchDetailScreen';
 
 interface BatchHistoryScreenProps {
   navigation?: any;
@@ -57,7 +58,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   kitchenName: propKitchenName,
   onBack,
 }) => {
-  const { showError, showInfo } = useAlert();
+  const { showError } = useAlert();
   const kitchenId = route?.params?.kitchenId || propKitchenId;
   const kitchenName = route?.params?.kitchenName || propKitchenName;
 
@@ -69,6 +70,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
 
   const STATUS_FILTERS = [
     { label: 'All', value: 'ALL' },
@@ -243,20 +245,7 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
   };
 
   const handleBatchPress = (batch: Batch) => {
-    showInfo(
-      batch.batchNumber,
-      `Status: ${getStatusLabel(batch.status)}\n` +
-      `Meal Window: ${batch.mealWindow}\n` +
-      `Kitchen: ${batch.kitchenId?.name || 'N/A'}\n` +
-      `Zone: ${batch.zoneId?.name || 'N/A'}\n` +
-      `Driver: ${batch.driverId?.name || 'Not Assigned'}\n` +
-      `Orders: ${batch.orderIds?.length || 0}\n` +
-      `Delivered: ${batch.totalDelivered || 0}\n` +
-      `Failed: ${batch.totalFailed || 0}\n` +
-      `Created: ${formatDate(batch.createdAt)}\n` +
-      (batch.dispatchedAt ? `Dispatched: ${formatDate(batch.dispatchedAt)}\n` : '') +
-      (batch.completedAt ? `Completed: ${formatDate(batch.completedAt)}` : '')
-    );
+    setSelectedBatchId(batch._id);
   };
 
   const renderBatchItem = ({ item }: { item: Batch }) => {
@@ -373,6 +362,19 @@ export const BatchHistoryScreen: React.FC<BatchHistoryScreenProps> = ({
       </View>
     );
   };
+
+  // Show batch detail screen when a batch is selected
+  if (selectedBatchId) {
+    return (
+      <BatchDetailScreen
+        batchId={selectedBatchId}
+        onBack={() => {
+          setSelectedBatchId(null);
+          handleRefresh();
+        }}
+      />
+    );
+  }
 
   return (
     <SafeAreaScreen style={{ flex: 1 }} backgroundColor={colors.primary}>

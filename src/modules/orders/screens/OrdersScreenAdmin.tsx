@@ -14,6 +14,7 @@ import {
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { ordersService } from '../../../services/orders.service';
+import kitchenService from '../../../services/kitchen.service';
 import { Order, OrderStatus } from '../../../types/api.types';
 import OrderCardAdminImproved from '../components/OrderCardAdminImproved';
 import OrderStatsCard from '../components/OrderStatsCard';
@@ -48,6 +49,27 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch all kitchens upfront to resolve unpopulated kitchenId strings
+  const {
+    data: kitchensData,
+    refetch: refetchKitchens,
+  } = useQuery({
+    queryKey: ['allKitchens'],
+    queryFn: () => kitchenService.getKitchens({ limit: 100 }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Build a lookup map from kitchen ID -> { name, code }
+  const kitchenMap = useMemo(() => {
+    const map = new Map<string, { name: string; code: string }>();
+    if (kitchensData?.kitchens) {
+      kitchensData.kitchens.forEach((k) => {
+        map.set(k._id, { name: k.name, code: k.code });
+      });
+    }
+    return map;
+  }, [kitchensData]);
 
   // Fetch order statistics
   const {
@@ -129,9 +151,10 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   });
 
   const handleRefresh = useCallback(() => {
+    refetchKitchens();
     refetchStats();
     refetchOrders();
-  }, [refetchStats, refetchOrders]);
+  }, [refetchKitchens, refetchStats, refetchOrders]);
 
   const handleStatusFilter = (status: OrderStatus | 'ALL') => {
     setSelectedStatus(status);
@@ -180,12 +203,18 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         const customerPhone = (typeof order.userId === 'string' || !order.userId)
           ? ''
           : order.userId.phone?.toLowerCase() || '';
-        const kitchenName = (typeof order.kitchenId === 'string' || !order.kitchenId)
-          ? ''
-          : order.kitchenId.name?.toLowerCase() || '';
-        const kitchenCode = (typeof order.kitchenId === 'string' || !order.kitchenId)
-          ? ''
-          : order.kitchenId.code?.toLowerCase() || '';
+        let kitchenName = '';
+        let kitchenCode = '';
+        if (order.kitchenId) {
+          if (typeof order.kitchenId === 'string') {
+            const cached = kitchenMap.get(order.kitchenId);
+            kitchenName = cached?.name?.toLowerCase() || '';
+            kitchenCode = cached?.code?.toLowerCase() || '';
+          } else {
+            kitchenName = order.kitchenId.name?.toLowerCase() || '';
+            kitchenCode = order.kitchenId.code?.toLowerCase() || '';
+          }
+        }
 
         return (
           orderNumber.includes(query) ||
@@ -215,10 +244,11 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         kitchenName = 'Unassigned Kitchen';
         kitchenCode = 'N/A';
       } else if (typeof order.kitchenId === 'string') {
-        // Backend didn't populate - use the ID string
+        // Backend didn't populate - resolve from kitchenMap
         kitchenId = order.kitchenId;
-        kitchenName = 'Loading...';
-        kitchenCode = order.kitchenId.substring(0, 8);
+        const cached = kitchenMap.get(order.kitchenId);
+        kitchenName = cached?.name || 'Unknown Kitchen';
+        kitchenCode = cached?.code || kitchenId.substring(0, 8);
       } else {
         kitchenId = order.kitchenId._id;
         kitchenName = order.kitchenId.name;
@@ -241,7 +271,7 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     return Array.from(groupedMap.values()).sort((a, b) =>
       a.kitchenName.localeCompare(b.kitchenName)
     );
-  }, [allOrders, searchQuery]);
+  }, [allOrders, searchQuery, kitchenMap]);
 
   const renderStatsSection = () => {
     if (statsLoading || !statsData) {

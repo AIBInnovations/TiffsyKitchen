@@ -9,9 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { useQuery } from '@tanstack/react-query';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
@@ -36,7 +35,6 @@ interface OrdersScreenProps {
 }
 
 const OrdersScreen = ({ onMenuPress, navigation }: OrdersScreenProps) => {
-  const insets = useSafeAreaInsets();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [page, setPage] = useState(1);
 
@@ -211,11 +209,14 @@ const OrdersScreen = ({ onMenuPress, navigation }: OrdersScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#F56B4C" />
+    <SafeAreaScreen
+      topBackgroundColor="#F56B4C"
+      bottomBackgroundColor="#f9fafb"
+      backgroundColor="#f9fafb"
+    >
       {/* Header */}
       {onMenuPress && (
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={[styles.header, { paddingTop: 8 }]}>
           <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
             <Icon name="menu" size={24} color="#ffffff" />
           </TouchableOpacity>
@@ -252,7 +253,7 @@ const OrdersScreen = ({ onMenuPress, navigation }: OrdersScreenProps) => {
           ]}
         />
       </View>
-    </View>
+    </SafeAreaScreen>
   );
 };
 

@@ -35,6 +35,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
           <Text style={styles.customerName}>{subscription.userId.name}</Text>
           <Text style={styles.customerPhone}>{subscription.userId.phone}</Text>
         </View>
+        {subscription.autoOrderingEnabled && (
+          <View style={styles.autoBadge}>
+            <Icon name="autorenew" size={12} color="#7c3aed" />
+            <Text style={styles.autoBadgeText}>Auto</Text>
+          </View>
+        )}
         <StatusBadge status={subscription.status} />
       </View>
 
@@ -160,6 +166,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
+  },
+  autoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#ede9fe',
+    marginRight: 6,
+  },
+  autoBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#7c3aed',
   },
   planRow: {
     flexDirection: 'row',

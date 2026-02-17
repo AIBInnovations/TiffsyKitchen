@@ -40,6 +40,7 @@ const TERMINAL_STATUSES = [
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
     PLACED: '#007AFF',
+    SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
     REJECTED: '#FF3B30',
     PREPARING: '#FFCC00',
@@ -275,6 +276,7 @@ const OrderStatusProgress: React.FC<OrderStatusProgressProps> = ({
 const getStatusDescription = (status: OrderStatus): string => {
   const descriptions: Record<OrderStatus, string> = {
     PLACED: 'Order has been placed and is awaiting acceptance from the kitchen.',
+    SCHEDULED: 'Order is scheduled for a future date and will be placed automatically.',
     ACCEPTED: 'Kitchen has accepted the order and will begin preparation.',
     REJECTED: 'Order has been rejected by the kitchen.',
     PREPARING: 'Kitchen is currently preparing your order.',

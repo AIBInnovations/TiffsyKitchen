@@ -12,7 +12,6 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../theme/colors';
@@ -30,7 +29,6 @@ interface ZonesManagementScreenProps {
 export const ZonesManagementScreen: React.FC<ZonesManagementScreenProps> = ({
   onMenuPress,
 }) => {
-  const insets = useSafeAreaInsets();
   const { showSuccess, showError } = useAlert();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);

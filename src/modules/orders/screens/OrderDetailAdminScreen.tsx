@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { ordersService } from '../../../services/orders.service';
 import { Order, OrderStatus } from '../../../types/api.types';
+import { OrderSourceBadge } from '../components/OrderSourceBadge';
 import StatusTimeline from '../components/StatusTimeline';
 import CancelOrderModal from '../components/CancelOrderModal';
 import { AcceptOrderModal } from '../components/AcceptOrderModal';
@@ -38,6 +39,7 @@ interface OrderDetailAdminScreenProps {
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
     PLACED: '#007AFF',
+    SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
     REJECTED: '#FF3B30',
     PREPARING: '#FFCC00',
@@ -454,10 +456,22 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
               <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>
             <View style={styles.headerContent}>
-              <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
-              <Text style={styles.placedTime}>
-                Placed {safeFormatDate(order.placedAt)}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Text style={styles.orderNumber}>{order.orderNumber || 'N/A'}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
+                  <Text style={styles.statusText}>{order.status}</Text>
+                </View>
+                <OrderSourceBadge orderSource={order.orderSource} />
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                <Text style={styles.placedTime}>
+                  Placed {safeFormatDate(order.placedAt)}
+                </Text>
+                <Text style={styles.menuTypeText}>
+                  {order.menuType === 'MEAL_MENU' ? 'Meal Menu' : 'On-Demand'}
+                  {order.mealWindow ? ` • ${order.mealWindow}` : ''}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -609,6 +623,27 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
           </View>
         </View>
 
+        {/* Zone Section */}
+        {order.zoneId && typeof order.zoneId === 'object' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Zone</Text>
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Zone:</Text>
+                <Text style={styles.value}>{order.zoneId.name || 'N/A'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Pincode:</Text>
+                <Text style={styles.value}>{order.zoneId.pincode || 'N/A'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>City:</Text>
+                <Text style={styles.value}>{order.zoneId.city || 'N/A'}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Kitchen Section - Hidden for kitchen staff */}
         {!isKitchenMode && (
           <View style={styles.section}>
@@ -692,6 +727,22 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
                   </Text>
                 </View>
               )}
+              {order.charges && order.charges.serviceFee > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Service Fee</Text>
+                  <Text style={styles.priceValue}>
+                    ₹{(order.charges.serviceFee || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
+              {order.charges && order.charges.handlingFee > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Handling Fee</Text>
+                  <Text style={styles.priceValue}>
+                    ₹{(order.charges.handlingFee || 0).toFixed(2)}
+                  </Text>
+                </View>
+              )}
               {order.charges && order.charges.taxAmount > 0 && (
                 <View style={styles.priceRow}>
                   <Text style={styles.priceLabel}>Tax</Text>
@@ -700,10 +751,22 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
                   </Text>
                 </View>
               )}
+              {order.charges?.taxBreakdown && order.charges.taxBreakdown.length > 0 && (
+                order.charges.taxBreakdown.map((tax, idx) => (
+                  <View key={idx} style={styles.priceRow}>
+                    <Text style={[styles.priceLabel, { paddingLeft: 12, fontSize: 12 }]}>
+                      {tax.taxType} ({tax.rate}%)
+                    </Text>
+                    <Text style={[styles.priceValue, { fontSize: 12 }]}>
+                      ₹{(tax.amount || 0).toFixed(2)}
+                    </Text>
+                  </View>
+                ))
+              )}
               {order.discount && order.discount.discountAmount > 0 && (
                 <View style={styles.priceRow}>
                   <Text style={[styles.priceLabel, styles.discountText]}>
-                    Discount
+                    Discount{order.discount.couponCode ? ` (${order.discount.couponCode})` : ''}
                   </Text>
                   <Text style={[styles.priceValue, styles.discountText]}>
                     -₹{(order.discount.discountAmount || 0).toFixed(2)}
@@ -715,12 +778,6 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
                 <Text style={styles.totalLabel}>Total</Text>
                 <Text style={styles.totalValue}>
                   ₹{(order.grandTotal || 0).toFixed(2)}
-                </Text>
-              </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>Amount Paid</Text>
-                <Text style={styles.priceValue}>
-                  ₹{(order.amountPaid || 0).toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -742,6 +799,126 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
                   {order.voucherUsage.mainCoursesCovered}
                 </Text>
               </View>
+            </View>
+          </View>
+        )}
+
+        {/* Payment Section */}
+        {!isKitchenMode && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Payment</Text>
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Status:</Text>
+                <Text style={[styles.value, {
+                  color: order.paymentStatus === 'PAID' ? '#34C759' :
+                    order.paymentStatus === 'FAILED' ? '#FF3B30' :
+                    order.paymentStatus === 'REFUNDED' ? '#5856D6' : '#FF9500',
+                  fontWeight: '700',
+                }]}>
+                  {order.paymentStatus || 'N/A'}
+                </Text>
+              </View>
+              {order.paymentMethod && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Method:</Text>
+                  <Text style={styles.value}>{order.paymentMethod}</Text>
+                </View>
+              )}
+              {order.paymentId && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Payment ID:</Text>
+                  <Text style={[styles.value, { fontSize: 12 }]}>{order.paymentId}</Text>
+                </View>
+              )}
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Amount Paid:</Text>
+                <Text style={styles.value}>₹{(order.amountPaid || 0).toFixed(2)}</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Delivery & Logistics Section */}
+        {!isKitchenMode && (order.estimatedDeliveryTime || order.batchId || order.driverId || order.acceptedAt || order.deliveredAt) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Delivery & Logistics</Text>
+            <View style={styles.card}>
+              {order.estimatedDeliveryTime && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Estimated Delivery:</Text>
+                  <Text style={styles.value}>
+                    {new Date(order.estimatedDeliveryTime).toLocaleString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </Text>
+                </View>
+              )}
+              {order.acceptedAt && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Accepted At:</Text>
+                  <Text style={styles.value}>
+                    {new Date(order.acceptedAt).toLocaleString('en-IN', {
+                      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </Text>
+                </View>
+              )}
+              {order.deliveredAt && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Delivered At:</Text>
+                  <Text style={styles.value}>
+                    {new Date(order.deliveredAt).toLocaleString('en-IN', {
+                      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </Text>
+                </View>
+              )}
+              {order.batchId && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Batch ID:</Text>
+                  <Text style={[styles.value, { fontSize: 12 }]}>{order.batchId}</Text>
+                </View>
+              )}
+              {order.driverId && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Driver ID:</Text>
+                  <Text style={[styles.value, { fontSize: 12 }]}>{order.driverId}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Cancellation Section */}
+        {order.status === 'CANCELLED' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Cancellation Details</Text>
+            <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: '#FF3B30' }]}>
+              {order.cancellationReason && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Reason:</Text>
+                  <Text style={styles.value}>{order.cancellationReason}</Text>
+                </View>
+              )}
+              {order.cancelledBy && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Cancelled By:</Text>
+                  <Text style={styles.value}>{order.cancelledBy}</Text>
+                </View>
+              )}
+              {order.cancelledAt && (
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Cancelled At:</Text>
+                  <Text style={styles.value}>
+                    {new Date(order.cancelledAt).toLocaleString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -785,6 +962,37 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
             />
           </View>
         </View>
+
+        {/* Order Metadata */}
+        {!isKitchenMode && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Order Info</Text>
+            <View style={styles.card}>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Order ID:</Text>
+                <Text style={[styles.value, { fontSize: 11 }]}>{order._id}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Created:</Text>
+                <Text style={styles.value}>
+                  {new Date(order.createdAt).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                  })}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>Updated:</Text>
+                <Text style={styles.value}>
+                  {new Date(order.updatedAt).toLocaleString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                  })}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>

@@ -18,6 +18,7 @@ import { Header } from '../components/common/Header';
 
 interface RoleBasedBatchesScreenProps {
   onMenuPress: () => void;
+  onBatchSelect?: (batchId: string) => void;
 }
 
 export const RoleBasedBatchesScreen: React.FC<RoleBasedBatchesScreenProps> = (props) => {
@@ -76,7 +77,7 @@ export const RoleBasedBatchesScreen: React.FC<RoleBasedBatchesScreenProps> = (pr
         bottomBackgroundColor={colors.background}
       >
         <Header title="Batches" onMenuPress={props.onMenuPress} />
-        <BatchManagementTab kitchenId={kitchenId} />
+        <BatchManagementTab kitchenId={kitchenId} onBatchSelect={props.onBatchSelect} />
       </SafeAreaScreen>
     );
   }

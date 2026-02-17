@@ -23,6 +23,7 @@ import {
   SectionHeader,
   DatePickerModal,
 } from '../../components/dashboard';
+import DeliveryOverviewCard from '../../modules/delivery/components/DeliveryOverviewCard';
 import { useApi } from '../../hooks/useApi';
 import { DashboardData } from '../../types/api.types';
 import { OrderStatus as DashboardOrderStatus } from '../../types/dashboard';
@@ -354,6 +355,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               {filteredMealSlots.map((slot) => (
                 <MealSlotCard key={slot.mealType} slot={slot} />
               ))}
+            </View>
+
+            {/* Delivery Overview */}
+            <SectionHeader title="Delivery Overview" />
+            <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+              <DeliveryOverviewCard />
             </View>
 
             {/* Business Chart */}

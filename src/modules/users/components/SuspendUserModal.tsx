@@ -21,7 +21,7 @@ interface SuspendUserModalProps {
 }
 
 const colors = {
-  primary: '#FF6B35',
+  primary: '#F56B4C',
   gray: '#6b7280',
   lightGray: '#f3f4f6',
   white: '#ffffff',

@@ -223,6 +223,109 @@ const SystemConfigScreen: React.FC = () => {
         </Card>
       </View>
 
+      {/* Auto-Order Settings */}
+      <View className="px-4 pb-4">
+        <Card className="p-4">
+          <View className="flex-row items-center mb-4">
+            <Icon name="autorenew" size={24} color="#F56B4C" />
+            <Text className="text-lg font-semibold text-gray-800 ml-2">Auto-Order Settings</Text>
+          </View>
+
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-sm font-medium text-gray-700">Auto-Ordering Enabled</Text>
+            <TouchableOpacity
+              onPress={() => updateField('autoOrder', 'enabled', !formData.autoOrder?.enabled)}
+              className={`w-12 h-6 rounded-full ${formData.autoOrder?.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <View className={`w-5 h-5 rounded-full bg-white m-0.5 ${formData.autoOrder?.enabled ? 'self-end' : 'self-start'}`} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-sm font-medium text-gray-700">Auto-Accept Orders</Text>
+            <TouchableOpacity
+              onPress={() => updateField('autoOrder', 'autoAcceptOrders', !formData.autoOrder?.autoAcceptOrders)}
+              className={`w-12 h-6 rounded-full ${formData.autoOrder?.autoAcceptOrders ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <View className={`w-5 h-5 rounded-full bg-white m-0.5 ${formData.autoOrder?.autoAcceptOrders ? 'self-end' : 'self-start'}`} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Lunch Cron Time (HH:mm)</Text>
+            <TextInput
+              value={formData.autoOrder?.lunchCronTime}
+              onChangeText={(value) => updateField('autoOrder', 'lunchCronTime', value)}
+              placeholder="10:00"
+              className="bg-gray-100 p-3 rounded-lg text-gray-800"
+            />
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Dinner Cron Time (HH:mm)</Text>
+            <TextInput
+              value={formData.autoOrder?.dinnerCronTime}
+              onChangeText={(value) => updateField('autoOrder', 'dinnerCronTime', value)}
+              placeholder="19:00"
+              className="bg-gray-100 p-3 rounded-lg text-gray-800"
+            />
+          </View>
+
+          <View>
+            <Text className="text-sm font-medium text-gray-700 mb-2">Addon Payment Window (Minutes)</Text>
+            <TextInput
+              value={formData.autoOrder?.addonPaymentWindowMinutes?.toString()}
+              onChangeText={(value) => updateField('autoOrder', 'addonPaymentWindowMinutes', parseInt(value) || 0)}
+              placeholder="30"
+              keyboardType="numeric"
+              className="bg-gray-100 p-3 rounded-lg text-gray-800"
+            />
+          </View>
+        </Card>
+      </View>
+
+      {/* Scheduled Meals Settings */}
+      <View className="px-4 pb-4">
+        <Card className="p-4">
+          <View className="flex-row items-center mb-4">
+            <Icon name="event" size={24} color="#F56B4C" />
+            <Text className="text-lg font-semibold text-gray-800 ml-2">Scheduled Meals</Text>
+          </View>
+
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-sm font-medium text-gray-700">Scheduled Meals Enabled</Text>
+            <TouchableOpacity
+              onPress={() => updateField('scheduledMeals', 'enabled', !formData.scheduledMeals?.enabled)}
+              className={`w-12 h-6 rounded-full ${formData.scheduledMeals?.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <View className={`w-5 h-5 rounded-full bg-white m-0.5 ${formData.scheduledMeals?.enabled ? 'self-end' : 'self-start'}`} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="mb-4">
+            <Text className="text-sm font-medium text-gray-700 mb-2">Max Scheduled Meals</Text>
+            <TextInput
+              value={formData.scheduledMeals?.maxScheduledMeals?.toString()}
+              onChangeText={(value) => updateField('scheduledMeals', 'maxScheduledMeals', parseInt(value) || 0)}
+              placeholder="14"
+              keyboardType="numeric"
+              className="bg-gray-100 p-3 rounded-lg text-gray-800"
+            />
+          </View>
+
+          <View>
+            <Text className="text-sm font-medium text-gray-700 mb-2">Max Schedule Days Ahead</Text>
+            <TextInput
+              value={formData.scheduledMeals?.maxScheduleDaysAhead?.toString()}
+              onChangeText={(value) => updateField('scheduledMeals', 'maxScheduleDaysAhead', parseInt(value) || 0)}
+              placeholder="7"
+              keyboardType="numeric"
+              className="bg-gray-100 p-3 rounded-lg text-gray-800"
+            />
+          </View>
+        </Card>
+      </View>
+
       {/* Save Button */}
       <View className="p-4">
         <TouchableOpacity

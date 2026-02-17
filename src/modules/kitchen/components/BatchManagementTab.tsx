@@ -12,11 +12,13 @@ import { useAlert } from '../../../hooks/useAlert';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors, spacing, wp, hp, rf, rs } from '../../../theme';
 import { deliveryService } from '../../../services/delivery.service';
-import { Batch, BatchStatus, MealWindow, OperatingHours } from '../../../types/api.types';
+import { BatchStatus, MealWindow, OperatingHours } from '../../../types/api.types';
+import { Batch } from '../../../types/delivery';
 import { kitchenStaffService } from '../../../services/kitchen-staff.service';
 
 interface BatchManagementTabProps {
   kitchenId?: string;
+  onBatchSelect?: (batchId: string) => void;
 }
 
 // Helper function to parse time string (HH:MM) to hour number
@@ -127,7 +129,7 @@ const getStatusColor = (status: BatchStatus): { bg: string; text: string } => {
   }
 };
 
-export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenId }) => {
+export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenId, onBatchSelect }) => {
   const { showSuccess, showError, showWarning, showConfirm } = useAlert();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,6 +140,15 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
   const [filterStatus, setFilterStatus] = useState<BatchStatus | 'ALL'>('ALL');
   const [operatingHours, setOperatingHours] = useState<OperatingHours | null>(null);
   const [isLoadingKitchen, setIsLoadingKitchen] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
+  const [summary, setSummary] = useState<{
+    collecting: number;
+    dispatched: number;
+    inProgress: number;
+    completed: number;
+  } | null>(null);
 
   useEffect(() => {
     loadKitchenData();
@@ -145,7 +156,7 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
 
   useEffect(() => {
     loadBatches();
-  }, [filterStatus, selectedMealWindow]);
+  }, [filterStatus, selectedMealWindow, selectedDate]);
 
   const loadKitchenData = async () => {
     setIsLoadingKitchen(true);
@@ -172,12 +183,14 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
       const response = await deliveryService.getMyKitchenBatches({
         status: filterStatus === 'ALL' ? undefined : filterStatus,
         mealWindow: selectedMealWindow,
+        date: selectedDate,
         limit: 50,
       });
 
       // Backend quirk: actual data might be in result.error or result.data
       const responseData = response.error || response.data || response;
       const fetchedBatches = responseData?.batches || [];
+      setSummary(responseData?.summary || null);
 
       console.log('✅ Loaded batches:', fetchedBatches.length);
       setBatches(fetchedBatches);
@@ -266,50 +279,100 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
     );
   };
 
+  const changeDate = (delta: number) => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + delta);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+
   const filteredBatches = batches.filter(
     (batch) => filterStatus === 'ALL' || batch.status === filterStatus
   );
 
+  const readyForPickupCount = batches.filter(
+    (b) => b.status === 'READY_FOR_DISPATCH'
+  ).length;
+
   const renderBatchCard = (batch: Batch) => {
     const statusColor = getStatusColor(batch.status);
+    const orderCount = batch.orderIds?.length || (batch as any).orderCount || 0;
 
     return (
-      <View key={batch._id} style={styles.batchCard}>
+      <TouchableOpacity
+        key={batch._id}
+        style={styles.batchCard}
+        onPress={() => onBatchSelect?.(batch._id)}
+        activeOpacity={0.7}
+      >
         <View style={styles.batchHeader}>
           <View style={styles.batchInfo}>
-            <Text style={styles.batchId}>Batch #{batch._id.slice(-6)}</Text>
+            <Text style={styles.batchId} numberOfLines={1}>
+              {batch.batchNumber || `Batch #${batch._id.slice(-6)}`}
+            </Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
               <Text style={[styles.statusText, { color: statusColor.text }]}>
                 {batch.status.replace(/_/g, ' ')}
               </Text>
             </View>
           </View>
-          <Text style={styles.batchMealWindow}>{batch.mealWindow}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.batchMealWindow}>{batch.mealWindow}</Text>
+            <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+          </View>
         </View>
 
         <View style={styles.batchDetails}>
-          <View style={styles.detailRow}>
-            <MaterialIcons name="shopping-bag" size={16} color={colors.textMuted} />
-            <Text style={styles.detailText}>
-              {batch.orders?.length || batch.orderCount || 0} orders
-            </Text>
-          </View>
-
-          {batch.driverId && (
+          {/* Zone */}
+          {batch.zoneId?.name && (
             <View style={styles.detailRow}>
-              <MaterialIcons name="person" size={16} color={colors.textMuted} />
-              <Text style={styles.detailText}>Driver assigned</Text>
+              <MaterialIcons name="location-on" size={16} color={colors.textMuted} />
+              <Text style={styles.detailText}>{batch.zoneId.name}</Text>
             </View>
           )}
 
+          {/* Orders */}
+          <View style={styles.detailRow}>
+            <MaterialIcons name="shopping-bag" size={16} color={colors.textMuted} />
+            <Text style={styles.detailText}>{orderCount} orders</Text>
+          </View>
+
+          {/* Driver */}
+          <View style={styles.detailRow}>
+            <MaterialIcons name="person" size={16} color={colors.textMuted} />
+            <Text style={[styles.detailText, !batch.driverId && { fontStyle: 'italic', color: colors.textMuted }]}>
+              {batch.driverId?.name || 'No driver assigned'}
+            </Text>
+          </View>
+
+          {/* Delivery Progress */}
+          {(batch.totalDelivered > 0 || batch.totalFailed > 0) && (
+            <View style={styles.detailRow}>
+              <MaterialIcons name="check-circle" size={16} color="#16a34a" />
+              <Text style={[styles.detailText, { color: '#16a34a' }]}>
+                {batch.totalDelivered}/{orderCount} delivered
+              </Text>
+              {batch.totalFailed > 0 && (
+                <>
+                  <MaterialIcons name="cancel" size={16} color="#dc2626" style={{ marginLeft: 8 }} />
+                  <Text style={[styles.detailText, { color: '#dc2626' }]}>
+                    {batch.totalFailed} failed
+                  </Text>
+                </>
+              )}
+            </View>
+          )}
+
+          {/* Timestamp */}
           <View style={styles.detailRow}>
             <MaterialIcons name="schedule" size={16} color={colors.textMuted} />
             <Text style={styles.detailText}>
-              {new Date(batch.createdAt).toLocaleString()}
+              {new Date(batch.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -374,6 +437,27 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
             >
               Dinner
             </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Date Selector */}
+        <View style={styles.dateSelector}>
+          <TouchableOpacity onPress={() => changeDate(-1)} style={styles.dateArrow}>
+            <MaterialIcons name="chevron-left" size={24} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setSelectedDate(new Date().toISOString().split('T')[0])}>
+            <Text style={styles.dateText}>
+              {isToday
+                ? 'Today'
+                : new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                  })}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => changeDate(1)} style={styles.dateArrow}>
+            <MaterialIcons name="chevron-right" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -464,6 +548,25 @@ export const BatchManagementTab: React.FC<BatchManagementTabProps> = ({ kitchenI
           </View>
         )}
       </View>
+
+      {/* Summary Section */}
+      {summary && (
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryRow}>
+            {[
+              { label: 'Collecting', value: summary.collecting, color: '#2563eb' },
+              { label: 'Ready', value: readyForPickupCount, color: '#c2410c' },
+              { label: 'In Progress', value: summary.inProgress, color: '#6366f1' },
+              { label: 'Completed', value: summary.completed, color: '#16a34a' },
+            ].map((item) => (
+              <View key={item.label} style={styles.summaryBox}>
+                <Text style={[styles.summaryValue, { color: item.color }]}>{item.value}</Text>
+                <Text style={styles.summaryLabel}>{item.label}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Filter Bar */}
       <View style={styles.filterBar}>
@@ -778,6 +881,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
     marginTop: spacing.xs,
+  },
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  dateArrow: {
+    padding: spacing.xs,
+  },
+  dateText: {
+    fontSize: rf(14),
+    fontWeight: '600',
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.background,
+    borderRadius: spacing.borderRadiusMd,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    overflow: 'hidden',
+    textAlign: 'center',
+    minWidth: 100,
+  },
+  summaryContainer: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+  },
+  summaryBox: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.borderRadiusMd,
+  },
+  summaryValue: {
+    fontSize: rf(18),
+    fontWeight: '700',
+  },
+  summaryLabel: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
   },
 });
 

@@ -3,6 +3,7 @@ import {View, Text, StyleSheet, TouchableOpacity, Linking} from 'react-native';
 import {Order, OrderStatus, MenuType} from '../../../types/api.types';
 import {formatDistanceToNow} from 'date-fns';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {OrderSourceBadge} from './OrderSourceBadge';
 
 interface OrderCardAdminProps {
   order: Order;
@@ -12,6 +13,7 @@ interface OrderCardAdminProps {
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
     PLACED: '#007AFF',
+    SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
     REJECTED: '#FF3B30',
     PREPARING: '#FFCC00',
@@ -85,6 +87,7 @@ const OrderCardAdmin: React.FC<OrderCardAdminProps> = ({order, onPress}) => {
 
       {/* Tags Row */}
       <View style={styles.tagsRow}>
+        <OrderSourceBadge orderSource={order.orderSource} />
         <View
           style={[
             styles.tag,

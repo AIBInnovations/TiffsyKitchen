@@ -33,6 +33,7 @@ const STATUS_FLOW: OrderStatus[] = [
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   PLACED: 'Placed',
+  SCHEDULED: 'Scheduled',
   ACCEPTED: 'Accepted',
   REJECTED: 'Rejected',
   PREPARING: 'Preparing',
@@ -46,6 +47,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 
 const STATUS_ICONS: Record<OrderStatus, string> = {
   PLACED: 'receipt',
+  SCHEDULED: 'event',
   ACCEPTED: 'check-circle',
   REJECTED: 'cancel',
   PREPARING: 'restaurant',

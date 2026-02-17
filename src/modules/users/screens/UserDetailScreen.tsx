@@ -15,7 +15,7 @@ import { Customer, Order, CustomerVoucher } from '../../../types/api.types';
 import { useAlert } from '../../../hooks/useAlert';
 
 const colors = {
-  primary: '#FF6B35',
+  primary: '#F56B4C',
   secondary: '#4ECDC4',
   success: '#10b981',
   warning: '#f59e0b',

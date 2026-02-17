@@ -217,6 +217,111 @@ export const SubscriptionDetailModal: React.FC<SubscriptionDetailModalProps> = (
               </View>
             )}
 
+            {/* Auto-Ordering Section */}
+            {subscription.autoOrderingEnabled !== undefined && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Auto-Ordering</Text>
+                <View style={styles.infoRow}>
+                  <Icon name="autorenew" size={20} color={subscription.autoOrderingEnabled ? '#16a34a' : '#dc2626'} />
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>Status</Text>
+                    <Text style={[styles.infoValue, { color: subscription.autoOrderingEnabled ? '#16a34a' : '#dc2626' }]}>
+                      {subscription.autoOrderingEnabled ? 'Enabled' : 'Disabled'}
+                    </Text>
+                  </View>
+                </View>
+                {subscription.defaultKitchenId && (
+                  <View style={styles.infoRow}>
+                    <Icon name="restaurant" size={20} color="#6b7280" />
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Default Kitchen</Text>
+                      <Text style={styles.infoValue}>{subscription.defaultKitchenId}</Text>
+                    </View>
+                  </View>
+                )}
+                {subscription.defaultAddressId && (
+                  <View style={styles.infoRow}>
+                    <Icon name="location-on" size={20} color="#6b7280" />
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Default Address</Text>
+                      <Text style={styles.infoValue}>{subscription.defaultAddressId}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Weekly Schedule */}
+            {subscription.weeklySchedule && Object.keys(subscription.weeklySchedule).length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Weekly Schedule</Text>
+                <View style={styles.scheduleGrid}>
+                  {Object.entries(subscription.weeklySchedule).map(([day, meals]) => (
+                    <View key={day} style={styles.scheduleRow}>
+                      <Text style={styles.scheduleDay}>
+                        {day.charAt(0).toUpperCase() + day.slice(1)}
+                      </Text>
+                      <View style={styles.scheduleMeals}>
+                        <View style={[styles.mealIndicator, { backgroundColor: meals.lunch ? '#dcfce7' : '#f3f4f6' }]}>
+                          <Text style={[styles.mealIndicatorText, { color: meals.lunch ? '#16a34a' : '#9ca3af' }]}>
+                            L
+                          </Text>
+                        </View>
+                        <View style={[styles.mealIndicator, { backgroundColor: meals.dinner ? '#dbeafe' : '#f3f4f6' }]}>
+                          <Text style={[styles.mealIndicatorText, { color: meals.dinner ? '#2563eb' : '#9ca3af' }]}>
+                            D
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Skipped Slots */}
+            {subscription.skippedSlots && subscription.skippedSlots.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  Skipped Slots ({subscription.skippedSlots.length})
+                </Text>
+                {subscription.skippedSlots.slice(0, 5).map((slot, index) => (
+                  <View key={index} style={styles.skippedSlotItem}>
+                    <Icon name="event-busy" size={16} color="#d97706" />
+                    <View style={{ flex: 1, marginLeft: 8 }}>
+                      <Text style={styles.skippedSlotDate}>
+                        {format(new Date(slot.date), 'MMM dd, yyyy')} - {slot.mealWindow}
+                      </Text>
+                      {slot.reason && (
+                        <Text style={styles.skippedSlotReason}>{slot.reason}</Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+                {subscription.skippedSlots.length > 5 && (
+                  <Text style={styles.moreVouchers}>
+                    +{subscription.skippedSlots.length - 5} more skipped slots
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Default Addons */}
+            {subscription.defaultAddons && subscription.defaultAddons.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Default Addons</Text>
+                {subscription.defaultAddons.map((addon, index) => (
+                  <View key={index} style={styles.infoRow}>
+                    <Icon name="add-circle" size={20} color="#6b7280" />
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Addon ID</Text>
+                      <Text style={styles.infoValue}>{addon.addonId} (x{addon.quantity})</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
             {/* Voucher Details */}
             {subscription.voucherDetails && subscription.voucherDetails.length > 0 && (
               <View style={styles.section}>
@@ -388,6 +493,56 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontStyle: 'italic',
     marginTop: 8,
+  },
+  scheduleGrid: {
+    gap: 8,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+  },
+  scheduleDay: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    width: 100,
+  },
+  scheduleMeals: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  mealIndicator: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mealIndicatorText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  skippedSlotItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  skippedSlotDate: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  skippedSlotReason: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 2,
   },
   footer: {
     paddingHorizontal: 16,

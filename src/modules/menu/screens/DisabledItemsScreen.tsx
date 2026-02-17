@@ -7,9 +7,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAlert } from '../../../hooks/useAlert';
 import { menuManagementService } from '../../../services/menu-management.service';
@@ -32,7 +31,6 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
   onNavigateToDetail,
 }) => {
   const { showSuccess, showError, showConfirm } = useAlert();
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [disabledItems, setDisabledItems] = useState<MenuItem[]>([]);
@@ -148,10 +146,9 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Top Header with Back Button */}
-      <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.topHeader, { paddingTop: 8 }]}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -170,7 +167,7 @@ export const DisabledItemsScreen: React.FC<DisabledItemsScreenProps> = ({
         }
         ListEmptyComponent={renderEmpty}
       />
-    </View>
+    </SafeAreaScreen>
   );
 };
 
@@ -180,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   topHeader: {
-    backgroundColor: '#f97316',
+    backgroundColor: '#F56B4C',
     paddingHorizontal: 16,
     paddingBottom: 12,
     flexDirection: 'row',
