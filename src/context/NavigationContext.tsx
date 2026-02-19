@@ -36,7 +36,8 @@ export type ScreenName =
   | 'BatchMonitoring'
   | 'BatchDetail'
   | 'DeliveryStats'
-  | 'CronManagement';
+  | 'CronManagement'
+  | 'OrderCharges';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

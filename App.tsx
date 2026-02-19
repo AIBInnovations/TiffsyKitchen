@@ -56,6 +56,7 @@ import {
   DeliveryManagementScreen,
 } from './src/modules/delivery';
 import { CronManagementScreen } from './src/modules/cron';
+import { OrderChargesScreen } from './src/modules';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -475,6 +476,13 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
           <CronManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'OrderCharges':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <OrderChargesScreen />
         </PermissionGuard>
       );
 

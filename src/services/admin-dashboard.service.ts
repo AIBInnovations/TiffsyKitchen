@@ -145,7 +145,11 @@ export interface SystemConfig {
     serviceFee: number;
     packagingFee: number;
     handlingFee: number;
+    platformFee: number;
     taxRate: number;
+    surgePricing: { enabled: boolean; amount: number };
+    smallOrderFee: { enabled: boolean; minOrderAmount: number; amount: number };
+    lateNightFee: { enabled: boolean; startHour: number; endHour: number; amount: number };
   };
   batching: {
     maxBatchSize: number;

@@ -186,6 +186,14 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     roles: ['ADMIN'],
     group: 'System',
   },
+  {
+    id: '20',
+    label: 'Order Charges',
+    icon: 'attach-money',
+    screen: 'OrderCharges',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
 ];
 
 /**
