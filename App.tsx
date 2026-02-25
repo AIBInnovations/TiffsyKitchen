@@ -58,6 +58,8 @@ import {
 } from './src/modules/delivery';
 import { CronManagementScreen } from './src/modules/cron';
 import { OrderChargesScreen } from './src/modules';
+import { CouponsManagementScreen } from './src/modules/coupons';
+import DeliveryConfigScreen from './src/modules/settings/screens/DeliveryConfigScreen';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -440,6 +442,13 @@ const MainContent: React.FC<{
         </PermissionGuard>
       );
 
+    case 'DeliveryConfig':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <DeliveryConfigScreen />
+        </PermissionGuard>
+      );
+
     case 'DeliveryActions':
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
@@ -491,6 +500,13 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
           <OrderChargesScreen />
+        </PermissionGuard>
+      );
+
+    case 'Coupons':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="Coupons" onMenuPress={onMenuPress}>
+          <CouponsManagementScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 
