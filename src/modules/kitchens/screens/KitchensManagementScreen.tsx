@@ -157,6 +157,14 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
         pincode: formData.pincode,
       };
 
+      // Add coordinates if provided
+      if (formData.latitude?.trim() && formData.longitude?.trim()) {
+        (address as any).coordinates = {
+          latitude: parseFloat(formData.latitude),
+          longitude: parseFloat(formData.longitude),
+        };
+      }
+
       const operatingHours: OperatingHours = {
         lunch: {
           startTime: formData.lunchStartTime,
@@ -179,6 +187,7 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
           name: formData.name,
           description: formData.description,
           cuisineTypes: cuisineTypesArray,
+          address,
           operatingHours,
           contactPhone: formData.contactPhone,
           contactEmail: formData.contactEmail,
@@ -206,6 +215,16 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
         if (zonesChanged) {
           await kitchenService.updateZones(editingKitchen._id, {
             zonesServed: formData.zonesServed,
+          });
+        }
+
+        // Update delivery radii if values provided
+        const autoRadius = parseFloat(formData.autoAcceptRadiusKm);
+        const maxRadius = parseFloat(formData.maxDeliveryRadiusKm);
+        if (!isNaN(autoRadius) || !isNaN(maxRadius)) {
+          await kitchenService.updateDeliveryRadii(editingKitchen._id, {
+            ...((!isNaN(autoRadius)) && { autoAcceptRadiusKm: autoRadius }),
+            ...((!isNaN(maxRadius)) && { maxDeliveryRadiusKm: maxRadius }),
           });
         }
       } else {
@@ -245,7 +264,21 @@ export const KitchensManagementScreen: React.FC<KitchensManagementScreenProps> =
         }
 
         console.log('Creating kitchen with payload:', JSON.stringify(createPayload, null, 2));
-        await kitchenService.createKitchen(createPayload);
+        const newKitchen = await kitchenService.createKitchen(createPayload);
+
+        // Update delivery radii for the new kitchen if values differ from defaults
+        const autoRadius = parseFloat(formData.autoAcceptRadiusKm);
+        const maxRadius = parseFloat(formData.maxDeliveryRadiusKm);
+        if (newKitchen?._id && (!isNaN(autoRadius) || !isNaN(maxRadius))) {
+          try {
+            await kitchenService.updateDeliveryRadii(newKitchen._id, {
+              ...((!isNaN(autoRadius)) && { autoAcceptRadiusKm: autoRadius }),
+              ...((!isNaN(maxRadius)) && { maxDeliveryRadiusKm: maxRadius }),
+            });
+          } catch (radiiErr) {
+            console.warn('Failed to set delivery radii for new kitchen:', radiiErr);
+          }
+        }
       }
 
       // Close modal and reset state FIRST, before showing toast or reloading

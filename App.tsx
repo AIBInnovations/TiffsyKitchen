@@ -54,6 +54,7 @@ import {
   BatchDetailScreen,
   DeliveryStatsScreen,
   DeliveryManagementScreen,
+  GeofencingConfigScreen,
 } from './src/modules/delivery';
 import { CronManagementScreen } from './src/modules/cron';
 import { OrderChargesScreen } from './src/modules';
@@ -429,6 +430,13 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
           <DriverAssignmentConfigScreen />
+        </PermissionGuard>
+      );
+
+    case 'GeofencingConfig':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <GeofencingConfigScreen />
         </PermissionGuard>
       );
 

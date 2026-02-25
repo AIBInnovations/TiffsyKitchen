@@ -38,6 +38,7 @@ interface OrderDetailAdminScreenProps {
 
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
+    PENDING_KITCHEN_ACCEPTANCE: '#D97706',
     PLACED: '#007AFF',
     SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
@@ -343,6 +344,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     // Kitchen staff cannot cancel orders, only admins can
     if (isKitchenMode) return false;
     const cancellableStatuses: OrderStatus[] = [
+      'PENDING_KITCHEN_ACCEPTANCE',
       'PLACED',
       'ACCEPTED',
       'PREPARING',
@@ -352,11 +354,11 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
   };
 
   const canAcceptOrder = (order?: Order): boolean => {
-    return order?.status === 'PLACED';
+    return order?.status === 'PLACED' || order?.status === 'PENDING_KITCHEN_ACCEPTANCE';
   };
 
   const canRejectOrder = (order?: Order): boolean => {
-    return order?.status === 'PLACED';
+    return order?.status === 'PLACED' || order?.status === 'PENDING_KITCHEN_ACCEPTANCE';
   };
 
   const canUpdateStatus = (order?: Order): boolean => {
@@ -365,6 +367,7 @@ const OrderDetailAdminScreen: React.FC<OrderDetailAdminScreenProps> = ({
     // Kitchen mode: Only allow ACCEPTED → PREPARING and PREPARING → READY
     if (isKitchenMode) {
       const kitchenUpdatableStatuses: OrderStatus[] = [
+        'PENDING_KITCHEN_ACCEPTANCE', // Can accept or reject
         'ACCEPTED',  // Can move to PREPARING
         'PREPARING', // Can move to READY
       ];

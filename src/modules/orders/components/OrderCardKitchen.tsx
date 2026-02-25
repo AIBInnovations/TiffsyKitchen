@@ -27,6 +27,7 @@ interface OrderCardKitchenProps {
 
 const getStatusColor = (status: OrderStatus): string => {
   const colors: Record<OrderStatus, string> = {
+    PENDING_KITCHEN_ACCEPTANCE: '#D97706',
     PLACED: '#007AFF',
     SCHEDULED: '#6366f1',
     ACCEPTED: '#00C7BE',
@@ -44,6 +45,7 @@ const getStatusColor = (status: OrderStatus): string => {
 
 const getStatusIcon = (status: OrderStatus): string => {
   const icons: Record<OrderStatus, string> = {
+    PENDING_KITCHEN_ACCEPTANCE: 'hourglass-top',
     PLACED: 'receipt',
     SCHEDULED: 'event',
     ACCEPTED: 'check-circle',
@@ -61,6 +63,7 @@ const getStatusIcon = (status: OrderStatus): string => {
 
 const formatStatusText = (status: OrderStatus): string => {
   const formatted: Record<OrderStatus, string> = {
+    PENDING_KITCHEN_ACCEPTANCE: 'Pending Acceptance',
     PLACED: 'Placed',
     SCHEDULED: 'Scheduled',
     ACCEPTED: 'Accepted',
@@ -118,6 +121,7 @@ const isAutoOrder = (order: Order | any): boolean => {
 // Kitchen-specific status flow: PLACED → ACCEPTED/REJECTED → PREPARING → READY
 const getKitchenStatusOptions = (currentStatus: OrderStatus): OrderStatus[] => {
   const statusFlow: Record<OrderStatus, OrderStatus[]> = {
+    PENDING_KITCHEN_ACCEPTANCE: ['ACCEPTED', 'REJECTED'],
     PLACED: ['ACCEPTED', 'REJECTED'],
     SCHEDULED: [], // Managed by cron
     ACCEPTED: ['PREPARING'],

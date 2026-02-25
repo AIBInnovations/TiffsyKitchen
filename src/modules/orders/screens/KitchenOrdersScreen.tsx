@@ -15,6 +15,7 @@ import {
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '../../../services/orders.service';
+import kitchenService from '../../../services/kitchen.service';
 import { Order, OrderStatus } from '../../../types/api.types';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import OrderCardKitchen from '../components/OrderCardKitchen';
@@ -24,9 +25,11 @@ import { RejectOrderModal } from '../components/RejectOrderModal';
 import { Calendar } from 'react-native-calendars';
 import { isAutoOrder, isAutoAccepted } from '../../../utils/autoAccept';
 import { useAlert } from '../../../hooks/useAlert';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' | 'AUTO_ORDERS' }[] = [
   { label: 'All', value: 'ALL' },
+  { label: 'Pending', value: 'PENDING_KITCHEN_ACCEPTANCE' },
   { label: 'Placed', value: 'PLACED' },
   { label: 'Accepted', value: 'ACCEPTED' },
   { label: 'Auto-Orders', value: 'AUTO_ORDERS' },
@@ -63,6 +66,23 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [showBulkStatusModal, setShowBulkStatusModal] = useState(false);
+  const [kitchenId, setKitchenId] = useState<string | null>(null);
+
+  // Load kitchenId from AsyncStorage for geo accept/reject
+  React.useEffect(() => {
+    const loadKitchenId = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          setKitchenId(parsed.kitchenId || null);
+        }
+      } catch (error) {
+        console.error('Error loading kitchenId:', error);
+      }
+    };
+    loadKitchenId();
+  }, []);
 
   // Fetch kitchen orders
   const {
@@ -151,6 +171,40 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   const rejectMutation = useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
       ordersService.rejectOrder(orderId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+      showSuccess('Success', 'Order rejected successfully');
+      setPendingRejectOrderId(null);
+    },
+    onError: (error: any) => {
+      showError(
+        'Error',
+        error?.response?.data?.error?.message || 'Failed to reject order. Please try again.',
+      );
+    },
+  });
+
+  // Geo accept mutation (for PENDING_KITCHEN_ACCEPTANCE orders)
+  const geoAcceptMutation = useMutation({
+    mutationFn: ({ kitchenId: kId, orderId }: { kitchenId: string; orderId: string }) =>
+      kitchenService.acceptPendingOrder(kId, orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
+      showSuccess('Success', 'Order accepted successfully');
+      setPendingAcceptOrderId(null);
+    },
+    onError: (error: any) => {
+      showError(
+        'Error',
+        error?.response?.data?.error?.message || 'Failed to accept order. Please try again.',
+      );
+    },
+  });
+
+  // Geo reject mutation (for PENDING_KITCHEN_ACCEPTANCE orders)
+  const geoRejectMutation = useMutation({
+    mutationFn: ({ kitchenId: kId, orderId, reason }: { kitchenId: string; orderId: string; reason: string }) =>
+      kitchenService.rejectPendingOrder(kId, orderId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
       showSuccess('Success', 'Order rejected successfully');
@@ -544,10 +598,15 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           }
           onClose={() => setPendingAcceptOrderId(null)}
           onAccept={async (prepTime) => {
-            await acceptMutation.mutateAsync({
-              orderId: pendingAcceptOrderId,
-              estimatedPrepTime: prepTime,
-            });
+            const order = filteredOrders.find(o => o._id === pendingAcceptOrderId);
+            if (order?.status === 'PENDING_KITCHEN_ACCEPTANCE' && kitchenId) {
+              await geoAcceptMutation.mutateAsync({ kitchenId, orderId: pendingAcceptOrderId });
+            } else {
+              await acceptMutation.mutateAsync({
+                orderId: pendingAcceptOrderId,
+                estimatedPrepTime: prepTime,
+              });
+            }
           }}
         />
       )}
@@ -561,10 +620,15 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
           }
           onClose={() => setPendingRejectOrderId(null)}
           onReject={async (reason) => {
-            await rejectMutation.mutateAsync({
-              orderId: pendingRejectOrderId,
-              reason,
-            });
+            const order = filteredOrders.find(o => o._id === pendingRejectOrderId);
+            if (order?.status === 'PENDING_KITCHEN_ACCEPTANCE' && kitchenId) {
+              await geoRejectMutation.mutateAsync({ kitchenId, orderId: pendingRejectOrderId, reason });
+            } else {
+              await rejectMutation.mutateAsync({
+                orderId: pendingRejectOrderId,
+                reason,
+              });
+            }
           }}
         />
       )}

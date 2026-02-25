@@ -28,6 +28,7 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
 
   // All possible statuses
   const allStatuses: OrderStatus[] = [
+    'PENDING_KITCHEN_ACCEPTANCE',
     'PLACED',
     'ACCEPTED',
     'PREPARING',
@@ -50,6 +51,7 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
 
   const getStatusColor = (status: OrderStatus): string => {
     const colors: Record<OrderStatus, string> = {
+      PENDING_KITCHEN_ACCEPTANCE: '#D97706',
       PLACED: '#007AFF',
       SCHEDULED: '#6366f1',
       ACCEPTED: '#00C7BE',
@@ -67,6 +69,7 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
 
   const getStatusIcon = (status: OrderStatus): string => {
     const icons: Record<OrderStatus, string> = {
+      PENDING_KITCHEN_ACCEPTANCE: 'hourglass-top',
       PLACED: 'receipt',
       SCHEDULED: 'event',
       ACCEPTED: 'check-circle',
@@ -84,6 +87,7 @@ const OrderStatusDropdown: React.FC<OrderStatusDropdownProps> = ({
 
   const formatStatusText = (status: OrderStatus): string => {
     const formatted: Record<OrderStatus, string> = {
+      PENDING_KITCHEN_ACCEPTANCE: 'Pending Acceptance',
       PLACED: 'Placed',
       SCHEDULED: 'Scheduled',
       ACCEPTED: 'Accepted',

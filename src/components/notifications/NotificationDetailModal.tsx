@@ -27,6 +27,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
         return { name: 'inventory', color: colors.success };
       case 'VOUCHER_EXPIRY_REMINDER':
         return { name: 'card-giftcard', color: colors.warning };
+      case 'NEW_ORDER':
       case 'NEW_MANUAL_ORDER':
       case 'NEW_AUTO_ORDER':
         return { name: 'add-shopping-cart', color: colors.warning };
@@ -46,6 +47,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
 
     switch (notification.type) {
       case 'ORDER_STATUS_CHANGE':
+      case 'NEW_ORDER':
       case 'NEW_MANUAL_ORDER':
       case 'NEW_AUTO_ORDER':
         if (data.orderId) {

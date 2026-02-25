@@ -24,6 +24,7 @@ import {
   promoteScheduledMeals,
   autoCancelUnpaid,
   triggerVoucherExpiry,
+  triggerKitchenAcceptanceTimeout,
 } from '../../../services/cron.service';
 
 const PRIMARY_COLOR = '#F56B4C';
@@ -100,6 +101,20 @@ export const CronJobsTab: React.FC = () => {
     },
     onError: (error: any) => {
       showError('Error', error?.response?.data?.message || 'Failed to trigger voucher expiry');
+    },
+  });
+
+  const kitchenTimeoutMutation = useMutation({
+    mutationFn: triggerKitchenAcceptanceTimeout,
+    onSuccess: (data) => {
+      showSuccess(
+        'Timeout Check Complete',
+        `${data.autoRejected} orders auto-rejected, ${data.refundsInitiated} refunds initiated`,
+      );
+      refetchStatus();
+    },
+    onError: (error: any) => {
+      showError('Error', error?.response?.data?.message || 'Failed to process kitchen acceptance timeouts');
     },
   });
 
@@ -360,6 +375,40 @@ export const CronJobsTab: React.FC = () => {
             <>
               <Icon name="timer-off" size={20} color="#ffffff" />
               <Text style={styles.triggerButtonText}>Run Voucher Expiry</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Kitchen Acceptance Timeout */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <Icon name="hourglass-disabled" size={20} color="#d97706" />
+            <Text style={styles.cardTitle}>Kitchen Acceptance Timeout</Text>
+          </View>
+        </View>
+        <Text style={styles.cardDescription}>
+          Auto-reject orders where kitchen did not respond within the acceptance deadline
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.triggerButton, styles.triggerButtonAmber, kitchenTimeoutMutation.isPending && styles.triggerButtonDisabled]}
+          disabled={kitchenTimeoutMutation.isPending}
+          onPress={() =>
+            confirmAndTrigger(
+              'Kitchen Acceptance Timeout',
+              'Process expired kitchen acceptance orders? Orders past deadline will be auto-rejected.',
+              () => kitchenTimeoutMutation.mutate(),
+            )
+          }
+        >
+          {kitchenTimeoutMutation.isPending ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <>
+              <Icon name="hourglass-disabled" size={20} color="#ffffff" />
+              <Text style={styles.triggerButtonText}>Process Timeouts</Text>
             </>
           )}
         </TouchableOpacity>

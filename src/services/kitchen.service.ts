@@ -47,6 +47,7 @@ export interface UpdateKitchenRequest {
   name?: string;
   description?: string;
   cuisineTypes?: string[];
+  address?: Address;
   operatingHours?: OperatingHours;
   contactPhone?: string;
   contactEmail?: string;
@@ -321,6 +322,53 @@ class KitchenService {
    */
   async getPartnerKitchens(params?: Omit<GetKitchensParams, 'type'>): Promise<KitchenListResponse> {
     return this.getKitchens({ ...params, type: 'PARTNER' });
+  }
+
+  /**
+   * Update delivery radii (admin only)
+   */
+  async updateDeliveryRadii(kitchenId: string, data: { autoAcceptRadiusKm?: number; maxDeliveryRadiusKm?: number }): Promise<Kitchen> {
+    try {
+      const response = await apiService.patch<ApiResponse<{ kitchen: Kitchen }>>(
+        `/api/kitchens/${kitchenId}/delivery-radii`,
+        data
+      );
+      return response.data.kitchen;
+    } catch (error) {
+      console.error('Error updating delivery radii:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Accept a pending kitchen acceptance order
+   */
+  async acceptPendingOrder(kitchenId: string, orderId: string): Promise<any> {
+    try {
+      const response = await apiService.post(
+        `/api/kitchens/${kitchenId}/orders/${orderId}/accept`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error accepting pending order:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reject a pending kitchen acceptance order
+   */
+  async rejectPendingOrder(kitchenId: string, orderId: string, reason: string): Promise<any> {
+    try {
+      const response = await apiService.post(
+        `/api/kitchens/${kitchenId}/orders/${orderId}/reject`,
+        { reason }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error rejecting pending order:', error);
+      throw error;
+    }
   }
 }
 

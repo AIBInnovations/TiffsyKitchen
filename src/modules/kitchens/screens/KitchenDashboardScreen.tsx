@@ -170,6 +170,12 @@ const OverviewTab: React.FC = () => {
           color={colors.success}
         />
         <StatCard
+          label="Awaiting Accept"
+          value={stats?.pendingAcceptanceOrders || 0}
+          icon="hourglass-top"
+          color="#D97706"
+        />
+        <StatCard
           label="Pending"
           value={stats?.pendingOrders || 0}
           icon="pending"

@@ -1,5 +1,6 @@
 // Order Status Types
 export type OrderStatus =
+  | 'PENDING_KITCHEN_ACCEPTANCE'
   | 'PENDING'
   | 'CONFIRMED'
   | 'PREPARING'

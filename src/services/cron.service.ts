@@ -13,6 +13,7 @@ import {
   PromoteScheduledMealsResponse,
   AutoCancelUnpaidResponse,
   VoucherExpiryResponse,
+  KitchenAcceptanceTimeoutResponse,
   AutoOrderLogsResponse,
   AutoOrderLogFilters,
   AutoOrderFailureSummaryResponse,
@@ -87,6 +88,13 @@ export const autoCancelUnpaid = async (): Promise<AutoCancelUnpaidResponse> => {
 export const triggerVoucherExpiry = async (): Promise<VoucherExpiryResponse> => {
   const response = await apiService.post<VoucherExpiryResponse>(
     '/api/admin/cron/voucher-expiry',
+  );
+  return response.data;
+};
+
+export const triggerKitchenAcceptanceTimeout = async (): Promise<KitchenAcceptanceTimeoutResponse> => {
+  const response = await apiService.post<KitchenAcceptanceTimeoutResponse>(
+    '/api/admin/cron/kitchen-acceptance-timeout',
   );
   return response.data;
 };
@@ -171,6 +179,7 @@ export const cronService = {
   promoteScheduledMeals,
   autoCancelUnpaid,
   triggerVoucherExpiry,
+  triggerKitchenAcceptanceTimeout,
   getAutoOrderLogs,
   getAutoOrderLogsSummary,
 };

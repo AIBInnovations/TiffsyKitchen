@@ -80,13 +80,15 @@ export const DashboardScreenEnhanced: React.FC<DashboardScreenProps> = ({
             {data?.pendingActions && (
               data.pendingActions.pendingOrders +
               data.pendingActions.pendingRefunds +
-              data.pendingActions.pendingKitchenApprovals
+              data.pendingActions.pendingKitchenApprovals +
+              (data.pendingActions.pendingAcceptanceOrders ?? 0)
             ) > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
                     {data.pendingActions.pendingOrders +
                       data.pendingActions.pendingRefunds +
-                      data.pendingActions.pendingKitchenApprovals}
+                      data.pendingActions.pendingKitchenApprovals +
+                      (data.pendingActions.pendingAcceptanceOrders ?? 0)}
                   </Text>
                 </View>
               )}
@@ -232,9 +234,20 @@ export const DashboardScreenEnhanced: React.FC<DashboardScreenProps> = ({
                 />
               )}
 
+              {(data.pendingActions.pendingAcceptanceOrders ?? 0) > 0 && (
+                <ActionCard
+                  icon="hourglass-top"
+                  title="Pending Kitchen Acceptance"
+                  count={data.pendingActions.pendingAcceptanceOrders!}
+                  color="#d97706"
+                  onPress={() => handleNavigate('Orders')}
+                />
+              )}
+
               {data.pendingActions.pendingOrders === 0 &&
                 data.pendingActions.pendingRefunds === 0 &&
-                data.pendingActions.pendingKitchenApprovals === 0 && (
+                data.pendingActions.pendingKitchenApprovals === 0 &&
+                (data.pendingActions.pendingAcceptanceOrders ?? 0) === 0 && (
                   <View style={styles.noPendingCard}>
                     <Icon name="check-circle" size={48} color="#10b981" />
                     <Text style={styles.noPendingText}>All caught up!</Text>

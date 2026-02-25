@@ -79,6 +79,13 @@ export interface VoucherExpiryResponse {
   stats: Record<string, any>;
 }
 
+export interface KitchenAcceptanceTimeoutResponse {
+  processed: number;
+  autoRejected: number;
+  refundsInitiated: number;
+  errors: number;
+}
+
 // ============================================================================
 // Auto-Order Log Types
 // ============================================================================

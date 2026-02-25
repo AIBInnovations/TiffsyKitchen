@@ -12,6 +12,7 @@ import { colors } from '../../../theme';
 
 // Status labels
 export const orderStatusLabels: Record<OrderStatus, string> = {
+  PENDING_KITCHEN_ACCEPTANCE: 'Pending Acceptance',
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
   PREPARING: 'Preparing',
@@ -43,6 +44,7 @@ export const deliveryStatusLabels: Record<DeliveryStatus, string> = {
 
 // Status colors
 export const orderStatusColors: Record<OrderStatus, { bg: string; text: string }> = {
+  PENDING_KITCHEN_ACCEPTANCE: { bg: '#fef3c7', text: '#d97706' },
   PENDING: { bg: '#f3f4f6', text: '#6b7280' },
   CONFIRMED: { bg: '#dbeafe', text: '#2563eb' },
   PREPARING: { bg: '#fef3c7', text: '#d97706' },
@@ -74,6 +76,7 @@ export const deliveryStatusColors: Record<DeliveryStatus, { bg: string; text: st
 
 // Status icons (MaterialIcons names)
 export const orderStatusIcons: Record<OrderStatus, string> = {
+  PENDING_KITCHEN_ACCEPTANCE: 'hourglass-top',
   PENDING: 'schedule',
   CONFIRMED: 'check-circle-outline',
   PREPARING: 'restaurant',
@@ -204,6 +207,7 @@ export const sortOrders = (orders: Order[], sortBy: OrdersFilter['sortBy']): Ord
 
     case 'by_status':
       const statusOrder: Record<OrderStatus, number> = {
+        PENDING_KITCHEN_ACCEPTANCE: -1,
         PENDING: 0,
         CONFIRMED: 1,
         PREPARING: 2,

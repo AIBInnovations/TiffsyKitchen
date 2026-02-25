@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   Platform,
   ToastAndroid,
+  PermissionsAndroid,
 } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 import { useAlert } from '../../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Kitchen, KitchenType, Zone } from '../../../types/api.types';
@@ -41,6 +43,10 @@ export interface KitchenFormState {
   contactEmail: string;
   ownerName: string;
   ownerPhone: string;
+  latitude: string;
+  longitude: string;
+  autoAcceptRadiusKm: string;
+  maxDeliveryRadiusKm: string;
 }
 
 interface KitchenFormModalProps {
@@ -69,6 +75,7 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
 }) => {
   const { showError } = useAlert();
   const [loading, setLoading] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
   const [zonePickerVisible, setZonePickerVisible] = useState(false);
   const [formData, setFormData] = useState<KitchenFormState>({
     name: '',
@@ -93,6 +100,10 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
     contactEmail: '',
     ownerName: '',
     ownerPhone: '',
+    latitude: '',
+    longitude: '',
+    autoAcceptRadiusKm: '5',
+    maxDeliveryRadiusKm: '10',
   });
 
   useEffect(() => {
@@ -125,6 +136,10 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
         contactEmail: kitchen.contactEmail || '',
         ownerName: kitchen.ownerName || '',
         ownerPhone: kitchen.ownerPhone || '',
+        latitude: kitchen.address?.coordinates?.latitude?.toString() || '',
+        longitude: kitchen.address?.coordinates?.longitude?.toString() || '',
+        autoAcceptRadiusKm: kitchen.deliveryConfig?.autoAcceptRadiusKm?.toString() || '5',
+        maxDeliveryRadiusKm: kitchen.deliveryConfig?.maxDeliveryRadiusKm?.toString() || '10',
       });
     } else if (visible && !kitchen) {
       // Reset for creating new kitchen
@@ -151,12 +166,66 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
         contactEmail: '',
         ownerName: '',
         ownerPhone: '',
+        latitude: '',
+        longitude: '',
+        autoAcceptRadiusKm: '5',
+        maxDeliveryRadiusKm: '10',
       });
     }
   }, [visible, kitchen]);
 
   const updateField = (field: keyof KitchenFormState, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const detectLocation = async () => {
+    try {
+      setDetectingLocation(true);
+
+      // Request permission on Android
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'This app needs access to your location to detect kitchen coordinates.',
+            buttonPositive: 'Allow',
+            buttonNegative: 'Deny',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          showError('Permission Denied', 'Location permission is required to detect coordinates.');
+          setDetectingLocation(false);
+          return;
+        }
+      }
+
+      Geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          updateField('latitude', latitude.toFixed(6));
+          updateField('longitude', longitude.toFixed(6));
+          setDetectingLocation(false);
+          if (Platform.OS === 'android') {
+            ToastAndroid.show('Location detected successfully', ToastAndroid.SHORT);
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          setDetectingLocation(false);
+          showError('Location Error', 'Could not detect location. Please enter coordinates manually.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 10000,
+        },
+      );
+    } catch (error) {
+      console.error('detectLocation error:', error);
+      setDetectingLocation(false);
+      showError('Error', 'Failed to detect location.');
+    }
   };
 
   const validateForm = (): boolean => {
@@ -357,6 +426,32 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
     // 11. Description Validation (Optional but has max length)
     if (formData.description && formData.description.trim().length > 500) {
       showToast('Description must not exceed 500 characters', 'error');
+      return false;
+    }
+
+    // 12. Coordinates Validation (Optional but both must be provided together)
+    if (formData.latitude.trim() || formData.longitude.trim()) {
+      if (!formData.latitude.trim() || !formData.longitude.trim()) {
+        showToast('Both latitude and longitude must be provided', 'error');
+        return false;
+      }
+      const lat = parseFloat(formData.latitude);
+      const lng = parseFloat(formData.longitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        showToast('Latitude must be between -90 and 90', 'error');
+        return false;
+      }
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        showToast('Longitude must be between -180 and 180', 'error');
+        return false;
+      }
+    }
+
+    // 13. Delivery Radii Validation
+    const autoRadius = parseFloat(formData.autoAcceptRadiusKm);
+    const maxRadius = parseFloat(formData.maxDeliveryRadiusKm);
+    if (!isNaN(autoRadius) && !isNaN(maxRadius) && autoRadius > maxRadius) {
+      showToast('Auto-accept radius must be less than or equal to max delivery radius', 'error');
       return false;
     }
 
@@ -566,6 +661,46 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
                 maxLength={6}
                 editable={!loading}
               />
+
+              <View style={styles.coordinatesHeader}>
+                <Text style={styles.label}>Coordinates</Text>
+                <TouchableOpacity
+                  style={styles.detectButton}
+                  onPress={detectLocation}
+                  disabled={loading || detectingLocation}>
+                  {detectingLocation ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <>
+                      <Icon name="crosshairs-gps" size={16} color={colors.primary} />
+                      <Text style={styles.detectButtonText}>Detect Location</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Latitude"
+                    value={formData.latitude}
+                    onChangeText={(text) => updateField('latitude', text)}
+                    keyboardType="decimal-pad"
+                    editable={!loading}
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Longitude"
+                    value={formData.longitude}
+                    onChangeText={(text) => updateField('longitude', text)}
+                    keyboardType="decimal-pad"
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+              <Text style={styles.hint}>Used for geofencing-based delivery matching. Use "Detect Location" while at the kitchen.</Text>
             </View>
 
             {/* Zones Served */}
@@ -585,6 +720,39 @@ export const KitchenFormModal: React.FC<KitchenFormModalProps> = ({
                 </Text>
                 <Icon name="chevron-right" size={20} color={colors.textMuted} />
               </TouchableOpacity>
+            </View>
+
+            {/* Delivery Radii */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Delivery Radii</Text>
+
+              <View style={styles.row}>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.label}>Auto-Accept (km)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="5"
+                    value={formData.autoAcceptRadiusKm}
+                    onChangeText={(text) => updateField('autoAcceptRadiusKm', text)}
+                    keyboardType="decimal-pad"
+                    editable={!loading}
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <Text style={styles.label}>Max Delivery (km)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="10"
+                    value={formData.maxDeliveryRadiusKm}
+                    onChangeText={(text) => updateField('maxDeliveryRadiusKm', text)}
+                    keyboardType="decimal-pad"
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+              <Text style={styles.hint}>
+                Orders within auto-accept radius are auto-accepted. Orders between auto-accept and max radius require kitchen approval.
+              </Text>
             </View>
 
             {/* Operating Hours */}
@@ -862,6 +1030,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   typeOptionTextActive: {
+    color: colors.primary,
+  },
+  coordinatesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  detectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: spacing.borderRadiusMd,
+    backgroundColor: colors.primaryLight,
+  },
+  detectButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
     color: colors.primary,
   },
   row: {

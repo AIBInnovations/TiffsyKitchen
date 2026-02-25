@@ -31,13 +31,16 @@ export type ScreenName =
   | 'DeliverySettingsHub'
   | 'RoutePlanningConfig'
   | 'DriverAssignmentConfig'
+  | 'GeofencingConfig'
   | 'DeliveryActions'
   | 'DeliveryManagement'
   | 'BatchMonitoring'
   | 'BatchDetail'
   | 'DeliveryStats'
   | 'CronManagement'
-  | 'OrderCharges';
+  | 'OrderCharges'
+  | 'AutoOrderAddons'
+  | 'Coupons';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

@@ -30,6 +30,7 @@ export interface KitchenDashboardStatsResponse {
     todayStats: {
       ordersCount: number;
       ordersRevenue: number;
+      pendingAcceptanceOrders: number;
       pendingOrders: number;
       acceptedOrders: number;
       preparingOrders: number;

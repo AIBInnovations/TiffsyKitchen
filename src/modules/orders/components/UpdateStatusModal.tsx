@@ -32,6 +32,7 @@ const STATUS_FLOW: OrderStatus[] = [
 ];
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING_KITCHEN_ACCEPTANCE: 'Pending Acceptance',
   PLACED: 'Placed',
   SCHEDULED: 'Scheduled',
   ACCEPTED: 'Accepted',
@@ -46,6 +47,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 };
 
 const STATUS_ICONS: Record<OrderStatus, string> = {
+  PENDING_KITCHEN_ACCEPTANCE: 'hourglass-top',
   PLACED: 'receipt',
   SCHEDULED: 'event',
   ACCEPTED: 'check-circle',

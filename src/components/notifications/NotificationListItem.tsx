@@ -27,6 +27,7 @@ export const NotificationListItem: React.FC<NotificationListItemProps> = ({
         return { name: 'inventory', color: colors.success };
       case 'VOUCHER_EXPIRY_REMINDER':
         return { name: 'card-giftcard', color: colors.warning };
+      case 'NEW_ORDER':
       case 'NEW_MANUAL_ORDER':
       case 'NEW_AUTO_ORDER':
         return { name: 'add-shopping-cart', color: colors.warning };

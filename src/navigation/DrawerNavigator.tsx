@@ -17,10 +17,12 @@ import KitchenNavigator from './KitchenNavigator';
 import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen } from '../modules/kitchens/screens';
 import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
 import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
+import AutoOrderAddonsScreen from '../modules/orders/screens/AutoOrderAddonsScreen';
 import { DriversManagementScreen } from '../modules/drivers/screens/DriversManagementScreen';
 import { DriverDeliveriesScreen, DriverOrdersBatchesScreen } from '../modules/drivers/screens';
 import { UserRole } from '../types/user';
 import { getMenuItemsForRole, MenuItem } from '../utils/rbac';
+import { CouponsManagementScreen } from '../modules/coupons';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const Stack = createStackNavigator();
@@ -196,8 +198,16 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
 
       <Drawer.Screen name="Subscriptions" component={SubscriptionsScreenSimple} />
 
+      <Drawer.Screen name="AutoOrderAddons">
+        {(props) => (
+          <AutoOrderAddonsScreen
+            onMenuPress={() => props.navigation.toggleDrawer()}
+          />
+        )}
+      </Drawer.Screen>
+
       <Drawer.Screen name="Coupons">
-        {() => <PlaceholderScreen title="Coupons Management" />}
+        {(props) => <CouponsManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
       </Drawer.Screen>
 
       <Drawer.Screen name="Settings">

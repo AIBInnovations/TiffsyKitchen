@@ -21,6 +21,7 @@ export type DrawerParamList = {
   Kitchens: undefined;
   Zones: undefined;
   Subscriptions: undefined;
+  AutoOrderAddons: undefined;
   Coupons: undefined;
   Settings: undefined;
 };

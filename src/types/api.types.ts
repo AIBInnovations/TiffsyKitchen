@@ -30,8 +30,8 @@ export type KitchenStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING_APPROVAL' | 'SUSPEN
 export type ZoneStatus = 'ACTIVE' | 'INACTIVE';
 
 export type CouponStatus = 'ACTIVE' | 'INACTIVE' | 'EXPIRED' | 'EXHAUSTED';
-export type DiscountType = 'PERCENTAGE' | 'FLAT' | 'FREE_DELIVERY';
-export type TargetUserType = 'ALL' | 'NEW_USERS' | 'EXISTING_USERS';
+export type DiscountType = 'PERCENTAGE' | 'FLAT' | 'FREE_DELIVERY' | 'FREE_ADDON_COUNT' | 'FREE_ADDON_VALUE' | 'FREE_EXTRA_VOUCHER';
+export type TargetUserType = 'ALL' | 'NEW_USERS' | 'EXISTING_USERS' | 'SPECIFIC_USERS';
 
 export type VoucherStatus = 'AVAILABLE' | 'REDEEMED' | 'EXPIRED' | 'RESTORED' | 'CANCELLED';
 
@@ -49,6 +49,7 @@ export type RefundReason =
 export type OrderSource = 'DIRECT' | 'SCHEDULED' | 'AUTO_ORDER';
 
 export type OrderStatus =
+  | 'PENDING_KITCHEN_ACCEPTANCE'
   | 'PLACED'
   | 'SCHEDULED'
   | 'ACCEPTED'
@@ -133,6 +134,7 @@ export interface DashboardPendingActions {
   pendingOrders: number;
   pendingRefunds: number;
   pendingKitchenApprovals: number;
+  pendingAcceptanceOrders?: number;
 }
 
 export interface DashboardActivity {
@@ -326,6 +328,10 @@ export interface Kitchen {
   updatedAt?: string;
   suspensionReason?: string;
   suspendedAt?: string;
+  deliveryConfig?: {
+    autoAcceptRadiusKm?: number;
+    maxDeliveryRadiusKm?: number;
+  };
 }
 
 export interface KitchenStatistics {
@@ -385,35 +391,50 @@ export interface Coupon {
   discountType: DiscountType;
   discountValue: number;
   maxDiscountAmount?: number;
+  freeAddonCount?: number;
+  freeAddonMaxValue?: number;
+  extraVoucherCount?: number;
+  extraVoucherExpiryDays?: number;
   minOrderValue?: number;
   minItems?: number;
+  applicableMenuTypes?: string[];
+  applicableKitchenIds?: string[];
+  applicableZoneIds?: string[];
+  excludedKitchenIds?: string[];
   totalUsageLimit?: number;
+  totalUsageCount?: number;
   perUserLimit?: number;
   targetUserType: TargetUserType;
+  specificUserIds?: string[];
   isFirstOrderOnly: boolean;
   validFrom: string;
   validTill: string;
   status: CouponStatus;
   isVisible: boolean;
   displayOrder: number;
+  bannerImage?: string;
   termsAndConditions?: string;
   createdAt?: string;
+  updatedAt?: string;
+  usageStats?: { used: number; remaining: number | string };
 }
 
 export interface CouponUsageStats {
   totalUsed: number;
   uniqueUsers: number;
   totalDiscountGiven: number;
-  remainingUses: number;
+  remainingUses: number | string;
 }
 
 export interface CouponUsage {
-  _id: string;
-  userId: string;
-  userName: string;
-  orderId: string;
-  discountAmount: number;
-  usedAt: string;
+  user: {
+    _id: string;
+    name: string;
+    phone: string;
+  };
+  order: string;
+  date: string;
+  discount: number;
 }
 
 export interface CouponDetailsResponse {
@@ -426,6 +447,47 @@ export interface CouponListResponse {
   coupons: Coupon[];
   pagination: PaginationMeta;
 }
+
+export interface GetCouponsParams {
+  status?: CouponStatus;
+  discountType?: DiscountType;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateCouponRequest {
+  code: string;
+  name: string;
+  description?: string;
+  discountType: DiscountType;
+  discountValue?: number;
+  maxDiscountAmount?: number;
+  freeAddonCount?: number;
+  freeAddonMaxValue?: number;
+  extraVoucherCount?: number;
+  extraVoucherExpiryDays?: number;
+  minOrderValue?: number;
+  minItems?: number;
+  applicableMenuTypes?: string[];
+  applicableKitchenIds?: string[];
+  applicableZoneIds?: string[];
+  excludedKitchenIds?: string[];
+  totalUsageLimit?: number;
+  perUserLimit?: number;
+  targetUserType?: TargetUserType;
+  specificUserIds?: string[];
+  isFirstOrderOnly?: boolean;
+  validFrom: string;
+  validTill: string;
+  status?: CouponStatus;
+  isVisible?: boolean;
+  displayOrder?: number;
+  bannerImage?: string;
+  termsAndConditions?: string;
+}
+
+export type UpdateCouponRequest = Partial<Omit<CreateCouponRequest, 'code'>>;
 
 // ============================================================================
 // Voucher Management Types
@@ -593,6 +655,13 @@ export interface Order {
   isAutoOrder?: boolean; // Subscription-based auto-order flag (legacy)
   isScheduledMeal?: boolean; // Scheduled meal flag (legacy)
   autoAccepted?: boolean; // Response field from order creation
+  distanceMetadata?: {
+    distanceFromKitchenKm?: number;
+    acceptanceZone?: 'AUTO_ACCEPT' | 'MANUAL_ACCEPT';
+    kitchenAcceptanceDeadline?: string;
+    kitchenResponseAt?: string;
+    autoRejectedAt?: string;
+  };
   status: OrderStatus;
   statusTimeline: StatusEntry[];
   specialInstructions?: string;

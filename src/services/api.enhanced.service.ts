@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import auth from '@react-native-firebase/auth';
 
-const BASE_URL = 'https://tiffsy-backend.onrender.com';
+const BASE_URL = 'https://d31od4t2t5epcb.cloudfront.net';
 
 // API Response wrapper from your backend
 interface ApiResponse<T> {
