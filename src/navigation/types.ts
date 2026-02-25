@@ -23,6 +23,7 @@ export type DrawerParamList = {
   Subscriptions: undefined;
   AutoOrderAddons: undefined;
   Coupons: undefined;
+  Referrals: undefined;
   Settings: undefined;
 };
 

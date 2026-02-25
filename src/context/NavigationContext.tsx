@@ -40,7 +40,8 @@ export type ScreenName =
   | 'CronManagement'
   | 'OrderCharges'
   | 'AutoOrderAddons'
-  | 'Coupons';
+  | 'Coupons'
+  | 'Referrals';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

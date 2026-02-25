@@ -210,6 +210,14 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     roles: ['ADMIN'],
     group: 'System',
   },
+  {
+    id: '23',
+    label: 'Referrals',
+    icon: 'card-giftcard',
+    screen: 'Referrals',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
 ];
 
 /**

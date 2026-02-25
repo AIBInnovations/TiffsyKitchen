@@ -23,6 +23,7 @@ import { DriverDeliveriesScreen, DriverOrdersBatchesScreen } from '../modules/dr
 import { UserRole } from '../types/user';
 import { getMenuItemsForRole, MenuItem } from '../utils/rbac';
 import { CouponsManagementScreen } from '../modules/coupons';
+import { ReferralManagementScreen } from '../modules/referrals';
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 const Stack = createStackNavigator();
@@ -208,6 +209,10 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
 
       <Drawer.Screen name="Coupons">
         {(props) => <CouponsManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="Referrals">
+        {(props) => <ReferralManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
       </Drawer.Screen>
 
       <Drawer.Screen name="Settings">

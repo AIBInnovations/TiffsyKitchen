@@ -1048,3 +1048,113 @@ export interface CustomerVoucher {
 export interface CustomerVouchersResponse {
   vouchers: CustomerVoucher[];
 }
+
+// =============================================
+// Referral Types
+// =============================================
+
+export type ReferralStatus = 'PENDING' | 'CONVERTED' | 'EXPIRED' | 'CANCELLED';
+
+export interface Referral {
+  _id: string;
+  referrerUserId: {
+    _id: string;
+    name: string;
+    phone: string;
+  };
+  refereeUserId: {
+    _id: string;
+    name: string;
+    phone: string;
+  };
+  referralCode: string;
+  status: ReferralStatus;
+  conversionDate?: string;
+  conversionSubscriptionId?: string;
+  referrerReward?: {
+    voucherCount: number;
+    voucherIds: string[];
+    issuedAt: string;
+  };
+  refereeReward?: {
+    voucherCount: number;
+    voucherIds: string[];
+    issuedAt: string;
+  };
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReferralListResponse {
+  referrals: Referral[];
+  pagination: PaginationMeta;
+}
+
+export interface ReferralAnalytics {
+  totalReferrals: number;
+  totalConverted: number;
+  totalPending: number;
+  totalExpired: number;
+  conversionRate: number;
+  totalVouchersIssued: number;
+  topReferrers: Array<{
+    userId: string;
+    name: string;
+    phone: string;
+    referralCount: number;
+    convertedCount: number;
+  }>;
+}
+
+export interface ReferralConfig {
+  enabled: boolean;
+  conversionEvent: string;
+  conversionWindowDays: number;
+  referrerReward: {
+    voucherCount: number;
+    voucherMealType: string;
+    voucherValidityDays: number;
+  };
+  refereeReward: {
+    voucherCount: number;
+    voucherMealType: string;
+    voucherValidityDays: number;
+  };
+  maxReferralsPerUser: number;
+  milestones: Array<{
+    referralCount: number;
+    bonusVouchers: number;
+    badgeName: string;
+  }>;
+  shareMessage: string;
+  antiAbuse: {
+    sameAddressLimit: number;
+    minPlanValueForConversion: number;
+  };
+}
+
+export interface GetReferralsParams {
+  page?: number;
+  limit?: number;
+  status?: ReferralStatus;
+  referrerId?: string;
+  refereeId?: string;
+  sortBy?: string;
+}
+
+export interface UserReferralDetails {
+  user: {
+    _id: string;
+    name: string;
+    phone: string;
+    referralCode: string;
+    referredBy?: string;
+  };
+  stats: {
+    totalReferred: number;
+    totalConverted: number;
+    totalVouchersEarned: number;
+  };
+  referrals: Referral[];
+}
