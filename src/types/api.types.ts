@@ -654,6 +654,7 @@ export interface Order {
   orderSource?: OrderSource; // DIRECT, SCHEDULED, or AUTO_ORDER
   isAutoOrder?: boolean; // Subscription-based auto-order flag (legacy)
   isScheduledMeal?: boolean; // Scheduled meal flag (legacy)
+  scheduledFor?: string; // Date/time the order is scheduled for delivery
   autoAccepted?: boolean; // Response field from order creation
   distanceMetadata?: {
     distanceFromKitchenKm?: number;

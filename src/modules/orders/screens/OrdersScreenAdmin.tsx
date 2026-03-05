@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Modal,
+  Platform,
 } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 // import {useSafeAreaInsets} from 'react-native-safe-area-context'; // Removed
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
@@ -24,6 +27,7 @@ import { useAlert } from '../../../hooks/useAlert';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
+  { label: 'Scheduled', value: 'SCHEDULED' },
   { label: 'Placed', value: 'PLACED' },
   { label: 'Accepted', value: 'ACCEPTED' },
   { label: 'Preparing', value: 'PREPARING' },
@@ -33,6 +37,14 @@ const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' }[] = [
   { label: 'Cancelled', value: 'CANCELLED' },
   { label: 'Failed', value: 'FAILED' },
 ];
+
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 interface OrdersScreenAdminProps {
   onMenuPress?: () => void;
@@ -49,6 +61,8 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Fetch all kitchens upfront to resolve unpopulated kitchenId strings
   const {
@@ -71,15 +85,8 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     return map;
   }, [kitchensData]);
 
-  // Fetch order statistics
-  const {
-    data: statsData,
-    isLoading: statsLoading,
-    refetch: refetchStats,
-  } = useQuery({
-    queryKey: ['orderStats'],
-    queryFn: () => ordersService.getOrderStatistics(),
-  });
+  // Cache stats from the ALL tab so they persist when switching to specific status filters
+  const cachedStatsRef = useRef({ total: 0, placed: 0, preparing: 0, delivered: 0, cancelled: 0, revenue: 0 });
 
   // Fetch orders with infinite query to accumulate pages
   const {
@@ -91,13 +98,29 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ['orders', selectedStatus],
-    queryFn: ({ pageParam = 1 }) =>
-      ordersService.getOrders({
-        status: selectedStatus === 'ALL' ? undefined : selectedStatus,
+    queryKey: ['orders', selectedStatus, selectedDate],
+    queryFn: ({ pageParam = 1 }) => {
+      const params: any = {
         page: pageParam,
         limit: 20,
-      }),
+      };
+      // For SCHEDULED filter, use orderSource instead of status
+      // because scheduled orders transition to PLACED/ACCEPTED etc. but keep orderSource='SCHEDULED'
+      if (selectedStatus === 'SCHEDULED') {
+        params.orderSource = 'SCHEDULED';
+      } else if (selectedStatus !== 'ALL') {
+        params.status = selectedStatus;
+      }
+      // Skip date filter for SCHEDULED orders (they have future delivery dates)
+      if (selectedDate && selectedStatus !== 'SCHEDULED') {
+        // Use local timezone (not UTC 'Z') so the date range matches IST orders
+        const start = new Date(`${selectedDate}T00:00:00`);
+        const end = new Date(`${selectedDate}T23:59:59.999`);
+        params.dateFrom = start.toISOString();
+        params.dateTo = end.toISOString();
+      }
+      return ordersService.getOrders(params);
+    },
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.page < lastPage.pagination.pages) {
         return lastPage.pagination.page + 1;
@@ -152,13 +175,32 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
 
   const handleRefresh = useCallback(() => {
     refetchKitchens();
-    refetchStats();
     refetchOrders();
-  }, [refetchKitchens, refetchStats, refetchOrders]);
+  }, [refetchKitchens, refetchOrders]);
 
   const handleStatusFilter = (status: OrderStatus | 'ALL') => {
     setSelectedStatus(status);
     // Query resets automatically when selectedStatus changes in queryKey
+  };
+
+  const handleDateSelect = (day: { dateString: string }) => {
+    setSelectedDate(day.dateString);
+    setShowDatePicker(false);
+  };
+
+  const handleClearDate = () => {
+    setSelectedDate(null);
+  };
+
+  const formatDisplayDate = (dateStr: string) => {
+    const today = getTodayDateString();
+    if (dateStr === today) return 'Today';
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+    if (dateStr === yStr) return 'Yesterday';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   const handleOrderPress = (orderId: string) => {
@@ -182,10 +224,23 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     }
   };
 
-  // Flatten all pages into a single orders array
+  // Helper to check if an order is scheduled
+  const isScheduledOrder = (order: Order) =>
+    order.orderSource === 'SCHEDULED' || order.isScheduledMeal || order.status === 'SCHEDULED';
+
+  // Flatten all pages into a single orders array, exclude SCHEDULED from "All"
   const allOrders = useMemo(() => {
-    return ordersData?.pages?.flatMap(page => page.orders) ?? [];
-  }, [ordersData]);
+    const orders = ordersData?.pages?.flatMap(page => page.orders) ?? [];
+    if (selectedStatus === 'ALL') {
+      // Exclude scheduled orders from "All" view
+      return orders.filter(order => !isScheduledOrder(order));
+    }
+    if (selectedStatus === 'SCHEDULED') {
+      // Client-side filter: show orders that are scheduled (via any field)
+      return orders.filter(order => isScheduledOrder(order));
+    }
+    return orders;
+  }, [ordersData, selectedStatus]);
 
   // Group orders by kitchen with search filtering
   const kitchenOrdersGroups = useMemo(() => {
@@ -273,16 +328,32 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
     );
   }, [allOrders, searchQuery, kitchenMap]);
 
+  // Compute stats from the main orders data (only when on ALL tab which has all statuses)
+  const todayStats = useMemo(() => {
+    if (selectedStatus !== 'ALL' || !ordersData?.pages?.length) {
+      return cachedStatsRef.current;
+    }
+    const allLoadedOrders = ordersData.pages.flatMap(page => page.orders);
+    // Use pagination.total from first page for accurate total count
+    const total = ordersData.pages[0]?.pagination?.total ?? allLoadedOrders.length;
+    const placed = allLoadedOrders.filter(o => o.status === 'PLACED').length;
+    const preparing = allLoadedOrders.filter(o => o.status === 'PREPARING' || o.status === 'ACCEPTED').length;
+    const delivered = allLoadedOrders.filter(o => o.status === 'DELIVERED').length;
+    const cancelled = allLoadedOrders.filter(o => o.status === 'CANCELLED').length;
+    const revenue = allLoadedOrders.reduce((sum, o) => sum + (o.grandTotal || 0), 0);
+    const stats = { total, placed, preparing, delivered, cancelled, revenue };
+    cachedStatsRef.current = stats;
+    return stats;
+  }, [ordersData, selectedStatus]);
+
   const renderStatsSection = () => {
-    if (statsLoading || !statsData) {
+    if (ordersLoading && !ordersData) {
       return (
         <View style={styles.statsLoadingContainer}>
           <ActivityIndicator size="small" color="#F56B4C" />
         </View>
       );
     }
-
-    const { today, revenue } = statsData;
 
     return (
       <ScrollView
@@ -292,38 +363,38 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         contentContainerStyle={styles.statsContainer}>
         <OrderStatsCard
           label="Today's Orders"
-          value={today.total}
+          value={todayStats.total}
           color="#F56B4C"
           icon="receipt-long"
         />
         <OrderStatsCard
           label="Placed"
-          value={today.placed}
+          value={todayStats.placed}
           color="#FF9500"
-          highlight={today.placed > 0}
+          highlight={todayStats.placed > 0}
           icon="pending"
         />
         <OrderStatsCard
           label="Preparing"
-          value={today.preparing}
+          value={todayStats.preparing}
           color="#FFCC00"
           icon="restaurant"
         />
         <OrderStatsCard
           label="Delivered"
-          value={today.delivered}
+          value={todayStats.delivered}
           color="#34C759"
           icon="check-circle"
         />
         <OrderStatsCard
           label="Cancelled"
-          value={today.cancelled}
+          value={todayStats.cancelled}
           color="#FF3B30"
           icon="cancel"
         />
         <OrderStatsCard
           label="Today's Revenue"
-          value={`₹${revenue.today.toLocaleString('en-IN', {
+          value={`₹${todayStats.revenue.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`}
@@ -421,6 +492,27 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
         {renderStatsSection()}
         {renderStatusFilters()}
 
+        {/* Date Filter */}
+        <View style={styles.dateFilterRow}>
+          <TouchableOpacity
+            style={styles.datePickerButton}
+            onPress={() => setShowDatePicker(true)}>
+            <Icon name="calendar-today" size={18} color="#F56B4C" />
+            <Text style={styles.datePickerButtonText}>
+              {selectedDate ? formatDisplayDate(selectedDate) : 'All Dates'}
+            </Text>
+          </TouchableOpacity>
+          {selectedDate && (
+            <TouchableOpacity
+              onPress={handleClearDate}
+              style={styles.clearDateButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Icon name="close" size={16} color="#6b7280" />
+              <Text style={styles.clearDateText}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Icon name="search" size={20} color="#9ca3af" style={styles.searchIcon} />
@@ -476,6 +568,39 @@ const OrdersScreenAdmin = ({ onMenuPress, navigation }: OrdersScreenAdminProps) 
           ]}
         />
       </View>
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}>
+        <TouchableOpacity
+          style={styles.dateModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}>
+          <View style={styles.dateModalContent}>
+            <View style={styles.dateModalHeader}>
+              <Text style={styles.dateModalTitle}>Select Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Icon name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={handleDateSelect}
+              markedDates={selectedDate ? {
+                [selectedDate]: { selected: true, selectedColor: '#F56B4C' },
+              } : {}}
+              maxDate={getTodayDateString()}
+              theme={{
+                todayTextColor: '#F56B4C',
+                selectedDayBackgroundColor: '#F56B4C',
+                arrowColor: '#F56B4C',
+              }}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaScreen>
   );
 };
@@ -637,6 +762,65 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
     marginLeft: 4,
+  },
+  dateFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    gap: 6,
+  },
+  datePickerButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  clearDateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  clearDateText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  dateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateModalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    overflow: 'hidden',
+  },
+  dateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  dateModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
   },
 });
 

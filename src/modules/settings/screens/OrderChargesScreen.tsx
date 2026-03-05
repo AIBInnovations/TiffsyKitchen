@@ -9,13 +9,16 @@ import {
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import adminDashboardService, { SystemConfig } from '../../../services/admin-dashboard.service';
 import { Card } from '../../../components/common/Card';
 import { useAlert } from '../../../hooks/useAlert';
+import { useNavigation } from '../../../context/NavigationContext';
 
 const OrderChargesScreen: React.FC = () => {
   const queryClient = useQueryClient();
   const { showSuccess, showError } = useAlert();
+  const { goBack } = useNavigation();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['systemConfig'],
@@ -70,24 +73,28 @@ const OrderChargesScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#F56B4C" />
-      </View>
+      <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
+        <View className="flex-1 justify-center items-center bg-gray-50">
+          <ActivityIndicator size="large" color="#F56B4C" />
+          <Text className="text-gray-500 mt-2">Loading config...</Text>
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   const fees = formData.fees as any;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Header */}
-      <View className="p-4 pb-2">
-        <Text className="text-2xl font-bold text-gray-800">Order Charges</Text>
-        <Text className="text-sm text-gray-500 mt-1">
-          Configure all charges applied to customer orders. Changes take effect on new orders only.
-        </Text>
+      <View className="bg-[#F56B4C] px-4 pb-3 pt-2 flex-row items-center">
+        <TouchableOpacity onPress={goBack} className="mr-4">
+          <Icon name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text className="text-white text-xl font-semibold">Order Charges</Text>
       </View>
 
+      <ScrollView className="flex-1">
       {/* Basic Charges */}
       <View className="px-4 pb-4">
         <Card className="p-4">
@@ -334,7 +341,8 @@ const OrderChargesScreen: React.FC = () => {
           )}
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaScreen>
   );
 };
 

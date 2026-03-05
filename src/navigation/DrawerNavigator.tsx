@@ -14,12 +14,20 @@ import { DrawerParamList } from './types';
 import DashboardScreen from '../screens/admin/DashboardScreen.enhanced';
 import OrdersNavigator from './OrdersNavigator';
 import KitchenNavigator from './KitchenNavigator';
-import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen } from '../modules/kitchens/screens';
+import { KitchensManagementScreen, KitchenDetailScreen, BatchManagementScreen, BatchManagementLandingScreen, KitchenApprovalsScreen, KitchenProfileScreen } from '../modules/kitchens/screens';
 import { ZonesManagementScreen } from '../modules/zones/screens/ZonesManagementScreen';
 import { SubscriptionsScreen, SubscriptionsScreenSimple } from '../modules/subscriptions';
 import AutoOrderAddonsScreen from '../modules/orders/screens/AutoOrderAddonsScreen';
+import { MenuManagementScreen } from '../modules/menu/screens/MenuManagementScreen';
+import DeliveryManagementScreen from '../modules/delivery/screens/DeliveryManagementScreen';
+import DeliverySettingsHubScreen from '../modules/delivery/screens/DeliverySettingsHubScreen';
+import BatchMonitoringScreen from '../modules/delivery/screens/BatchMonitoringScreen';
+import DeliveryStatsScreen from '../modules/delivery/screens/DeliveryStatsScreen';
 import { DriversManagementScreen } from '../modules/drivers/screens/DriversManagementScreen';
 import { DriverDeliveriesScreen, DriverOrdersBatchesScreen } from '../modules/drivers/screens';
+import { CronManagementScreen } from '../modules/cron';
+import { SendPushNotificationScreen } from '../screens/admin/SendPushNotificationScreen';
+import OrderChargesScreen from '../modules/settings/screens/OrderChargesScreen';
 import { UserRole } from '../types/user';
 import { getMenuItemsForRole, MenuItem } from '../utils/rbac';
 import { CouponsManagementScreen } from '../modules/coupons';
@@ -176,7 +184,18 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
 
       <Drawer.Screen name="KitchenOrders" component={KitchenNavigator} />
 
-      {/* Placeholder screens - we'll implement these next */}
+      <Drawer.Screen name="MenuManagement">
+        {(props) => <MenuManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="KitchenProfile">
+        {(props) => <KitchenProfileScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="KitchenApprovals">
+        {(props) => <KitchenApprovalsScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
       <Drawer.Screen name="Users">
         {() => <PlaceholderScreen title="Users Management" />}
       </Drawer.Screen>
@@ -185,10 +204,35 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
         {(props) => <DriversManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
       </Drawer.Screen>
 
+      <Drawer.Screen name="DriverApprovals">
+        {() => <PlaceholderScreen title="Driver Approvals" />}
+      </Drawer.Screen>
+
       <Drawer.Screen name="Kitchens" component={KitchensNavigator} />
+
+      <Drawer.Screen name="DeliveryManagement">
+        {(props) => <DeliveryManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="DeliverySettingsHub">
+        {(props) => <DeliverySettingsHubScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
 
       <Drawer.Screen name="BatchManagement">
         {(props) => <BatchManagementLandingScreen {...props} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="BatchMonitoring">
+        {(props) => (
+          <BatchMonitoringScreen
+            onMenuPress={() => props.navigation.toggleDrawer()}
+            onBatchSelect={(batchId) => props.navigation.navigate('BatchManagement' as any)}
+          />
+        )}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="DeliveryStats">
+        {(props) => <DeliveryStatsScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
       </Drawer.Screen>
 
       <Drawer.Screen name="DriverDeliveries" component={DriverDeliveriesScreen} />
@@ -205,6 +249,18 @@ export default function DrawerNavigator({ onLogout }: { onLogout: () => void }) 
             onMenuPress={() => props.navigation.toggleDrawer()}
           />
         )}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="CronManagement">
+        {(props) => <CronManagementScreen onMenuPress={() => props.navigation.toggleDrawer()} />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="SendPushNotification">
+        {() => <SendPushNotificationScreen />}
+      </Drawer.Screen>
+
+      <Drawer.Screen name="OrderCharges">
+        {() => <OrderChargesScreen />}
       </Drawer.Screen>
 
       <Drawer.Screen name="Coupons">

@@ -21,17 +21,17 @@ class ReferralService {
    * GET /api/referrals/admin/list
    */
   async getReferrals(params?: GetReferralsParams): Promise<ReferralListResponse> {
-    const queryParams = new URLSearchParams();
+    const parts: string[] = [];
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
+          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
         }
       });
     }
 
-    const queryString = queryParams.toString();
+    const queryString = parts.join('&');
     const endpoint = `/api/referrals/admin/list${queryString ? `?${queryString}` : ''}`;
 
     const response = await apiService.get<{

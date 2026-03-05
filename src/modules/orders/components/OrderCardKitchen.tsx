@@ -10,7 +10,7 @@ import {
   Vibration,
 } from 'react-native';
 import {Order, OrderStatus, MenuType} from '../../../types/api.types';
-import {formatDistanceToNow} from 'date-fns';
+
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { wp, hp, rf, rs } from '../../../theme/responsive';
 import AutoAcceptBadge from './AutoAcceptBadge';
@@ -83,9 +83,18 @@ const getMenuTypeColor = (menuType: MenuType): string => {
   return menuType === 'MEAL_MENU' ? '#34C759' : '#007AFF';
 };
 
-const formatTimeAgo = (date: string): string => {
+const formatDateTime = (date: string): string => {
   try {
-    return formatDistanceToNow(new Date(date), {addSuffix: true});
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[d.getMonth()];
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
   } catch {
     return 'Unknown';
   }
@@ -215,7 +224,7 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
               {order.orderNumber || 'N/A'}
             </Text>
             <Text style={styles.timeAgo} numberOfLines={1}>
-              {formatTimeAgo(order.placedAt)}
+              {formatDateTime(order.placedAt)}
             </Text>
           </View>
 
@@ -252,6 +261,19 @@ const OrderCardKitchen: React.FC<OrderCardKitchenProps> = ({
 
         {/* Auto-Accept Badge */}
         <AutoAcceptBadge order={order} size="small" showLabel={true} />
+
+        {/* Scheduled Delivery Date */}
+        {(order.orderSource === 'SCHEDULED' || order.isScheduledMeal || order.status === 'SCHEDULED') && (
+          <View style={styles.scheduledDateRow}>
+            <Icon name="event" size={16} color="#6366f1" style={styles.compactIcon} />
+            <Text style={styles.scheduledDateText} numberOfLines={1}>
+              Scheduled for: {new Date(order.scheduledFor || order.estimatedDeliveryTime || order.createdAt).toLocaleString('en-IN', {
+                weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+              })}
+            </Text>
+          </View>
+        )}
 
         {/* Customer Info - Compact - Only show if customer name is available */}
         {order.userId?.name && (
@@ -523,6 +545,23 @@ const styles = StyleSheet.create({
   compactPhoneButton: {
     padding: 4,
     marginLeft: 4,
+  },
+  scheduledDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: rs(8),
+    backgroundColor: '#eef2ff',
+    padding: rs(8),
+    borderRadius: rs(6),
+    borderLeftWidth: 3,
+    borderLeftColor: '#6366f1',
+  },
+  scheduledDateText: {
+    flex: 1,
+    fontSize: rf(13),
+    fontWeight: '700',
+    color: '#4338ca',
+    lineHeight: rf(18),
   },
   tagsRow: {
     flexDirection: 'row',

@@ -10,13 +10,16 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Slider from '@react-native-community/slider';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import adminDashboardService, { DeliveryConfig } from '../../../services/admin-dashboard.service';
 import { Card } from '../../../components/common/Card';
 import { useAlert } from '../../../hooks/useAlert';
+import { useNavigation } from '../../../context/NavigationContext';
 
 const DeliveryConfigScreen: React.FC = () => {
   const queryClient = useQueryClient();
   const { showSuccess, showError } = useAlert();
+  const { goBack } = useNavigation();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['deliveryConfig'],
@@ -58,14 +61,26 @@ const DeliveryConfigScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-50">
-        <ActivityIndicator size="large" color="#F56B4C" />
-      </View>
+      <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
+        <View className="flex-1 justify-center items-center bg-gray-50">
+          <ActivityIndicator size="large" color="#F56B4C" />
+          <Text className="text-gray-500 mt-2">Loading config...</Text>
+        </View>
+      </SafeAreaScreen>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
+      {/* Header */}
+      <View className="bg-[#F56B4C] px-4 pb-3 pt-2 flex-row items-center">
+        <TouchableOpacity onPress={goBack} className="mr-4">
+          <Icon name="arrow-back" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text className="text-white text-xl font-semibold">Batch Configuration</Text>
+      </View>
+
+      <ScrollView className="flex-1">
       {/* Max Batch Size */}
       <View className="p-4">
         <Card className="p-4">
@@ -226,7 +241,8 @@ const DeliveryConfigScreen: React.FC = () => {
           )}
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaScreen>
   );
 };
 

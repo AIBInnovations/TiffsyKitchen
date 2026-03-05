@@ -3,9 +3,12 @@
  *
  * Combined dashboard + list view for managing the referral program.
  * Shows analytics, config toggle, and browsable referral list.
+ *
+ * Uses manual state management (same pattern as CouponsManagementScreen)
+ * instead of useApi hook for reliability.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,13 +22,12 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { colors } from '../../../theme/colors';
 import { spacing } from '../../../theme/spacing';
-import { useApi } from '../../../hooks/useApi';
 import { referralService } from '../../../services/referral.service';
 import {
   Referral,
-  ReferralListResponse,
   ReferralAnalytics,
   ReferralConfig,
   ReferralStatus,
@@ -45,94 +47,125 @@ const FILTER_TABS: { id: FilterTab; label: string }[] = [
   { id: 'CANCELLED', label: 'Cancelled' },
 ];
 
-const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
-  const [configLoading, setConfigLoading] = useState(false);
+export const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
+  // Data state
+  const [analytics, setAnalytics] = useState<ReferralAnalytics | null>(null);
+  const [config, setConfig] = useState<ReferralConfig | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+
+  // Loading state
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch analytics
-  const {
-    data: analytics,
-    loading: analyticsLoading,
-    refresh: refreshAnalytics,
-  } = useApi<ReferralAnalytics>('/api/referrals/admin/analytics', { cache: 30000 });
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  // Fetch config
-  const {
-    data: config,
-    loading: configLoadingInitial,
-    refresh: refreshConfig,
-  } = useApi<ReferralConfig>('/api/referrals/admin/config', { cache: 30000 });
+  // Filter
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('ALL');
 
-  // Fetch referrals with pagination
-  const filterQuery = useMemo(() => {
-    const params = new URLSearchParams();
-    if (activeFilter !== 'ALL') params.append('status', activeFilter);
-    params.append('page', '1');
-    params.append('limit', '20');
-    return params.toString() ? `?${params.toString()}` : '';
+  // Error
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch all data
+  const fetchData = useCallback(async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const [analyticsRes, configRes, referralsRes] = await Promise.all([
+        referralService.getAnalytics().catch((err) => {
+          console.log('Analytics fetch error:', err);
+          return null;
+        }),
+        referralService.getConfig().catch((err) => {
+          console.log('Config fetch error:', err);
+          return null;
+        }),
+        referralService.getReferrals({
+          page: 1,
+          limit: 20,
+          status: activeFilter !== 'ALL' ? (activeFilter as ReferralStatus) : undefined,
+        }).catch((err) => {
+          console.log('Referrals fetch error:', err);
+          return null;
+        }),
+      ]);
+
+      if (analyticsRes) setAnalytics(analyticsRes);
+      if (configRes) setConfig(configRes);
+      if (referralsRes) {
+        setReferrals(referralsRes.referrals || []);
+        setPage(1);
+        const pagination = referralsRes.pagination;
+        setHasMore(pagination ? pagination.page < pagination.pages : false);
+      }
+    } catch (err: any) {
+      console.error('ReferralManagementScreen fetch error:', err);
+      setError(err.message || 'Failed to load referral data');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [activeFilter]);
 
-  const {
-    data: referralsData,
-    loading: referralsLoading,
-    refresh: refreshReferrals,
-  } = useApi<ReferralListResponse>(`/api/referrals/admin/list${filterQuery}`, {
-    cache: 10000,
-    dependencies: [activeFilter],
-  });
+  // Initial load
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  // Sync first page data to state
-  React.useEffect(() => {
-    if (referralsData?.referrals) {
-      setReferrals(referralsData.referrals);
-      setPage(1);
-      const pagination = referralsData.pagination;
-      setHasMore(pagination ? pagination.page < pagination.pages : false);
-    }
-  }, [referralsData]);
+  // Handle filter change
+  const handleFilterChange = useCallback((filter: FilterTab) => {
+    setActiveFilter(filter);
+    setReferrals([]);
+    setPage(1);
+    setHasMore(true);
+  }, []);
 
   const handleLoadMore = useCallback(async () => {
-    if (!hasMore || loadingMore || referralsLoading) return;
+    if (!hasMore || loadingMore || loading) return;
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
       const result = await referralService.getReferrals({
         page: nextPage,
         limit: 20,
-        status: activeFilter !== 'ALL' ? activeFilter as ReferralStatus : undefined,
+        status: activeFilter !== 'ALL' ? (activeFilter as ReferralStatus) : undefined,
       });
-      setReferrals(prev => [...prev, ...result.referrals]);
-      setPage(nextPage);
-      setHasMore(result.pagination ? result.pagination.page < result.pagination.pages : false);
-    } catch (error) {
-      console.error('Error loading more referrals:', error);
+      if (result) {
+        setReferrals((prev) => [...prev, ...(result.referrals || [])]);
+        setPage(nextPage);
+        setHasMore(result.pagination ? result.pagination.page < result.pagination.pages : false);
+      }
+    } catch (err) {
+      console.error('Error loading more referrals:', err);
     } finally {
       setLoadingMore(false);
     }
-  }, [hasMore, loadingMore, referralsLoading, page, activeFilter]);
+  }, [hasMore, loadingMore, loading, page, activeFilter]);
 
-  const handleRefresh = useCallback(async () => {
-    setPage(1);
-    setHasMore(true);
-    await Promise.all([refreshAnalytics(), refreshConfig(), refreshReferrals()]);
-  }, [refreshAnalytics, refreshConfig, refreshReferrals]);
+  const handleRefresh = useCallback(() => {
+    fetchData(true);
+  }, [fetchData]);
 
   const handleToggleEnabled = useCallback(async (newValue: boolean) => {
     setConfigLoading(true);
     try {
-      await referralService.updateConfig({ enabled: newValue });
-      await refreshConfig();
+      const updated = await referralService.updateConfig({ enabled: newValue });
+      if (updated) setConfig(updated);
       Alert.alert('Success', `Referral program ${newValue ? 'enabled' : 'disabled'}`);
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update config');
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update config');
     } finally {
       setConfigLoading(false);
     }
-  }, [refreshConfig]);
+  }, []);
 
   const getStatusColor = (status: ReferralStatus) => {
     switch (status) {
@@ -155,17 +188,21 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
   };
 
   const formatDate = (dateString: string) => {
-    const d = new Date(dateString);
-    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+    } catch {
+      return dateString;
+    }
   };
 
   const renderStatsCards = () => {
     if (!analytics) return null;
 
     const cards = [
-      { label: 'Total', value: analytics.totalReferrals, icon: 'people', color: colors.info },
-      { label: 'Converted', value: analytics.totalConverted, icon: 'check-circle', color: colors.success },
-      { label: 'Pending', value: analytics.totalPending, icon: 'hourglass-empty', color: colors.warning },
+      { label: 'Total', value: analytics.totalReferrals || 0, icon: 'people', color: colors.info },
+      { label: 'Converted', value: analytics.totalConverted || 0, icon: 'check-circle', color: colors.success },
+      { label: 'Pending', value: analytics.totalPending || 0, icon: 'hourglass-empty', color: colors.warning },
       { label: 'Conv. Rate', value: `${(analytics.conversionRate || 0).toFixed(1)}%`, icon: 'trending-up', color: colors.primary },
     ];
 
@@ -188,10 +225,10 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
         <View style={{ flex: 1 }}>
           <Text style={styles.configTitle}>Referral Program</Text>
           <Text style={styles.configSubtitle}>
-            {config?.enabled ? 'Active — new referrals are being processed' : 'Disabled — no new conversions will fire'}
+            {config?.enabled ? 'Active - new referrals are being processed' : 'Disabled - no new conversions will fire'}
           </Text>
         </View>
-        {configLoading || configLoadingInitial ? (
+        {configLoading ? (
           <ActivityIndicator size="small" color={colors.primary} />
         ) : (
           <Switch
@@ -206,19 +243,19 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
         <View style={styles.configDetails}>
           <View style={styles.configDetailItem}>
             <Text style={styles.configDetailLabel}>Referrer Reward</Text>
-            <Text style={styles.configDetailValue}>{config.referrerReward.voucherCount} meals</Text>
+            <Text style={styles.configDetailValue}>{config.referrerReward?.voucherCount || 0} meals</Text>
           </View>
           <View style={styles.configDetailItem}>
             <Text style={styles.configDetailLabel}>Referee Reward</Text>
-            <Text style={styles.configDetailValue}>{config.refereeReward.voucherCount} meals</Text>
+            <Text style={styles.configDetailValue}>{config.refereeReward?.voucherCount || 0} meals</Text>
           </View>
           <View style={styles.configDetailItem}>
             <Text style={styles.configDetailLabel}>Window</Text>
-            <Text style={styles.configDetailValue}>{config.conversionWindowDays} days</Text>
+            <Text style={styles.configDetailValue}>{config.conversionWindowDays || 0} days</Text>
           </View>
           <View style={styles.configDetailItem}>
             <Text style={styles.configDetailLabel}>Max/User</Text>
-            <Text style={styles.configDetailValue}>{config.maxReferralsPerUser}</Text>
+            <Text style={styles.configDetailValue}>{config.maxReferralsPerUser || 0}</Text>
           </View>
         </View>
       )}
@@ -232,16 +269,16 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
       <View style={styles.sectionCard}>
         <Text style={styles.sectionTitle}>Top Referrers</Text>
         {analytics.topReferrers.slice(0, 5).map((referrer, i) => (
-          <View key={referrer.userId} style={styles.topReferrerRow}>
+          <View key={referrer.userId || String(i)} style={styles.topReferrerRow}>
             <View style={[styles.rankBadge, i === 0 && { backgroundColor: '#FEF3C7' }]}>
               <Text style={[styles.rankText, i === 0 && { color: '#D97706' }]}>#{i + 1}</Text>
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <Text style={styles.referrerName}>{referrer.name}</Text>
-              <Text style={styles.referrerPhone}>{referrer.phone}</Text>
+              <Text style={styles.referrerName}>{referrer.name || 'Unknown'}</Text>
+              <Text style={styles.referrerPhone}>{referrer.phone || ''}</Text>
             </View>
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.referrerCount}>{referrer.convertedCount}/{referrer.referralCount}</Text>
+              <Text style={styles.referrerCount}>{referrer.convertedCount || 0}/{referrer.referralCount || 0}</Text>
               <Text style={styles.referrerSubtext}>converted</Text>
             </View>
           </View>
@@ -259,7 +296,7 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
             <TouchableOpacity
               key={tab.id}
               style={[styles.filterTab, isActive && styles.filterTabActive]}
-              onPress={() => setActiveFilter(tab.id)}
+              onPress={() => handleFilterChange(tab.id)}
             >
               <Text style={[styles.filterTabText, isActive && styles.filterTabTextActive]}>
                 {tab.label}
@@ -276,10 +313,10 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
       <View style={styles.referralHeader}>
         <View style={{ flex: 1 }}>
           <Text style={styles.referralReferrer}>
-            {item.referrerUserId?.name || 'Unknown'} → {item.refereeUserId?.name || 'Unknown'}
+            {item.referrerUserId?.name || 'Unknown'} {'->'} {item.refereeUserId?.name || 'Unknown'}
           </Text>
           <Text style={styles.referralPhone}>
-            {item.referrerUserId?.phone} → {item.refereeUserId?.phone}
+            {item.referrerUserId?.phone || ''} {'->'} {item.refereeUserId?.phone || ''}
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusBg(item.status) }]}>
@@ -288,7 +325,7 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
           </Text>
         </View>
       </View>
-      <View style={styles.referralDetails}>
+      <View style={styles.referralMeta}>
         <View style={styles.referralDetail}>
           <Icon name="code" size={14} color={colors.textMuted} />
           <Text style={styles.referralDetailText}>{item.referralCode}</Text>
@@ -301,7 +338,7 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
           <View style={styles.referralDetail}>
             <Icon name="card-giftcard" size={14} color={colors.success} />
             <Text style={[styles.referralDetailText, { color: colors.success }]}>
-              +{item.referrerReward.voucherCount} meals (referrer){item.refereeReward ? `, +${item.refereeReward.voucherCount} (referee)` : ''}
+              +{item.referrerReward.voucherCount} referrer{item.refereeReward ? `, +${item.refereeReward.voucherCount} referee` : ''}
             </Text>
           </View>
         )}
@@ -322,19 +359,24 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
   );
 
   const renderEmpty = () => {
-    if (referralsLoading) return null;
+    if (loading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Icon name="people-outline" size={48} color={colors.gray300} />
-        <Text style={styles.emptyText}>No referrals found</Text>
+        <Icon name="people" size={48} color={colors.gray300} />
+        <Text style={styles.emptyText}>
+          {error ? error : 'No referrals found'}
+        </Text>
+        {error && (
+          <TouchableOpacity style={styles.retryButton} onPress={() => fetchData()}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
 
-  const isLoading = analyticsLoading || referralsLoading;
-
   return (
-    <View style={styles.container}>
+    <SafeAreaScreen topBackgroundColor={colors.primary} bottomBackgroundColor={colors.background} backgroundColor={colors.background}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
@@ -344,9 +386,10 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
         <View style={{ width: 40 }} />
       </View>
 
-      {isLoading ? (
+      {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading referral data...</Text>
         </View>
       ) : (
         <FlatList
@@ -355,34 +398,38 @@ const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
           keyExtractor={(item) => item._id}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={renderEmpty}
-          ListFooterComponent={loadingMore ? (
-            <View style={{ paddingVertical: spacing.lg, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={colors.primary} />
-            </View>
-          ) : null}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : null
+          }
           contentContainerStyle={styles.listContent}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           refreshControl={
-            <RefreshControl refreshing={analyticsLoading || referralsLoading} onRefresh={handleRefresh} colors={[colors.primary]} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]}
+            />
           }
         />
       )}
-    </View>
+    </SafeAreaScreen>
   );
 };
 
+export default ReferralManagementScreen;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
     backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 48,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     paddingHorizontal: spacing.lg,
   },
   menuButton: {
@@ -405,8 +452,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+  },
   listContent: {
     paddingBottom: 40,
+  },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
 
   // Stats
@@ -414,13 +470,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    gap: spacing.sm,
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.card,
     borderRadius: spacing.borderRadiusLg,
     padding: spacing.md,
+    marginHorizontal: 4,
     alignItems: 'center',
     borderLeftWidth: 3,
     shadowColor: colors.black,
@@ -475,14 +531,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.divider,
-    gap: spacing.sm,
   },
   configDetailItem: {
-    flex: 1,
-    minWidth: '40%',
+    width: '48%',
     backgroundColor: colors.gray50,
     borderRadius: spacing.borderRadiusMd,
     padding: spacing.sm,
+    marginBottom: spacing.sm,
+    marginRight: '2%',
   },
   configDetailLabel: {
     fontSize: 10,
@@ -623,20 +679,21 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  referralDetails: {
+  referralMeta: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: spacing.md,
-    gap: spacing.md,
   },
   referralDetail: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    marginRight: spacing.md,
+    marginBottom: 4,
   },
   referralDetailText: {
     fontSize: 12,
     color: colors.textMuted,
+    marginLeft: 4,
   },
 
   // Empty
@@ -648,7 +705,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     marginTop: spacing.md,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  retryButton: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.primary,
+    borderRadius: spacing.borderRadiusMd,
+  },
+  retryText: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
-
-export default ReferralManagementScreen;

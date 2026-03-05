@@ -13,8 +13,16 @@ export type DrawerParamList = {
   Dashboard: undefined;
   Orders: undefined;
   KitchenOrders: undefined;
+  MenuManagement: undefined;
+  KitchenProfile: undefined;
+  KitchenApprovals: undefined;
   BatchManagement: undefined;
+  DeliveryManagement: undefined;
+  DeliverySettingsHub: undefined;
+  BatchMonitoring: undefined;
+  DeliveryStats: undefined;
   DriverDeliveries: undefined;
+  DriverApprovals: undefined;
   DriverOrdersBatches: undefined;
   Users: undefined;
   Drivers: undefined;
@@ -22,6 +30,9 @@ export type DrawerParamList = {
   Zones: undefined;
   Subscriptions: undefined;
   AutoOrderAddons: undefined;
+  CronManagement: undefined;
+  SendPushNotification: undefined;
+  OrderCharges: undefined;
   Coupons: undefined;
   Referrals: undefined;
   Settings: undefined;

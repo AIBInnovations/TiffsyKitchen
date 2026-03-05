@@ -1,1 +1,1 @@
-export { default as ReferralManagementScreen } from './screens/ReferralManagementScreen';
+export { ReferralManagementScreen } from './screens/ReferralManagementScreen';

@@ -29,6 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' | 'AUTO_ORDERS' }[] = [
   { label: 'All', value: 'ALL' },
+  { label: 'Scheduled', value: 'SCHEDULED' },
   { label: 'Pending', value: 'PENDING_KITCHEN_ACCEPTANCE' },
   { label: 'Placed', value: 'PLACED' },
   { label: 'Accepted', value: 'ACCEPTED' },
@@ -36,6 +37,14 @@ const STATUS_FILTERS: { label: string; value: OrderStatus | 'ALL' | 'AUTO_ORDERS
   { label: 'Preparing', value: 'PREPARING' },
   { label: 'Ready', value: 'READY' },
 ];
+
+const getTodayDateString = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const MEAL_WINDOW_FILTERS: { label: string; value: 'ALL' | 'LUNCH' | 'DINNER' }[] = [
   { label: 'All', value: 'ALL' },
@@ -61,7 +70,7 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [pendingAcceptOrderId, setPendingAcceptOrderId] = useState<string | null>(null);
   const [pendingRejectOrderId, setPendingRejectOrderId] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayDateString());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
@@ -92,24 +101,48 @@ const KitchenOrdersScreen: React.FC<KitchenOrdersScreenProps> = ({
     isFetching,
   } = useQuery({
     queryKey: ['kitchenOrders', selectedStatus, selectedMealWindow, selectedDate, page],
-    queryFn: () =>
-      ordersService.getKitchenOrders({
-        status: selectedStatus === 'ALL' || selectedStatus === 'AUTO_ORDERS' ? undefined : selectedStatus,
+    queryFn: () => {
+      const params: any = {
         mealWindow: selectedMealWindow === 'ALL' ? undefined : selectedMealWindow,
-        date: selectedDate || undefined,
         page,
         limit: 50,
-      }),
+      };
+      // For SCHEDULED filter, use orderSource instead of status
+      // because scheduled orders transition to PLACED/ACCEPTED etc. but keep orderSource='SCHEDULED'
+      if (selectedStatus === 'SCHEDULED') {
+        params.orderSource = 'SCHEDULED';
+      } else if (selectedStatus !== 'ALL' && selectedStatus !== 'AUTO_ORDERS') {
+        params.status = selectedStatus;
+      }
+      // Skip date filter for SCHEDULED orders (they have future delivery dates)
+      if (selectedStatus !== 'SCHEDULED') {
+        params.date = selectedDate || undefined;
+      }
+      return ordersService.getKitchenOrders(params);
+    },
   });
 
-  // Filter orders for auto-orders view
+  // Helper to check if an order is scheduled
+  const isScheduledOrder = (order: Order) =>
+    order.orderSource === 'SCHEDULED' || order.isScheduledMeal || order.status === 'SCHEDULED';
+
+  // Filter orders for auto-orders view, exclude SCHEDULED from "All"
   const filteredOrders = useMemo(() => {
+    const orders = ordersData?.orders || [];
     if (selectedStatus === 'AUTO_ORDERS') {
-      return ordersData?.orders.filter(order =>
+      return orders.filter(order =>
         isAutoOrder(order) || isAutoAccepted(order)
-      ) || [];
+      );
     }
-    return ordersData?.orders || [];
+    if (selectedStatus === 'ALL') {
+      // Exclude scheduled orders from "All" view
+      return orders.filter(order => !isScheduledOrder(order));
+    }
+    if (selectedStatus === 'SCHEDULED') {
+      // Client-side filter: show orders that are scheduled (via any field)
+      return orders.filter(order => isScheduledOrder(order));
+    }
+    return orders;
   }, [ordersData, selectedStatus]);
 
   // Update order status mutation (Kitchen-specific endpoint)

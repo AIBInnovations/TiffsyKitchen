@@ -15,6 +15,7 @@ import {
 
 export interface GetOrdersParams extends PaginationParams {
   status?: OrderStatus;
+  orderSource?: 'DIRECT' | 'SCHEDULED' | 'AUTO_ORDER';
   kitchenId?: string;
   zoneId?: string;
   userId?: string;
@@ -510,6 +511,7 @@ class OrdersService {
    */
   async getKitchenOrders(params?: {
     status?: OrderStatus;
+    orderSource?: 'DIRECT' | 'SCHEDULED' | 'AUTO_ORDER';
     mealWindow?: 'LUNCH' | 'DINNER';
     date?: string;
     page?: number;

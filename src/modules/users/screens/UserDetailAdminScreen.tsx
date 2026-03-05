@@ -22,6 +22,7 @@ import { SuspendUserModal } from '../components/SuspendUserModal';
 import { ResetPasswordModal } from '../components/ResetPasswordModal';
 import { EditUserModal } from '../components/EditUserModal';
 import { useAlert } from '../../../hooks/useAlert';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 
 interface UserDetailAdminScreenProps {
   userId: string;
@@ -209,47 +210,52 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.black} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>User Details</Text>
-          <View style={styles.placeholder} />
+      <SafeAreaScreen topBackgroundColor={colors.white} bottomBackgroundColor={colors.lightGray} backgroundColor={colors.lightGray}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.black} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>User Details</Text>
+            <View style={styles.placeholder} />
+          </View>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading user details...</Text>
+          </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading user details...</Text>
-        </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   if (error || !userData) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
-            <MaterialIcons name="arrow-back" size={24} color={colors.black} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>User Details</Text>
-          <View style={styles.placeholder} />
+      <SafeAreaScreen topBackgroundColor={colors.white} bottomBackgroundColor={colors.lightGray} backgroundColor={colors.lightGray}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <MaterialIcons name="arrow-back" size={24} color={colors.black} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>User Details</Text>
+            <View style={styles.placeholder} />
+          </View>
+          <View style={styles.errorContainer}>
+            <MaterialIcons name="error-outline" size={64} color={colors.danger} />
+            <Text style={styles.errorTitle}>Failed to load</Text>
+            <Text style={styles.errorSubtitle}>{error || 'User not found'}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => fetchUserDetails()}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={64} color={colors.danger} />
-          <Text style={styles.errorTitle}>Failed to load</Text>
-          <Text style={styles.errorSubtitle}>{error || 'User not found'}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => fetchUserDetails()}>
-            <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </SafeAreaScreen>
     );
   }
 
   const { user, kitchen, stats } = userData;
 
   return (
+    <SafeAreaScreen topBackgroundColor={colors.white} bottomBackgroundColor={colors.lightGray} backgroundColor={colors.lightGray}>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -707,6 +713,7 @@ export const UserDetailAdminScreen: React.FC<UserDetailAdminScreenProps> = ({
         onSuccess={() => fetchUserDetails()}
       />
     </View>
+    </SafeAreaScreen>
   );
 };
 
