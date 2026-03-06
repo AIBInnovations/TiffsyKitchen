@@ -11,7 +11,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAlert } from '../../hooks/useAlert';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
-import { Header } from '../../components/common/Header';
 import { Card } from '../../components/common/Card';
 import {
   notificationService,
@@ -607,10 +606,20 @@ const NotificationHistorySection: React.FC = () => {
 
 // ─── Main Screen ─────────────────────────────────────────────────────
 
-export const SendPushNotificationScreen: React.FC = () => {
+interface SendPushNotificationScreenProps {
+  onMenuPress?: () => void;
+}
+
+export const SendPushNotificationScreen: React.FC<SendPushNotificationScreenProps> = ({ onMenuPress }) => {
   return (
-    <SafeAreaScreen>
-      <Header title="Push Notifications" />
+    <SafeAreaScreen topBackgroundColor="#F56B4C" backgroundColor="#f3f4f6">
+      {/* Header */}
+      <View className="bg-[#F56B4C] px-4 py-3.5 flex-row items-center">
+        <TouchableOpacity onPress={onMenuPress} className="mr-3 p-1">
+          <Icon name="menu" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <Text className="text-white text-lg font-bold flex-1">Push Notifications</Text>
+      </View>
 
       <ScrollView
         className="flex-1 bg-gray-50"

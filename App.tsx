@@ -61,6 +61,7 @@ import { OrderChargesScreen } from './src/modules';
 import { CouponsManagementScreen } from './src/modules/coupons';
 import DeliveryConfigScreen from './src/modules/settings/screens/DeliveryConfigScreen';
 import { ReferralManagementScreen } from './src/modules/referrals';
+import AutoOrderAddonsScreen from './src/modules/orders/screens/AutoOrderAddonsScreen';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -411,7 +412,7 @@ const MainContent: React.FC<{
     case 'SendPushNotification':
       return (
         <PermissionGuard requiredRoles={['ADMIN']} screenName="SendPushNotification" onMenuPress={onMenuPress}>
-          <SendPushNotificationScreen />
+          <SendPushNotificationScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 
@@ -500,7 +501,7 @@ const MainContent: React.FC<{
     case 'OrderCharges':
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
-          <OrderChargesScreen />
+          <OrderChargesScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 
@@ -515,6 +516,13 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} screenName="Referrals" onMenuPress={onMenuPress}>
           <ReferralManagementScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'AutoOrderAddons':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} screenName="AutoOrderAddons" onMenuPress={onMenuPress}>
+          <AutoOrderAddonsScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 

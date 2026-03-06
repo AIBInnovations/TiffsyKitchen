@@ -13,12 +13,14 @@ import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import adminDashboardService, { SystemConfig } from '../../../services/admin-dashboard.service';
 import { Card } from '../../../components/common/Card';
 import { useAlert } from '../../../hooks/useAlert';
-import { useNavigation } from '../../../context/NavigationContext';
 
-const OrderChargesScreen: React.FC = () => {
+interface OrderChargesScreenProps {
+  onMenuPress?: () => void;
+}
+
+const OrderChargesScreen: React.FC<OrderChargesScreenProps> = ({ onMenuPress }) => {
   const queryClient = useQueryClient();
   const { showSuccess, showError } = useAlert();
-  const { goBack } = useNavigation();
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['systemConfig'],
@@ -88,8 +90,8 @@ const OrderChargesScreen: React.FC = () => {
     <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#f9fafb" backgroundColor="#f9fafb">
       {/* Header */}
       <View className="bg-[#F56B4C] px-4 pb-3 pt-2 flex-row items-center">
-        <TouchableOpacity onPress={goBack} className="mr-4">
-          <Icon name="arrow-back" size={24} color="#ffffff" />
+        <TouchableOpacity onPress={onMenuPress} className="mr-4">
+          <Icon name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text className="text-white text-xl font-semibold">Order Charges</Text>
       </View>

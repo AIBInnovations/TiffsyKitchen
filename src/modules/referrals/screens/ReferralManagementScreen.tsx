@@ -383,7 +383,6 @@ export const ReferralManagementScreen: React.FC<Props> = ({ onMenuPress }) => {
           <Icon name="menu" size={24} color={colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Referral Program</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       {loading && !refreshing ? (
@@ -433,16 +432,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   menuButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 4,
+    marginRight: 12,
   },
   headerTitle: {
     flex: 1,
-    textAlign: 'center',
     fontSize: 18,
     fontWeight: '700',
     color: colors.white,

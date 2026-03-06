@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 
 } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { useAlert } from '../../hooks/useAlert';
 import { SafeAreaScreen } from '../../components/common/SafeAreaScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -24,10 +25,17 @@ import {
   DatePickerModal,
 } from '../../components/dashboard';
 import DeliveryOverviewCard from '../../modules/delivery/components/DeliveryOverviewCard';
-import { useApi } from '../../hooks/useApi';
+import adminDashboardService from '../../services/admin-dashboard.service';
 import { DashboardData } from '../../types/api.types';
 import { OrderStatus as DashboardOrderStatus } from '../../types/dashboard';
 import { useInAppNotifications } from '../../context/InAppNotificationContext';
+
+const DATE_RANGES = [
+  { label: 'Today', getValue: () => { const d = new Date().toISOString().split('T')[0]; return { dateFrom: d, dateTo: d }; } },
+  { label: '7 Days', getValue: () => { const to = new Date(); const from = new Date(); from.setDate(from.getDate() - 7); return { dateFrom: from.toISOString().split('T')[0], dateTo: to.toISOString().split('T')[0] }; } },
+  { label: '30 Days', getValue: () => { const to = new Date(); const from = new Date(); from.setDate(from.getDate() - 30); return { dateFrom: from.toISOString().split('T')[0], dateTo: to.toISOString().split('T')[0] }; } },
+  { label: 'All Time', getValue: () => ({}) },
+];
 
 interface DashboardScreenProps {
   onMenuPress: () => void;
@@ -43,13 +51,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedRange, setSelectedRange] = useState(0);
   const { showInfo } = useAlert();
 
   // Fetch real dashboard data from API
-  const { data: apiData, loading, error, refresh } = useApi<DashboardData>(
-    '/api/admin/dashboard',
-    { cache: 30000, autoFetch: true } // Cache for 30 seconds, auto-fetch on mount
-  );
+  const { data: apiData, isLoading: loading, isFetching, error: queryError, refetch } = useQuery<DashboardData>({
+    queryKey: ['adminDashboard', selectedRange],
+    queryFn: () => adminDashboardService.getDashboard(),
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+  const error = queryError ? (queryError as Error).message : null;
 
   // Get unread notification count
   const { unreadCount } = useInAppNotifications();
@@ -65,7 +77,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
 
   const handleRefresh = async () => {
-    await refresh();
+    await refetch();
   };
 
   const handleOrderStatusPress = (status: string) => {
@@ -209,14 +221,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const getOrderStatus = () => {
     if (!apiData) return [];
 
-    // Use today's orders for pending status
+    // Only pendingOrders is real data; others are estimates until API provides per-status counts
+    const pendingOrders = apiData.pendingActions.pendingOrders;
+    const remaining = Math.max(0, apiData.today.orders - pendingOrders);
     return [
-      { status: 'ordered' as DashboardOrderStatus, label: 'Pending', icon: 'pending', count: apiData.pendingActions.pendingOrders, color: '#f59e0b' },
-      { status: 'confirmed' as DashboardOrderStatus, label: 'Confirmed', icon: 'check-circle', count: Math.round(apiData.today.orders * 0.3), color: '#3b82f6' },
-      { status: 'preparing' as DashboardOrderStatus, label: 'Preparing', icon: 'restaurant-menu', count: Math.round(apiData.today.orders * 0.25), color: '#8b5cf6' },
-      { status: 'out_for_delivery' as DashboardOrderStatus, label: 'Out for Delivery', icon: 'delivery-dining', count: Math.round(apiData.today.orders * 0.2), color: '#06b6d4' },
-      { status: 'delivered' as DashboardOrderStatus, label: 'Delivered', icon: 'done-all', count: Math.round(apiData.today.orders * 0.15), color: '#10b981' },
-      { status: 'cancelled' as DashboardOrderStatus, label: 'Cancelled', icon: 'cancel', count: Math.round(apiData.today.orders * 0.1), color: '#ef4444' },
+      { status: 'ordered' as DashboardOrderStatus, label: 'Pending', icon: 'pending', count: pendingOrders, color: '#f59e0b' },
+      { status: 'confirmed' as DashboardOrderStatus, label: 'Confirmed', icon: 'check-circle', count: Math.round(remaining * 0.33), color: '#3b82f6' },
+      { status: 'preparing' as DashboardOrderStatus, label: 'Preparing', icon: 'restaurant-menu', count: Math.round(remaining * 0.27), color: '#8b5cf6' },
+      { status: 'out_for_delivery' as DashboardOrderStatus, label: 'Out for Delivery', icon: 'delivery-dining', count: Math.round(remaining * 0.20), color: '#06b6d4' },
+      { status: 'delivered' as DashboardOrderStatus, label: 'Delivered', icon: 'done-all', count: Math.round(remaining * 0.13), color: '#10b981' },
+      { status: 'cancelled' as DashboardOrderStatus, label: 'Cancelled', icon: 'cancel', count: Math.round(remaining * 0.07), color: '#ef4444' },
     ];
   };
 
@@ -242,8 +256,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const label = dayLabels[date.getDay()];
 
-      // Use today's actual data for today, scale down for other days
-      const multiplier = i === 0 ? 1 : 0.7 + Math.random() * 0.5;
+      // Deterministic scaling factors for past days (today = 1.0)
+      const dayFactors = [0.75, 0.82, 0.90, 0.78, 0.95, 0.88, 1.0];
+      const multiplier = dayFactors[6 - i];
 
       points.push({
         date: date.toISOString().split('T')[0],
@@ -322,18 +337,33 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
-                refreshing={loading && !!apiData}
+                refreshing={isFetching && !!apiData}
                 onRefresh={handleRefresh}
                 colors={['#F56B4C']}
                 tintColor="#F56B4C"
               />
             }
           >
-            {/* Filter Bar - Removed */}
-            {/* <FilterBar
+            {/* Date Range Quick Filters */}
+            <View style={styles.dateRangeRow}>
+              {DATE_RANGES.map((range, index) => (
+                <TouchableOpacity
+                  key={range.label}
+                  onPress={() => setSelectedRange(index)}
+                  style={[styles.dateRangeChip, selectedRange === index && styles.dateRangeChipActive]}
+                >
+                  <Text style={[styles.dateRangeText, selectedRange === index && styles.dateRangeTextActive]}>
+                    {range.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Date Picker */}
+            <FilterBar
               selectedDate={selectedDate}
               onDatePress={handleDatePress}
-            /> */}
+            />
 
             {/* KPI Cards */}
             <SectionHeader title="Today's Overview" />
@@ -386,13 +416,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
           </ScrollView>
         )}
 
-        {/* Date Picker Modal - Commented out */}
-        {/* <DatePickerModal
+        <DatePickerModal
           visible={datePickerVisible}
           selectedDate={selectedDate}
           onClose={() => setDatePickerVisible(false)}
           onDateSelect={handleDateSelect}
-        /> */}
+        />
       </View>
     </SafeAreaScreen>
   );
@@ -523,6 +552,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  dateRangeRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  dateRangeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  dateRangeChipActive: {
+    backgroundColor: '#F56B4C',
+    borderColor: '#F56B4C',
+  },
+  dateRangeText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  dateRangeTextActive: {
+    color: '#ffffff',
+    fontWeight: '600',
   },
 });
 

@@ -17,7 +17,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaScreen } from '../../../components/common/SafeAreaScreen';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiService } from '../../../services/api.service';
 import { useAlert } from '../../../hooks/useAlert';
@@ -210,7 +210,7 @@ const AutoOrderAddonsScreen = ({ onMenuPress }: AutoOrderAddonsScreenProps) => {
   // ---- Main render ----------------------------------------------------------
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaScreen topBackgroundColor="#F56B4C" bottomBackgroundColor="#F9FAFB" backgroundColor="#F9FAFB">
       {/* Header */}
       <View style={styles.header}>
         {onMenuPress && (
@@ -323,7 +323,7 @@ const AutoOrderAddonsScreen = ({ onMenuPress }: AutoOrderAddonsScreenProps) => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaScreen>
   );
 };
 

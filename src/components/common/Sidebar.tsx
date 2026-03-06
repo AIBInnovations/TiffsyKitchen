@@ -130,7 +130,7 @@ const CollapsibleGroup: React.FC<{
 
       {/* Group items */}
       {expanded && (
-        <View style={{ marginLeft: 30, borderLeftWidth: 2, borderLeftColor: '#e5e7eb' }}>
+        <View style={{ marginLeft: 20, borderLeftWidth: 2, borderLeftColor: '#e5e7eb' }}>
           {items.map((item) => (
             <MenuItemRow
               key={item.id}
@@ -330,7 +330,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onPress={handleLogout}
               className="flex-row items-center py-2"
             >
-              <Icon name="logout" size={24} color="#F56B4C" style={{ marginRight: 16 }} />
+              <Icon name="logout" size={24} color="#F56B4C" style={{ marginRight: 14 }} />
               <Text className="text-red-500 font-medium text-base">Logout</Text>
             </TouchableOpacity>
           </View>
