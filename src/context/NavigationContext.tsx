@@ -56,7 +56,9 @@ export type ScreenName =
   | 'Banners'
   | 'ServiceZones'
   | 'KitchenDeliveryZones'
-  | 'Reviews';
+  | 'Reviews'
+  | 'BulkDiscounts'
+  | 'Corporates';
 
 interface NavigationContextType {
   currentScreen: ScreenName;

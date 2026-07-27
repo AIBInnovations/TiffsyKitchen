@@ -221,6 +221,22 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
     group: 'System',
   },
   {
+    id: '27',
+    label: 'Bulk Discounts',
+    icon: 'stacked-bar-chart',
+    screen: 'BulkDiscounts',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
+    id: '28',
+    label: 'Corporates',
+    icon: 'business',
+    screen: 'Corporates',
+    roles: ['ADMIN'],
+    group: 'System',
+  },
+  {
     id: '23',
     label: 'Referrals',
     icon: 'card-giftcard',

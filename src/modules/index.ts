@@ -14,3 +14,5 @@ export { default as AuditLogsScreen } from './audit/screens/AuditLogsScreen';
 export { default as SystemConfigScreen } from './settings/screens/SystemConfigScreen';
 export { default as DeliveryConfigScreen } from './settings/screens/DeliveryConfigScreen';
 export { default as OrderChargesScreen } from './settings/screens/OrderChargesScreen';
+export { default as BulkDiscountScreen } from './settings/screens/BulkDiscountScreen';
+export { default as CorporatesScreen } from './corporates/screens/CorporatesScreen';

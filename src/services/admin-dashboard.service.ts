@@ -172,6 +172,24 @@ export interface SystemConfig {
     failedOrderPolicy: string;
     autoDispatchDelay: number;
   };
+  /** Bulk-quantity discount engine (order-size promo). Tiers replace wholesale on save. */
+  bulkDiscount?: {
+    enabled: boolean;
+    tiers: Array<{
+      minMeals: number;
+      type:
+        | 'PERCENTAGE'
+        | 'FLAT'
+        | 'FREE_DELIVERY'
+        | 'UNIT_PRICE'
+        | 'FREE_MEALS'
+        | 'BONUS_VOUCHER'
+        | 'FREE_ADDON_VALUE'
+        | 'CASHBACK';
+      value: number;
+      maxDiscountAmount?: number | null;
+    }>;
+  };
   taxes: Array<{
     name: string;
     rate: number;

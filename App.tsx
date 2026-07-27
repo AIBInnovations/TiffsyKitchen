@@ -60,7 +60,7 @@ import {
   OrderAcceptanceConfigScreen,
 } from './src/modules/delivery';
 import { CronManagementScreen } from './src/modules/cron';
-import { OrderChargesScreen } from './src/modules';
+import { OrderChargesScreen, BulkDiscountScreen, CorporatesScreen } from './src/modules';
 import { CouponsManagementScreen } from './src/modules/coupons';
 import ReviewsScreen from './src/modules/reviews/screens/ReviewsScreen';
 import DeliveryConfigScreen from './src/modules/settings/screens/DeliveryConfigScreen';
@@ -535,6 +535,20 @@ const MainContent: React.FC<{
       return (
         <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
           <OrderChargesScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'BulkDiscounts':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <BulkDiscountScreen onMenuPress={onMenuPress} />
+        </PermissionGuard>
+      );
+
+    case 'Corporates':
+      return (
+        <PermissionGuard requiredRoles={['ADMIN']} onMenuPress={onMenuPress}>
+          <CorporatesScreen onMenuPress={onMenuPress} />
         </PermissionGuard>
       );
 
