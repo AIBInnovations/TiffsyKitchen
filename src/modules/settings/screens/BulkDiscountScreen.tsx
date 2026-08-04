@@ -17,6 +17,43 @@ import { GradientBox } from '../../../components/common/GradientBox';
 
 type BulkTier = NonNullable<SystemConfig['bulkDiscount']>['tiers'][number];
 type TierType = BulkTier['type'];
+type BulkOrderSettings = NonNullable<SystemConfig['bulkOrder']>;
+
+const BULK_ORDER_DEFAULTS: BulkOrderSettings = {
+  enabled: true,
+  minLeadHours: 12,
+  minThalisPerOrder: 8,
+  maxThalisPerOrder: 100,
+  maxDaysAhead: 30,
+};
+
+// Numeric fields on the Bulk Order card, in display order.
+const BULK_ORDER_FIELDS: Array<{
+  key: keyof Omit<BulkOrderSettings, 'enabled'>;
+  label: string;
+  hint: string;
+}> = [
+  {
+    key: 'minThalisPerOrder',
+    label: 'Minimum thalis',
+    hint: 'Smallest bulk order accepted. Usually matches your entry tier below.',
+  },
+  {
+    key: 'maxThalisPerOrder',
+    label: 'Maximum thalis',
+    hint: 'Largest self-serve order. Bigger groups are told to contact support.',
+  },
+  {
+    key: 'minLeadHours',
+    label: 'Notice required (hours)',
+    hint: "Measured to that meal's order cutoff — 12h on an 11:00 lunch means ordering by 23:00 the night before. 0 = same-day allowed.",
+  },
+  {
+    key: 'maxDaysAhead',
+    label: 'Book up to (days ahead)',
+    hint: 'How far into the future the date picker offers.',
+  },
+];
 
 interface BulkDiscountScreenProps {
   onMenuPress?: () => void;
@@ -56,6 +93,7 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
 
   const [enabled, setEnabled] = useState(false);
   const [tiers, setTiers] = useState<BulkTier[]>([]);
+  const [bulkOrder, setBulkOrder] = useState<BulkOrderSettings>(BULK_ORDER_DEFAULTS);
   // Which tier row has its type picker expanded.
   const [pickerFor, setPickerFor] = useState<number | null>(null);
 
@@ -63,6 +101,9 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
     if (config?.bulkDiscount) {
       setEnabled(config.bulkDiscount.enabled === true);
       setTiers(config.bulkDiscount.tiers || []);
+    }
+    if (config?.bulkOrder) {
+      setBulkOrder({ ...BULK_ORDER_DEFAULTS, ...config.bulkOrder });
     }
   }, [config]);
 
@@ -78,6 +119,19 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
   });
 
   const handleSave = () => {
+    if (bulkOrder.minThalisPerOrder < 1) {
+      showError('Invalid bulk order', 'Minimum thalis must be at least 1');
+      return;
+    }
+    if (bulkOrder.minThalisPerOrder > bulkOrder.maxThalisPerOrder) {
+      showError('Invalid bulk order', 'Minimum thalis cannot exceed maximum thalis');
+      return;
+    }
+    if (bulkOrder.maxDaysAhead < 1) {
+      showError('Invalid bulk order', 'Booking window must be at least 1 day');
+      return;
+    }
+
     // Validate before sending: sane thresholds, values where required.
     for (const t of tiers) {
       if (!t.minMeals || t.minMeals < 2) {
@@ -99,6 +153,7 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
       seen.add(t.minMeals);
     }
     updateMutation.mutate({
+      bulkOrder,
       bulkDiscount: {
         enabled,
         tiers: sorted.map((t) => ({
@@ -109,6 +164,10 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
         })),
       },
     } as Partial<SystemConfig>);
+  };
+
+  const updateBulkOrder = (patch: Partial<BulkOrderSettings>) => {
+    setBulkOrder((prev) => ({ ...prev, ...patch }));
   };
 
   const updateTier = (index: number, patch: Partial<BulkTier>) => {
@@ -146,11 +205,55 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
         <TouchableOpacity onPress={onMenuPress} className="mr-4">
           <Icon name="menu" size={24} color="#ffffff" />
         </TouchableOpacity>
-        <Text className="text-white text-xl font-semibold">Bulk Discounts</Text>
+        <Text className="text-white text-xl font-semibold">Bulk Orders</Text>
       </GradientBox>
 
       <ScrollView className="flex-1">
         <View className="p-4">
+          {/* Bulk ordering: the customer-facing Bulk Order flow (one date, one
+              meal window, many thalis). The tiers below price it, but they also
+              price any large order — these limits govern only this flow. */}
+          <Card className="p-4 mb-4">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1 mr-2">
+                <Icon name="local-shipping" size={24} color="#FE8733" />
+                <View className="ml-2 flex-1">
+                  <Text className="text-lg font-semibold text-gray-800">Bulk Ordering</Text>
+                  <Text className="text-xs text-gray-500 mt-1">
+                    Lets customers order many thalis for one date and meal window,
+                    delivered together. Turning this off hides the Bulk Order page.
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => updateBulkOrder({ enabled: !bulkOrder.enabled })}
+                className={`w-12 h-6 rounded-full ${bulkOrder.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <View className={`w-5 h-5 rounded-full bg-white m-0.5 ${bulkOrder.enabled ? 'self-end' : 'self-start'}`} />
+              </TouchableOpacity>
+            </View>
+
+            {bulkOrder.enabled && (
+              <View className="mt-4">
+                {BULK_ORDER_FIELDS.map((field) => (
+                  <View key={field.key} className="mb-3">
+                    <Text className="text-xs text-gray-500 mb-1">{field.label}</Text>
+                    <TextInput
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-gray-800"
+                      keyboardType="number-pad"
+                      value={String(bulkOrder[field.key] ?? '')}
+                      onChangeText={(v) =>
+                        updateBulkOrder({ [field.key]: parseInt(v, 10) || 0 } as Partial<BulkOrderSettings>)
+                      }
+                      placeholderTextColor="#9CA3AF"
+                    />
+                    <Text className="text-xs text-gray-400 mt-1">{field.hint}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </Card>
+
           {/* Master toggle */}
           <Card className="p-4 mb-4">
             <View className="flex-row items-center justify-between">
@@ -291,7 +394,7 @@ const BulkDiscountScreen: React.FC<BulkDiscountScreenProps> = ({ onMenuPress }) 
             {updateMutation.isPending ? (
               <ActivityIndicator size="small" color="#ffffff" />
             ) : (
-              <Text className="text-white font-bold text-base">Save Bulk Discounts</Text>
+              <Text className="text-white font-bold text-base">Save Bulk Settings</Text>
             )}
           </TouchableOpacity>
         </View>

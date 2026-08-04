@@ -222,7 +222,7 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
   },
   {
     id: '27',
-    label: 'Bulk Discounts',
+    label: 'Bulk Orders',
     icon: 'stacked-bar-chart',
     screen: 'BulkDiscounts',
     roles: ['ADMIN'],

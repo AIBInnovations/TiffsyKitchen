@@ -190,6 +190,18 @@ export interface SystemConfig {
       maxDiscountAmount?: number | null;
     }>;
   };
+  /**
+   * Bulk ordering (one date + one meal window, many thalis, one delivery).
+   * Separate from scheduledMeals, which spreads meals across days.
+   * `minLeadHours` is measured against that slot's order cutoff.
+   */
+  bulkOrder?: {
+    enabled: boolean;
+    minLeadHours: number;
+    minThalisPerOrder: number;
+    maxThalisPerOrder: number;
+    maxDaysAhead: number;
+  };
   taxes: Array<{
     name: string;
     rate: number;
